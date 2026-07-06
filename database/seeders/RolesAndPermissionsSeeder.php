@@ -1,0 +1,24 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class RolesAndPermissionsSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        // Reset cached roles and permissions
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // Create roles
+        \Spatie\Permission\Models\Role::create(['name' => 'Owner']);
+        \Spatie\Permission\Models\Role::create(['name' => 'Manager']);
+        \Spatie\Permission\Models\Role::create(['name' => 'Staff']);
+        \Spatie\Permission\Models\Role::create(['name' => 'Customer']);
+    }
+}
