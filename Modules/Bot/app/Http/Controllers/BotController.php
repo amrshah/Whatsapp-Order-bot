@@ -58,8 +58,16 @@ class BotController extends Controller
      */
     public function destroy($id) {}
 
-    public function handleWebhook(Request $request, $tenant)
+    public function handleWebhook(Request $request, $tenantId)
     {
+        $tenant = \App\Models\Tenant::find($tenantId);
+        if (!$tenant) {
+            return response()->json([
+                'type' => 'text',
+                'text' => ['body' => "Error: Restaurant not found or inactive."]
+            ], 404);
+        }
+
         tenancy()->initialize($tenant);
 
         // Dummy parser to extract message text and sender phone from standard or Meta payload

@@ -61,7 +61,7 @@ export default function Index({ auth, customers }) {
                                                 Rs {customer.total_spent}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {customer.last_order_date ? dayjs(customer.last_order_date).format('MMM D, YYYY') : 'Never'}
+                                                {customer.last_order_date ? dayjs(customer.last_order_date).format('MMM D, YYYY h:mm A') : 'Never'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 {customer.phone && (

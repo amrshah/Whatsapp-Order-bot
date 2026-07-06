@@ -31,7 +31,11 @@ class OrdersController extends Controller
         $order = \Modules\Orders\Models\Order::findOrFail($id);
         $order->update(['status' => $request->status]);
 
-        broadcast(new \App\Events\OrderStatusUpdated($order, tenant('id')));
+        try {
+            broadcast(new \App\Events\OrderStatusUpdated($order, tenant('id')));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Could not broadcast OrderStatusUpdated event. Reverb might be down: " . $e->getMessage());
+        }
 
         return redirect()->back();
     }
