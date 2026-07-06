@@ -14,7 +14,7 @@ class Order extends Model
 
     protected $fillable = [
         'order_number', 'customer_phone', 'customer_name', 
-        'total_amount', 'status', 'order_type', 'delivery_address', 'table_number'
+        'total_amount', 'status', 'order_type', 'delivery_address', 'table_number', 'type', 'source'
     ];
 
     public function items()

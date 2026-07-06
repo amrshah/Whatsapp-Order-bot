@@ -58,30 +58,55 @@ class BotController extends Controller
      */
     public function destroy($id) {}
 
-    public function handleWebhook(Request $request, $tenantId)
+    public function verifyWebhook(Request $request)
     {
-        $tenant = \App\Models\Tenant::find($tenantId);
-        if (!$tenant) {
-            return response()->json([
-                'type' => 'text',
-                'text' => ['body' => "Error: Restaurant not found or inactive."]
-            ], 404);
+        $verifyToken = env('WHATSAPP_VERIFY_TOKEN');
+        $mode = $request->query('hub_mode');
+        $token = $request->query('hub_verify_token');
+        $challenge = $request->query('hub_challenge');
+
+        if ($mode && $token) {
+            if ($mode === 'subscribe' && $token === $verifyToken) {
+                return response($challenge, 200);
+            }
+            return response('Forbidden', 403);
+        }
+        return response('Bad Request', 400);
+    }
+
+    public function handleWebhook(Request $request)
+    {
+        $payload = $request->all();
+
+        // 1. Extract phone_number_id
+        $phoneNumberId = null;
+        if (isset($payload['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'])) {
+            $phoneNumberId = $payload['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'];
+        } else {
+            // Check for simulator mode
+            $phoneNumberId = $request->phone_number_id;
         }
 
+        if (!$phoneNumberId) {
+            return response()->json(['status' => 'ignored']);
+        }
+
+        // 2. Identify Tenant
+        $tenant = Tenant::where('wa_phone_number_id', $phoneNumberId)->first();
+        if (!$tenant) {
+            \Log::warning('Webhook received for unknown phone_number_id: ' . $phoneNumberId);
+            return response()->json(['status' => 'tenant_not_found'], 404);
+        }
+
+        // 3. Initialize Tenancy
         tenancy()->initialize($tenant);
 
-        // Dummy parser to extract message text and sender phone from standard or Meta payload
-        $payload = $request->all();
-        
         $fromNumber = null;
         $messageBody = '';
         $messageType = 'text';
 
-        // Parse simplified request or Meta API request
-        if (isset($payload['Body'])) {
-            $fromNumber = $payload['From'] ?? '+1234567890';
-            $messageBody = trim($payload['Body']);
-        } elseif (isset($payload['entry'][0]['changes'][0]['value']['messages'][0])) {
+        // 4. Parse incoming message
+        if (isset($payload['entry'][0]['changes'][0]['value']['messages'][0])) {
             $msg = $payload['entry'][0]['changes'][0]['value']['messages'][0];
             $fromNumber = $msg['from'];
             if ($msg['type'] === 'text') {
@@ -94,14 +119,20 @@ class BotController extends Controller
                     $messageBody = $msg['interactive']['list_reply']['id'];
                 }
             }
-        } else {
-            // For simulator
+        } elseif ($request->has('simulator')) {
             $fromNumber = $request->phone ?? '+1234567890';
             $messageBody = $request->message ?? '';
-            $messageType = $request->type ?? 'text'; // Can be 'interactive'
+            $messageType = $request->type ?? 'text';
+        } else {
+            // Status updates (read, delivered, sent) or other events. Just ignore for now.
+            return response()->json(['status' => 'event_ignored']);
         }
 
-        // 1. Get or Create Session
+        if (!$fromNumber) {
+            return response()->json(['status' => 'no_sender']);
+        }
+
+        // 5. Bot Session Management
         $session = \Modules\Bot\Models\BotSession::firstOrCreate(
             ['phone_number' => $fromNumber, 'tenant_id' => tenant('id')],
             ['current_state' => 'START', 'expires_at' => now()->addHours(2)]
@@ -113,10 +144,8 @@ class BotController extends Controller
             $session->update(['expires_at' => now()->addHours(2)]);
         }
 
-        // 2. Route to Handler based on State
         $state = $session->current_state;
         
-        // Special case: if user types "hi" or "menu", reset state
         if ($messageType === 'text' && in_array(strtolower($messageBody), ['hi', 'hello', 'menu', 'start'])) {
             $state = 'START';
         }
@@ -133,18 +162,25 @@ class BotController extends Controller
             default => new \Modules\Bot\Services\Handlers\WelcomeHandler()
         };
 
-        // If they click 'action_view_menu' at any point
         if ($messageType === 'interactive' && $messageBody === 'action_view_menu') {
             $handler = new \Modules\Bot\Services\Handlers\MenuHandler();
         }
         
-        // If they click 'action_checkout' at any point
         if ($messageType === 'interactive' && $messageBody === 'action_checkout') {
             $handler = new \Modules\Bot\Services\Handlers\CheckoutHandler();
         }
 
+        // Handle the message
         $responsePayload = $handler->handle($session, $messageBody, $messageType);
 
-        return response()->json($responsePayload);
+        if ($responsePayload && isset($responsePayload['type'])) {
+            $type = $responsePayload['type'];
+            $payload = $responsePayload[$type];
+
+            // Send via Meta API
+            app('whatsapp')->messages()->send($fromNumber, $type, $payload);
+        }
+
+        return response()->json(['status' => 'success']);
     }
 }

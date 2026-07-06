@@ -75,7 +75,10 @@ class ConfirmationHandler implements BotHandlerInterface
                     'customer_name' => 'WhatsApp Customer',
                     'total_amount' => $total,
                     'status' => 'Pending',
-                    'order_type' => 'WhatsApp', // Or use $context['order_type']
+                    'order_type' => 'WhatsApp', 
+                    'type' => strtolower($context['order_type'] ?? 'delivery'),
+                    'source' => 'whatsapp',
+                    'delivery_address' => $context['address'] ?? null,
                     'table_number' => $context['table_number'] ?? null,
                 ]);
 

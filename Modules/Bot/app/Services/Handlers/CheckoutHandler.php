@@ -37,7 +37,7 @@ class CheckoutHandler implements BotHandlerInterface
                             'type' => 'reply',
                             'reply' => [
                                 'id' => 'order_type_dinein',
-                                'title' => 'Dine-In'
+                                'title' => 'Book a Table'
                             ]
                         ]
                     ]

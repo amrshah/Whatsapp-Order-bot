@@ -102,6 +102,13 @@ class TenancyServiceProvider extends ServiceProvider
         $this->bootEvents();
         $this->mapRoutes();
 
+        Event::listen(Events\TenancyInitialized::class, function (Events\TenancyInitialized $event) {
+            config([
+                'laravel-whatsapp.access_token' => $event->tenant->wa_access_token,
+                'laravel-whatsapp.phone_number_id' => $event->tenant->wa_phone_number_id,
+            ]);
+        });
+
         $this->makeTenancyMiddlewareHighestPriority();
     }
 

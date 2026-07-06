@@ -1,15 +1,31 @@
-export default function ApplicationLogo(props) {
+export default function ApplicationLogo({ className = '', ...props }) {
+    // If GuestLayout passes h-20, let's scale it up a bit
+    const isLarge = className.includes('h-20');
+    
+    // We filter out conflicting display/sizing classes to preserve the logo's internal flex layout
+    const filteredClassName = className
+        .replace(/block|h-\d+|w-\d+|w-auto/g, '')
+        .trim();
+
     return (
-        <svg
+        <div 
+            className={`flex items-center gap-2 font-extrabold text-gray-900 dark:text-white ${isLarge ? 'text-3xl' : 'text-xl'} ${filteredClassName}`} 
+            style={{ fontFamily: '"Manrope", sans-serif' }}
             {...props}
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
         >
-            <path
-                d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h2a3 3 0 013 3v2h1a2 2 0 110 4h-1v2a3 3 0 01-3 3H8a3 3 0 01-3-3v-2H4a2 2 0 110-4h1v-2a3 3 0 013-3h2V5.73A2 2 0 019 4a2 2 0 012-2zM9 13a1 1 0 100 2 1 1 0 000-2zm6 0a1 1 0 100 2 1 1 0 000-2z"
-                fill="currentColor"
-            />
-        </svg>
+            <div 
+                className="flex items-center justify-center text-white rounded-lg"
+                style={{
+                    width: isLarge ? '52px' : '34px', 
+                    height: isLarge ? '52px' : '34px',
+                    background: 'linear-gradient(135deg, #16A34A, #0F7A38)',
+                    fontSize: isLarge ? '26px' : '17px',
+                    boxShadow: '0 4px 12px -3px rgba(22,163,74,.55)'
+                }}
+            >
+                H
+            </div>
+            <span>Hotel Wala Bot!</span>
+        </div>
     );
 }

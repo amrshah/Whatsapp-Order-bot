@@ -22,6 +22,19 @@ class OrdersController extends Controller
         ]);
     }
 
+    public function unifiedKds()
+    {
+        $orders = \Modules\Orders\Models\Order::with('items.product')
+            ->whereIn('status', ['Pending', 'Preparing', 'Ready'])
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return \Inertia\Inertia::render('Orders/UnifiedKds', [
+            'orders' => $orders,
+            'tenantId' => tenant('id')
+        ]);
+    }
+
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
