@@ -1,58 +1,112 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# WhatsApp Restaurant Operating System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Welcome to the **WhatsApp Restaurant Operating System**. This project is a complete, multi-tenant restaurant management platform whose primary customer interface happens to be WhatsApp. 
 
-## About Laravel
+It provides restaurants with everything they need to operate efficiently, from an AI-powered WhatsApp ordering bot to point-of-sale (POS) systems and real-time Kitchen Display Systems (KDS).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🌟 Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+*   **Multi-Tenant Architecture**: Built with `stancl/tenancy`, allowing a single application instance to serve multiple restaurant tenants, each with their own isolated database and custom domain mapping.
+*   **WhatsApp AI Bot Engine**: 
+    *   Automated conversational ordering via WhatsApp Cloud API.
+    *   Intelligent natural language menu searching using Gemini AI integration.
+    *   Full cart management within the chat.
+*   **Point of Sale (POS)**: An intuitive POS interface for walk-in customers or phone orders.
+*   **Kitchen Display System (KDS)**: Real-time order fulfillment screens for kitchen staff, keeping track of "Preparing" and "Delivered" states.
+*   **Super Admin CRM & Ledger**:
+    *   Tenant management, billing configuration, and dynamic invoicing.
+    *   Track tenant order volume and calculate percentage/fixed commissions automatically.
+    *   Notion-style invoice template editor using Tiptap.
+*   **Modular Design**: Business logic is separated into discrete modules (e.g., `Modules/Menu`, `Modules/Orders`, `Modules/Bot`).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🛠 Tech Stack
 
-## Learning Laravel
+*   **Backend**: Laravel 11.x, PHP 8.3
+*   **Frontend**: React 18, Inertia.js (v2), Tailwind CSS
+*   **Database**: MySQL (Central DB + Tenant DBs)
+*   **AI/NLP**: Google Gemini API
+*   **Multi-Tenancy**: Stancl/Tenancy v4
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🚀 Setup & Installation
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Prerequisites
+*   PHP 8.3+
+*   Composer
+*   Node.js & npm
+*   MySQL 8+
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### Installation
 
-## Agentic Development
+1.  **Clone the repository**:
+    ```bash
+    git clone <repository-url>
+    cd Whatsapp-Order-bot
+    ```
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+2.  **Install PHP dependencies**:
+    ```bash
+    composer install
+    ```
+
+3.  **Install Node dependencies**:
+    ```bash
+    npm install
+    ```
+
+4.  **Environment Setup**:
+    Copy the example environment file and generate an application key.
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
+
+5.  **Database Configuration**:
+    Update your `.env` file with your database credentials. Ensure the database user has privileges to create new databases, as the multi-tenant system will dynamically create a new database for each tenant.
+    ```env
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=wa_restaurant_os
+    DB_USERNAME=root
+    DB_PASSWORD=
+    ```
+
+6.  **Run Migrations**:
+    Run migrations for the central database.
+    ```bash
+    php artisan migrate
+    ```
+
+7.  **Build Frontend Assets**:
+    ```bash
+    npm run build
+    ```
+
+### Running the Application
+
+To run the application locally, you will need to start both the Laravel server and the Vite development server (if you are doing frontend work).
 
 ```bash
-composer require laravel/boost --dev
+# Terminal 1: Run the backend
+php artisan serve
 
-php artisan boost:install
+# Terminal 2: Run the frontend worker
+npm run dev
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### WhatsApp Webhook Simulator
+For local development without exposing your environment via ngrok, the project includes a built-in webhook simulator. You can access it via the dashboard to simulate incoming WhatsApp messages to your tenant bots.
 
-## Contributing
+## 📁 Architecture Overview
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+This project uses a modular architecture located in the `Modules/` directory to separate domain logic:
 
-## Code of Conduct
+*   `Modules/Menu/`: Models and controllers for Product management and Categories.
+*   `Modules/Orders/`: Order lifecycle, items, and statuses.
+*   `Modules/Bot/`: WhatsApp integration, incoming webhook handling, and Gemini AI message processing.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Global admin settings and Central CRM functionality are handled in the core `app/Http/Controllers/Admin` directory.
 
-## Security Vulnerabilities
+## 📄 License
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is proprietary software.

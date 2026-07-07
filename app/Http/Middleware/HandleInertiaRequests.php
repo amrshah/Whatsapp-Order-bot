@@ -31,9 +31,21 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            'appName' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge($request->user()->toArray(), [
+                    'is_super_admin' => $request->user()->hasRole('Super Admin') && $request->user()->tenant_id === null,
+                ]) : null,
             ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
+            'tenant' => tenancy()->initialized ? [
+                'id' => tenant('id'),
+                'name' => tenant('name'),
+                'hasPendingInvoices' => \App\Models\Invoice::where('tenant_id', tenant('id'))->where('status', 'pending')->exists(),
+            ] : null,
         ];
     }
 }

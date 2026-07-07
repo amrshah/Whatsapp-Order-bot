@@ -37,6 +37,20 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Tenants
                                 </Link>
+
+                                <Link
+                                    href={route('admin.invoices.index')}
+                                    className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${route().current('admin.invoices.*') ? 'border-indigo-500 text-white focus:border-indigo-700' : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white focus:border-gray-300 focus:text-white'}`}
+                                >
+                                    Invoices
+                                </Link>
+
+                                <Link
+                                    href={route('admin.settings.index')}
+                                    className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${route().current('admin.settings.*') ? 'border-indigo-500 text-white focus:border-indigo-700' : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white focus:border-gray-300 focus:text-white'}`}
+                                >
+                                    Settings
+                                </Link>
                             </div>
                         </div>
 
@@ -147,6 +161,20 @@ export default function AuthenticatedLayout({ header, children }) {
                             className={`block w-full border-l-4 py-2 pe-4 ps-3 text-start text-base font-medium transition duration-150 ease-in-out focus:outline-none ${route().current('admin.tenants.*') ? 'border-indigo-400 bg-indigo-900/50 text-indigo-200 focus:border-indigo-700 focus:bg-indigo-900 focus:text-indigo-100' : 'border-transparent text-gray-400 hover:border-gray-600 hover:bg-gray-800 hover:text-gray-200 focus:border-gray-600 focus:bg-gray-800 focus:text-gray-200'}`}
                         >
                             Tenants
+                        </Link>
+
+                        <Link
+                            href={route('admin.invoices.index')}
+                            className={`block w-full border-l-4 py-2 pe-4 ps-3 text-start text-base font-medium transition duration-150 ease-in-out focus:outline-none ${route().current('admin.invoices.*') ? 'border-indigo-400 bg-indigo-900/50 text-indigo-200 focus:border-indigo-700 focus:bg-indigo-900 focus:text-indigo-100' : 'border-transparent text-gray-400 hover:border-gray-600 hover:bg-gray-800 hover:text-gray-200 focus:border-gray-600 focus:bg-gray-800 focus:text-gray-200'}`}
+                        >
+                            Invoices
+                        </Link>
+
+                        <Link
+                            href={route('admin.settings.index')}
+                            className={`block w-full border-l-4 py-2 pe-4 ps-3 text-start text-base font-medium transition duration-150 ease-in-out focus:outline-none ${route().current('admin.settings.*') ? 'border-indigo-400 bg-indigo-900/50 text-indigo-200 focus:border-indigo-700 focus:bg-indigo-900 focus:text-indigo-100' : 'border-transparent text-gray-400 hover:border-gray-600 hover:bg-gray-800 hover:text-gray-200 focus:border-gray-600 focus:bg-gray-800 focus:text-gray-200'}`}
+                        >
+                            Settings
                         </Link>
                     </div>
 

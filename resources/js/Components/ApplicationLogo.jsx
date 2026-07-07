@@ -1,4 +1,9 @@
+import { usePage } from '@inertiajs/react';
+
 export default function ApplicationLogo({ className = '', ...props }) {
+    const { appName } = usePage().props;
+    const name = appName || 'Hotel Wala Bot';
+    
     // If GuestLayout passes h-20, let's scale it up a bit
     const isLarge = className.includes('h-20');
     
@@ -23,9 +28,9 @@ export default function ApplicationLogo({ className = '', ...props }) {
                     boxShadow: '0 4px 12px -3px rgba(22,163,74,.55)'
                 }}
             >
-                H
+                {name.charAt(0).toUpperCase()}
             </div>
-            <span>Hotel Wala Bot!</span>
+            <span>{name}</span>
         </div>
     );
 }

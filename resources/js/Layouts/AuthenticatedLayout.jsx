@@ -45,6 +45,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             <Dropdown.Content>
                                                 <Dropdown.Link href={route('orders.kds-unified')}>Unified KDS</Dropdown.Link>
                                                 <Dropdown.Link href={route('orders.create')}>POS (Manual Order)</Dropdown.Link>
+                                                <Dropdown.Link href={route('simulator.index')}>Customer Bot Interface</Dropdown.Link>
                                                 <Dropdown.Link href={route('orders.history')}>Order History</Dropdown.Link>
                                                 <Dropdown.Link href={route('orders.index')}>Old KDS</Dropdown.Link>
                                             </Dropdown.Content>
@@ -77,12 +78,24 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     CRM
                                 </NavLink>
-                                <NavLink
-                                    href={route('settings.integrations')}
-                                    active={route().current('settings.integrations')}
-                                >
-                                    Settings
-                                </NavLink>
+                                <div className="hidden sm:flex sm:items-center">
+                                    <div className="relative">
+                                        <Dropdown>
+                                            <Dropdown.Trigger>
+                                                <button type="button" className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none h-16 ${route().current('settings.*') ? 'border-indigo-400 text-gray-900 focus:border-indigo-700 dark:border-indigo-600 dark:text-gray-100' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 focus:border-gray-300 focus:text-gray-700 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-300 dark:focus:border-gray-700 dark:focus:text-gray-300'}`}>
+                                                    Settings
+                                                    <svg className="ml-1 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </Dropdown.Trigger>
+                                            <Dropdown.Content>
+                                                <Dropdown.Link href={route('settings.integrations')}>Integrations</Dropdown.Link>
+                                                <Dropdown.Link href={route('settings.billing')}>Billing</Dropdown.Link>
+                                            </Dropdown.Content>
+                                        </Dropdown>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -204,6 +217,13 @@ export default function AuthenticatedLayout({ header, children }) {
                             POS (Manual Order)
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
+                            href={route('simulator.index')}
+                            active={route().current('simulator.index')}
+                            className="pl-6"
+                        >
+                            Customer Bot Interface
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
                             href={route('orders.history')}
                             active={route().current('orders.history')}
                             className="pl-6"
@@ -247,7 +267,14 @@ export default function AuthenticatedLayout({ header, children }) {
                             active={route().current('settings.integrations')}
                             className="pl-6"
                         >
-                            Settings
+                            Integrations
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('settings.billing')}
+                            active={route().current('settings.billing')}
+                            className="pl-6"
+                        >
+                            Billing
                         </ResponsiveNavLink>
                     </div>
 
@@ -283,6 +310,22 @@ export default function AuthenticatedLayout({ header, children }) {
                         {header}
                     </div>
                 </header>
+            )}
+
+            {usePage().props.tenant?.hasPendingInvoices && (
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-6">
+                    <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-sm" role="alert">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="font-bold">Attention Required</p>
+                                <p>You have pending invoices. Please go to your Billing Settings to review and settle them.</p>
+                            </div>
+                            <Link href={route('settings.billing')} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm transition">
+                                View Billing
+                            </Link>
+                        </div>
+                    </div>
+                </div>
             )}
 
             <main>{children}</main>

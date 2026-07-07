@@ -10,7 +10,12 @@ class SimulatorController extends Controller
 {
     public function index(Request $request)
     {
-        $tenants = \App\Models\Tenant::all(['id', 'id as name']); // Assuming name doesn't exist, fallback to id for now
+        $tenants = \App\Models\Tenant::all()->map(function($tenant) {
+            return [
+                'id' => $tenant->id,
+                'name' => $tenant->name ?? $tenant->id
+            ];
+        });
         
         return Inertia::render('Bot/Simulator', [
             'tenant' => $request->query('tenant'),

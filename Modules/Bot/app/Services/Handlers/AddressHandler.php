@@ -28,39 +28,82 @@ class AddressHandler implements BotHandlerInterface
             ]);
 
             if ($orderType === 'dinein') {
-                $prompt = "Please enter your Table Number:";
-            } elseif ($orderType === 'delivery') {
-                $prompt = "Please enter your full Delivery Address:";
-            } else {
-                // Takeaway
+                return ['type' => 'text', 'text' => ['body' => 'Please enter your Table Number:']];
+            } elseif ($orderType === 'takeaway') {
                 return (new ConfirmationHandler())->handle($session, 'ready_to_confirm', 'system');
             }
 
-            return [
-                'type' => 'text',
-                'text' => ['body' => $prompt]
-            ];
-        }
+            // Delivery
+            $customer = \Modules\Crm\Models\Customer::where('phone', $session->phone_number)->first();
+            $buttons = [];
+            $text = "Please enter your full Delivery Address or send your Location pin 📍:";
 
-        // If we are receiving the address/table text
-        if ($session->current_state === 'AWAITING_ADDRESS') {
-            if ($type !== 'text') {
+            if ($customer && $customer->addresses()->count() > 0) {
+                $addresses = $customer->addresses()->orderBy('last_used_at', 'desc')->take(2)->get();
+                $defaultAddress = $addresses->first();
+                
+                $text = "Deliver to **" . ($defaultAddress->label ?? 'Previous Address') . "**?\n📍 " . $defaultAddress->address;
+                
+                foreach ($addresses as $address) {
+                    $buttons[] = [
+                        'type' => 'reply',
+                        'reply' => [
+                            'id' => "action_use_address_{$address->id}",
+                            'title' => substr("✅ " . ($address->label ?? 'Use Previous'), 0, 20)
+                        ]
+                    ];
+                }
+                $buttons[] = ['type' => 'reply', 'reply' => ['id' => 'action_new_address', 'title' => '➕ New Address']];
+                
                 return [
-                    'type' => 'text',
-                    'text' => ['body' => 'Please type your address or table number.']
+                    'type' => 'interactive',
+                    'interactive' => [
+                        'type' => 'button',
+                        'body' => ['text' => $text],
+                        'action' => ['buttons' => $buttons]
+                    ]
                 ];
             }
 
-            if ($context['order_type'] === 'Dinein') {
-                $context['table_number'] = $message;
+            return ['type' => 'text', 'text' => ['body' => $text]];
+        }
+
+        // If we are receiving the address/table text or location
+        if ($session->current_state === 'AWAITING_ADDRESS') {
+            if ($type === 'interactive' && str_starts_with($message, 'action_use_address_')) {
+                $addressId = str_replace('action_use_address_', '', $message);
+                $address = \Modules\Crm\Models\CustomerAddress::find($addressId);
+                
+                if ($address) {
+                    $context['address'] = $address->address;
+                    $context['latitude'] = $address->latitude;
+                    $context['longitude'] = $address->longitude;
+                    $address->update(['last_used_at' => now()]);
+                }
+            } elseif ($type === 'interactive' && $message === 'action_new_address') {
+                return [
+                    'type' => 'text',
+                    'text' => ['body' => 'Please type your new address or send a location pin 📍:']
+                ];
+            } elseif ($type === 'location') {
+                $loc = json_decode($message, true);
+                $context['address'] = $loc['address'] ?? ($loc['name'] ?? 'Location Pin');
+                $context['latitude'] = $loc['latitude'] ?? null;
+                $context['longitude'] = $loc['longitude'] ?? null;
+            } elseif ($type === 'text') {
+                if ($context['order_type'] === 'Dinein') {
+                    $context['table_number'] = $message;
+                } else {
+                    $context['address'] = $message;
+                }
             } else {
-                $context['address'] = $message;
+                return [
+                    'type' => 'text',
+                    'text' => ['body' => 'Please type your address, send a location, or select an option.']
+                ];
             }
 
-            $session->update([
-                'context' => $context
-            ]);
-
+            $session->update(['context' => $context]);
             return (new ConfirmationHandler())->handle($session, 'ready_to_confirm', 'system');
         }
 

@@ -110,7 +110,11 @@ class OrdersController extends Controller
             $customer->save();
         }
 
-        broadcast(new \App\Events\OrderCreated($order->load('items.product'), tenant('id')));
+        try {
+            broadcast(new \App\Events\OrderCreated($order->load('items.product'), tenant('id')));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Could not broadcast OrderCreated event. Reverb might be down: " . $e->getMessage());
+        }
 
         return redirect()->route('orders.create')->with('success', 'Order placed successfully!');
     }

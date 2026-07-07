@@ -1,7 +1,10 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
 export default function Welcome({ auth }) {
+    const { appName } = usePage().props;
+    const name = appName || '{name}';
+
     // ---- Savings Calculator State ----
     const [orders, setOrders] = useState(40);
     const [aov, setAov] = useState(1200);
@@ -28,12 +31,12 @@ export default function Welcome({ auth }) {
     };
 
     const faqs = [
-        { q: 'Can customers order in Roman Urdu?', a: "Yes. Hotel Wala Bot's AI understands Roman Urdu, standard Urdu, and English, and can even handle a natural mix of all three in the same conversation." },
-        { q: 'Does it work on my existing WhatsApp number?', a: "Yes. There's no need to change your number or ask customers to switch apps. Hotel Wala Bot connects to the WhatsApp Business number you already use." },
+        { q: 'Can customers order in Roman Urdu?', a: `Yes. ${name}'s AI understands Roman Urdu, standard Urdu, and English, and can even handle a natural mix of all three in the same conversation.` },
+        { q: 'Does it work on my existing WhatsApp number?', a: `Yes. There's no need to change your number or ask customers to switch apps. ${name} connects to the WhatsApp Business number you already use.` },
         { q: 'Can I update my menu myself?', a: "Absolutely. The Menu Builder lets you add items, prices, and photos, and pause items that are out of stock, all without contacting support." },
         { q: 'How long does setup take?', a: "Most restaurants are live within 30 minutes. Our onboarding team helps you load your menu and connect your WhatsApp number." },
         { q: 'Can multiple staff use the dashboard at once?', a: "Yes. You can add staff accounts with role-based permissions, so kitchen staff only see the Kitchen Display while managers see full analytics." },
-        { q: 'Does Hotel Wala Bot support multiple branches?', a: "Yes. Each branch can have its own menu, WhatsApp number, and Kitchen Display, all visible from one owner dashboard." },
+        { q: `Does ${name} support multiple branches?`, a: "Yes. Each branch can have its own menu, WhatsApp number, and Kitchen Display, all visible from one owner dashboard." },
         { q: 'What happens after my 14-day free trial?', a: "You can continue on the flat monthly fee with no setup cost, or cancel any time. No credit card is required to start the trial." }
     ];
 
@@ -42,33 +45,33 @@ export default function Welcome({ auth }) {
     const demoData = {
         order: [
           {who:'in', name:'Customer', text:'Hi! Ek large pepperoni pizza mil sakta hai?'},
-          {who:'out', name:'Hotel Wala Bot', text:'Jee zaroor! 1x Large Pepperoni Pizza — Rs 1,650. Delivery ya pickup?'},
+          {who:'out', name: name, text:'Jee zaroor! 1x Large Pepperoni Pizza — Rs 1,650. Delivery ya pickup?'},
           {who:'in', name:'Customer', text:'Delivery, Gulberg III.'},
-          {who:'out', name:'Hotel Wala Bot', text:'Order confirm! 🎉 30 min mein pohanch jayega. Kitchen ko notify kar diya gaya hai.'}
+          {who:'out', name: name, text:'Order confirm! 🎉 30 min mein pohanch jayega. Kitchen ko notify kar diya gaya hai.'}
         ],
         table: [
           {who:'in', name:'Customer', text:'Aaj raat 8 baje ke liye 4 logon ka table chahiye.'},
-          {who:'out', name:'Hotel Wala Bot', text:'Bilkul! Table for 4, tonight 8:00 PM — confirmed. Naam bata dein reservation ke liye?'},
+          {who:'out', name: name, text:'Bilkul! Table for 4, tonight 8:00 PM — confirmed. Naam bata dein reservation ke liye?'},
           {who:'in', name:'Customer', text:'Bilal.'},
-          {who:'out', name:'Hotel Wala Bot', text:'Shukriya Bilal! Aapka table reserved hai. See you tonight! 🍽️'}
+          {who:'out', name: name, text:'Shukriya Bilal! Aapka table reserved hai. See you tonight! 🍽️'}
         ],
         menu: [
           {who:'in', name:'Customer', text:'Menu bhej dein please.'},
-          {who:'out', name:'Hotel Wala Bot', text:'Yahan hamara menu hai: 🍕 Pizzas, 🍗 BBQ, 🥘 Karahi, 🥤 Beverages. Kis category mein interested hain?'},
+          {who:'out', name: name, text:'Yahan hamara menu hai: 🍕 Pizzas, 🍗 BBQ, 🥘 Karahi, 🥤 Beverages. Kis category mein interested hain?'},
           {who:'in', name:'Customer', text:'BBQ dikhayein.'},
-          {who:'out', name:'Hotel Wala Bot', text:'Seekh Kabab Rs 950 · Malai Boti Rs 1,050 · Chicken Tikka Rs 850. Order karna chahenge?'}
+          {who:'out', name: name, text:'Seekh Kabab Rs 950 · Malai Boti Rs 1,050 · Chicken Tikka Rs 850. Order karna chahenge?'}
         ],
         track: [
           {who:'in', name:'Customer', text:'Mera order kahan tak pohancha? #0149'},
-          {who:'out', name:'Hotel Wala Bot', text:'Order #0149 abhi kitchen mein tayar ho raha hai — approx 12 min baaki hain.'},
+          {who:'out', name: name, text:'Order #0149 abhi kitchen mein tayar ho raha hai — approx 12 min baaki hain.'},
           {who:'in', name:'Customer', text:'Shukriya!'},
-          {who:'out', name:'Hotel Wala Bot', text:'Aapka welcome! Rider assign hote hi hum aapko live location bhej denge. 🏍️'}
+          {who:'out', name: name, text:'Aapka welcome! Rider assign hote hi hum aapko live location bhej denge. 🏍️'}
         ]
     };
 
     return (
         <>
-            <Head title="Hotel Wala Bot — The AI Employee That Runs Your Restaurant's Orders 24/7" />
+            <Head title={`${name} — The AI Employee That Runs Your Restaurant's Orders 24/7`} />
             <style dangerouslySetInnerHTML={{__html: `
                 :root {
                     --ink:#0F172A;
@@ -378,7 +381,7 @@ export default function Welcome({ auth }) {
 
             <header>
             <nav>
-                <div className="logo"><div className="logo-mark">H</div>Hotel Wala Bot!</div>
+                <div className="logo"><div className="logo-mark">H</div>{name}!</div>
                 <div className="nav-links">
                 <a href="#how">How it Works</a>
                 <a href="#calculator">Savings Calculator</a>
@@ -428,7 +431,7 @@ export default function Welcome({ auth }) {
                     <div className="phone-bar"><div className="dot">🍴</div> Karachi Karahi House</div>
                     <div className="phone-chat">
                         <div className="bubble in d1"><b>Ahmed</b>Assalam-o-alaikum, ek chicken karahi full aur 4 roti mil sakti hai?</div>
-                        <div className="bubble out d2"><b>Hotel Wala Bot</b>Jee zaroor! 1x Chicken Karahi (Full) + 4 Roti. Total: Rs 2,150. Delivery ya pickup?</div>
+                        <div className="bubble out d2"><b>{name}</b>Jee zaroor! 1x Chicken Karahi (Full) + 4 Roti. Total: Rs 2,150. Delivery ya pickup?</div>
                         <div className="bubble in d3">Delivery please, DHA Phase 5.</div>
                         <div className="bubble out d4">Order confirm! 🎉 25-30 min mein pohanch jayega. Payment: Cash on Delivery.</div>
                     </div>
@@ -492,7 +495,7 @@ export default function Welcome({ auth }) {
                 <div>
                 <div className="eyebrow">The Solution</div>
                 <h2 style={{fontSize:'clamp(26px,3.2vw,36px)', marginBottom:'16px'}}>Meet Your New AI Restaurant Manager</h2>
-                <p style={{color:'var(--muted)', fontSize:'16px', marginBottom:'28px'}}>Hotel Wala Bot handles everything from the first "hello" to the kitchen ticket — automatically, in the language your customers actually type in.</p>
+                <p style={{color:'var(--muted)', fontSize:'16px', marginBottom:'28px'}}>{name} handles everything from the first "hello" to the kitchen ticket — automatically, in the language your customers actually type in.</p>
                 <div className="card-2x2">
                     <div className="feat-card"><span className="num">Reads & Replies</span><h4>Takes Orders</h4><p>Understands menus, customizations, and calculates the bill instantly.</p></div>
                     <div className="feat-card"><span className="num">24/7</span><h4>Replies Instantly</h4><p>Available day and night. No customer ever waits on hold.</p></div>
@@ -551,7 +554,7 @@ export default function Welcome({ auth }) {
                     <div className="bar-col tarka">
                         <div className="bv">{fmt(keptWithTarka)}</div>
                         <div className="bar" style={{height: tarkaBarHeight}}></div>
-                        <div className="bl">Kept With Hotel Wala Bot / yr</div>
+                        <div className="bl">Kept With {name} / yr</div>
                     </div>
                     </div>
                 </div>
@@ -564,7 +567,7 @@ export default function Welcome({ auth }) {
                     <div className="bd-row"><span className="bl2">💰 Commission avoided</span><span className="br2">{fmt(commissionLost)}</span></div>
                     <div className="bd-row"><span className="bl2">🤖 Staff hours saved (est.)</span><span className="br2">{fmt(laborSaved)}</span></div>
                     <div className="bd-row"><span className="bl2">📈 Recovered missed orders</span><span className="br2">{fmt(recoveredOrders)}</span></div>
-                    <div className="bd-row" style={{borderBottom:'none'}}><span className="bl2">Hotel Wala Bot flat fee</span><span className="br2" style={{color:'var(--amber)'}}>− Rs 4,999 / mo</span></div>
+                    <div className="bd-row" style={{borderBottom:'none'}}><span className="bl2">{name} flat fee</span><span className="br2" style={{color:'var(--amber)'}}>− Rs 4,999 / mo</span></div>
                     </div>
                 </div>
                 </div>
@@ -581,7 +584,7 @@ export default function Welcome({ auth }) {
                 </div>
                 <div className="steps">
                 <div className="step"><div className="sn">STEP 1</div><div className="si">💬</div><h4>Customer Messages</h4><p>They text your existing WhatsApp number — no new app to download.</p><div className="step-arrow">→</div></div>
-                <div className="step"><div className="sn">STEP 2</div><div className="si">🤖</div><h4>AI Takes the Order</h4><p>Hotel Wala Bot replies, confirms items, and calculates the total in seconds.</p><div className="step-arrow">→</div></div>
+                <div className="step"><div className="sn">STEP 2</div><div className="si">🤖</div><h4>AI Takes the Order</h4><p>{name} replies, confirms items, and calculates the total in seconds.</p><div className="step-arrow">→</div></div>
                 <div className="step"><div className="sn">STEP 3</div><div className="si">🖥️</div><h4>Kitchen Gets Notified</h4><p>The order lands on your Kitchen Display instantly, with an audio alert.</p><div className="step-arrow">→</div></div>
                 <div className="step"><div className="sn">STEP 4</div><div className="si">✅</div><h4>Ready to Serve</h4><p>Marked ready for pickup or handed to your rider — fully tracked.</p></div>
                 </div>
@@ -644,7 +647,7 @@ export default function Welcome({ auth }) {
             <div className="wrap demo-grid">
                 <div>
                 <div className="eyebrow">Try It Yourself</div>
-                <h2 style={{fontSize:'clamp(26px,3.2vw,34px)', marginBottom:'16px'}}>See Hotel Wala Bot Handle a Real Order</h2>
+                <h2 style={{fontSize:'clamp(26px,3.2vw,34px)', marginBottom:'16px'}}>See {name} Handle a Real Order</h2>
                 <p style={{color:'var(--muted)', fontSize:'16px', marginBottom:'28px'}}>Tap an option below and watch the conversation update, exactly like your customers would experience it.</p>
                 <div className="demo-buttons">
                     <button className={`demo-btn ${activeDemo === 'order' ? 'active' : ''}`} onClick={() => setActiveDemo('order')}>🍕 Order Food</button>
@@ -691,7 +694,7 @@ export default function Welcome({ auth }) {
                 </div>
                 <div className="test-card">
                     <div className="test-top"><div className="avatar" style={{background:'var(--amber)', color:'var(--ink)'}}>SF</div><div><div className="test-name">Home Chef</div><div className="test-loc">Karachi</div></div></div>
-                    <p className="test-quote">"I run this solo. Hotel Wala Bot replies while I'm cooking, so I never lose an order because I couldn't get to my phone in time."</p>
+                    <p className="test-quote">"I run this solo. {name} replies while I'm cooking, so I never lose an order because I couldn't get to my phone in time."</p>
                     <div className="test-metric">↑ 24/7 order coverage</div>
                 </div>
                 </div>
@@ -704,7 +707,7 @@ export default function Welcome({ auth }) {
                 <div className="eyebrow">Simple Pricing</div>
                 <h2 style={{fontSize:'clamp(26px,3.2vw,36px)'}}>One Flat Fee. Zero Commission. Ever.</h2>
                 <div className="price-wrap">
-                <div style={{fontWeight:'700', color:'var(--muted)', fontSize:'14px', textTransform:'uppercase', letterSpacing:'.05em'}}>Hotel Wala Bot Standard</div>
+                <div style={{fontWeight:'700', color:'var(--muted)', fontSize:'14px', textTransform:'uppercase', letterSpacing:'.05em'}}>{name} Standard</div>
                 <div className="pv">Rs 4,999<span>/month</span></div>
                 <ul className="price-list">
                     <li>Unlimited WhatsApp orders</li>
@@ -755,7 +758,7 @@ export default function Welcome({ auth }) {
             <div className="wrap">
                 <div className="foot-grid">
                 <div className="foot-col">
-                    <div className="logo" style={{color:'#fff'}}><div className="logo-mark">H</div>Hotel Wala Bot</div>
+                    <div className="logo" style={{color:'#fff'}}><div className="logo-mark">H</div>{name}</div>
                     <p style={{marginTop:'12px', maxWidth:'220px', color:'rgba(255,255,255,.5)'}}>The zero-latency restaurant OS for WhatsApp ordering.</p>
                 </div>
                 <div className="foot-col">
@@ -779,7 +782,7 @@ export default function Welcome({ auth }) {
                 </div>
                 </div>
                 <div className="foot-bottom">
-                <span>© {new Date().getFullYear()} Hotel Wala Bot. All rights reserved.</span>
+                <span>© {new Date().getFullYear()} {name}. All rights reserved.</span>
                 <span>Made for restaurants across Pakistan.</span>
                 </div>
             </div>

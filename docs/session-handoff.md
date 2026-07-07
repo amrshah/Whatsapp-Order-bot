@@ -10,7 +10,7 @@
   - Configured IsSuperAdmin middleware to protect /admin routes.
   - Setup global Dashboard for high-level metrics.
   - Implemented the Tenant Directory, showing real-time lightweight metrics fetched via dynamic database switching.
-  - Created SuperAdminSeeder to bootstrap mr.shah@gmail.com.
+  - Created SuperAdminSeeder to bootstrap amr.shah@gmail.com.
 - **Payment Strategy R&D:** Documented the strategy for collecting tenant payments in docs/payment-collection-rnd.md, recommending an automated manual-invoicing system for the MVP.
 
 ## What's Pending (Next Steps)

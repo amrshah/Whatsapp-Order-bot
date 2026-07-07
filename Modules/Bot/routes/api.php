@@ -5,5 +5,5 @@ use Modules\Bot\Http\Controllers\BotController;
 
 Route::middleware(['api'])->group(function () {
     Route::get('bot/whatsapp/webhook', [BotController::class, 'verifyWebhook']);
-    Route::post('bot/whatsapp/webhook', [BotController::class, 'handleWebhook']);
+    Route::post('bot/whatsapp/webhook/{tenant?}', [BotController::class, 'handleWebhook']);
 });

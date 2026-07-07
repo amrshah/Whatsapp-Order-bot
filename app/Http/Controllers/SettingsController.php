@@ -41,4 +41,16 @@ class SettingsController extends Controller
 
         return redirect()->route('settings.integrations')->with('success', 'Integration settings updated successfully.');
     }
+
+    public function updateBusinessProfile(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $tenant = tenant();
+        $tenant->update(['name' => $validated['name']]);
+
+        return redirect()->back()->with('success', 'Business profile updated successfully.');
+    }
 }

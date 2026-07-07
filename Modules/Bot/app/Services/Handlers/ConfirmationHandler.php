@@ -104,6 +104,20 @@ class ConfirmationHandler implements BotHandlerInterface
                 $customer->last_order_date = now();
                 $customer->save();
 
+                // Save Customer Address if Delivery
+                if (strtolower($context['order_type'] ?? '') === 'delivery' && !empty($context['address'])) {
+                    $addressExists = $customer->addresses()->where('address', $context['address'])->exists();
+                    if (!$addressExists) {
+                        $customer->addresses()->create([
+                            'address' => $context['address'],
+                            'latitude' => $context['latitude'] ?? null,
+                            'longitude' => $context['longitude'] ?? null,
+                            'label' => 'Recent Address',
+                            'last_used_at' => now(),
+                        ]);
+                    }
+                }
+
                 // Broadcast Event
                 try {
                     broadcast(new \App\Events\OrderCreated($order->load('items.product'), tenant('id')));

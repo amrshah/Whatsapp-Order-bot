@@ -22,6 +22,11 @@ class Customer extends Model
         'last_order_date',
     ];
 
+    public function addresses()
+    {
+        return $this->hasMany(CustomerAddress::class);
+    }
+
     // protected static function newFactory(): CustomerFactory
     // {
     //     // return CustomerFactory::new();

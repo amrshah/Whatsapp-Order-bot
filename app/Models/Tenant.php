@@ -12,11 +12,16 @@ class Tenant extends BaseTenant
 
     protected $fillable = [
         'id',
+        'name',
         'data',
         'wa_access_token',
         'wa_phone_number_id',
         'wa_verify_token',
         'wa_app_secret',
+        'billing_model',
+        'billing_rate',
+        'billing_frequency',
+        'last_billed_at',
     ];
 
     public static function getCustomColumns(): array
@@ -26,6 +31,11 @@ class Tenant extends BaseTenant
             'name',
             'wa_access_token',
             'wa_phone_number_id',
+            'wa_business_account_id',
+            'billing_model',
+            'billing_rate',
+            'billing_frequency',
+            'last_billed_at',
             'wa_verify_token',
             'wa_app_secret',
         ];

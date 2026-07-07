@@ -1,7 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Dashboard({ kpis }) {
+    const { appName, auth } = usePage().props;
+    const name = appName || 'Hotel Wala Bot';
+    const user = auth.user;
+
     return (
         <AuthenticatedLayout
             header={
@@ -19,8 +23,11 @@ export default function Dashboard({ kpis }) {
                     <div className="overflow-hidden bg-indigo-600 shadow-sm sm:rounded-lg mb-8">
                         <div className="p-8 text-white flex flex-col md:flex-row justify-between items-center gap-6">
                             <div>
-                                <h3 className="text-2xl font-bold">Welcome to Hotel wala Bot!</h3>
-                                <p className="mt-2 text-indigo-100">Your zero-latency restaurant OS is active and waiting for orders.</p>
+                                <h3 className="text-2xl font-bold">Welcome to {name}!</h3>
+                                <p className="mt-2 text-indigo-100">
+                                    Your restaurant's intelligent WhatsApp ordering assistant is running. 
+                                    {user && user.tenant_id ? " Share your WhatsApp number with customers to start receiving orders automatically." : " Configure global settings or manage tenants from the sidebar."}
+                                </p>
                             </div>
                             <div className="flex gap-4">
                                 <Link 

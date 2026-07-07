@@ -15,11 +15,15 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
+    if (auth()->user()->is_super_admin && !tenant()) {
+        return redirect()->route('admin.dashboard');
+    }
+
     $totalOrders = \Modules\Orders\Models\Order::count();
     $activeItems = \Modules\Menu\Models\Product::where('is_active', true)->count();
     
     // Assume 30% commission saved on total sales
-    $totalSales = \Modules\Orders\Models\Order::where('status', 'Completed')->sum('total_amount');
+    $totalSales = \Modules\Orders\Models\Order::whereIn('status', ['Completed', 'Delivered'])->sum('total_amount');
     $savedCommission = $totalSales * 0.30;
 
     return Inertia::render('Dashboard', [
@@ -38,6 +42,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/settings/integrations', [\App\Http\Controllers\SettingsController::class, 'integrations'])->name('settings.integrations');
     Route::post('/settings/integrations', [\App\Http\Controllers\SettingsController::class, 'updateIntegrations']);
+    Route::get('/settings/billing', [\App\Http\Controllers\Settings\BillingController::class, 'index'])->name('settings.billing');
+    Route::get('/settings/billing/invoices/{invoice}', [\App\Http\Controllers\Settings\BillingController::class, 'show'])->name('settings.billing.invoices.show');
+    Route::patch('/settings/business', [\App\Http\Controllers\SettingsController::class, 'updateBusinessProfile'])->name('settings.business.update');
 });
 
 require __DIR__.'/auth.php';
@@ -49,3 +56,4 @@ Route::get('/test-tenancy', function () {
         'tenant' => tenant('id'),
     ]);
 })->middleware(['auth', 'verified']);
+

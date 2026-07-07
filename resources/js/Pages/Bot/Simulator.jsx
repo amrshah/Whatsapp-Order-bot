@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Simulator({ tenant, tenants = [] }) {
+    const { appName } = usePage().props;
+    const name = appName || 'Hotel Wala Bot';
+
     const [phoneNumber, setPhoneNumber] = useState('');
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
@@ -19,11 +22,14 @@ export default function Simulator({ tenant, tenants = [] }) {
         }
         setPhoneNumber(savedPhone);
 
+        const currentTenantObj = tenants.find(t => t.id === currentTenant);
+        const tenantDisplayName = currentTenantObj ? currentTenantObj.name : (currentTenant || 'None');
+
         setMessages([{
             id: Date.now(),
             sender: 'bot',
             type: 'text',
-            text: { body: `Simulator initialized. Tenant: ${currentTenant || 'None'}. Type 'Hi' to start.` }
+            text: { body: `Simulator initialized. Tenant: ${tenantDisplayName}. Type 'Hi' to start.` }
         }]);
     }, [currentTenant]);
 
@@ -211,7 +217,7 @@ export default function Simulator({ tenant, tenants = [] }) {
                         }}
                     >
                         {tenants.map(t => (
-                            <option key={t.id} value={t.id}>{t.id}</option>
+                            <option key={t.id} value={t.id}>{t.name}</option>
                         ))}
                     </select>
                 </div>
@@ -239,7 +245,7 @@ export default function Simulator({ tenant, tenants = [] }) {
                         🤖
                     </div>
                     <div>
-                        <div className="font-medium text-lg leading-tight">Hotel Wala Bot</div>
+                        <div className="font-medium text-lg leading-tight">{name}</div>
                         <div className="text-xs text-white/80">Simulator mode</div>
                     </div>
                 </div>
@@ -267,7 +273,7 @@ export default function Simulator({ tenant, tenants = [] }) {
                         />
                         <button
                             type="submit"
-                            disabled={!input.trim() || loading || !tenant}
+                            disabled={!input.trim() || loading || !currentTenant}
                             className="bg-[#00a884] text-white rounded-full w-10 h-10 flex items-center justify-center disabled:opacity-50 hover:bg-[#008f6f] transition-colors"
                         >
                             <svg className="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 20 20">

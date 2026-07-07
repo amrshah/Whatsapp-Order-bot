@@ -23,39 +23,32 @@ class ProductHandler implements BotHandlerInterface
             ];
         }
 
-        $session->update(['current_state' => 'VIEWING_PRODUCT']);
-        
-        // Save the currently viewing product in context
+        // Instantly add to cart
         $context = $session->context ?? [];
-        $context['viewing_product'] = $product->id;
-        $session->update(['context' => $context]);
+        $cart = $context['cart'] ?? [];
+        
+        $found = false;
+        foreach ($cart as &$item) {
+            if ($item['product_id'] === $product->id) {
+                $item['quantity'] += 1;
+                $found = true;
+                break;
+            }
+        }
+        
+        if (!$found) {
+            $cart[] = [
+                'product_id' => $product->id,
+                'quantity' => 1
+            ];
+        }
+        
+        $context['cart'] = $cart;
+        $session->update([
+            'context' => $context,
+            'current_state' => 'VIEWING_CART'
+        ]);
 
-        return [
-            'type' => 'interactive',
-            'interactive' => [
-                'type' => 'button',
-                'body' => [
-                    'text' => "*{$product->name}*\n\nPrice: Rs {$product->price}\n{$product->description}\n\nWould you like to add this to your cart?"
-                ],
-                'action' => [
-                    'buttons' => [
-                        [
-                            'type' => 'reply',
-                            'reply' => [
-                                'id' => 'action_add_to_cart_1',
-                                'title' => 'Add 1 to Cart'
-                            ]
-                        ],
-                        [
-                            'type' => 'reply',
-                            'reply' => [
-                                'id' => 'action_view_menu',
-                                'title' => 'Back to Menu'
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ];
+        return (new CartHandler())->handle($session, 'action_view_cart', 'interactive');
     }
 }

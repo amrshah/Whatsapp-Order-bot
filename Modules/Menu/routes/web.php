@@ -23,4 +23,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified'])->prefix('menu')->name('menu.')->group(function () {
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
     Route::resource('products', ProductController::class)->except(['create', 'show', 'edit']);
+    
+    // Import Routes
+    Route::get('import', [\Modules\Menu\Http\Controllers\MenuImportController::class, 'show'])->name('import.show');
+    Route::post('import/process', [\Modules\Menu\Http\Controllers\MenuImportController::class, 'process'])->name('import.process');
+    Route::post('import/confirm', [\Modules\Menu\Http\Controllers\MenuImportController::class, 'confirm'])->name('import.confirm');
+    Route::get('import/template', [\Modules\Menu\Http\Controllers\MenuImportController::class, 'downloadTemplate'])->name('import.template');
 });

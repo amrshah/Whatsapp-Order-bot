@@ -45,6 +45,6 @@ Since Stripe is not natively supported for businesses registered strictly in Pak
 2. **Phase 2 (Automated):** Integrate **Safepay** for automated recurring card payments if the tenants have debit/credit cards, OR integrate a local gateway like **Kuickpay** which generates a unique consumer number for tenants to pay via their banking app easily.
 
 ## Next Steps
-1. Create a illing or invoices table to track weekly generated charges.
+1. Create a billing or invoices table to track weekly generated charges.
 2. Build a Cron job that runs every Monday to calculate the previous week's dues and generate an invoice.
 3. Add a Billing section to the Super Admin panel to track unpaid invoices.

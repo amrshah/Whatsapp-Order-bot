@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function ProductsIndex({ products, categories }) {
@@ -53,7 +53,17 @@ export default function ProductsIndex({ products, categories }) {
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Menu Products</h2>}
+            header={
+                <div className="flex justify-between items-center">
+                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">Menu Products</h2>
+                    <Link
+                        href={route('menu.import.show')}
+                        className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+                    >
+                        Import Menu (AI/CSV)
+                    </Link>
+                </div>
+            }
         >
             <Head title="Menu Products" />
 

@@ -78,23 +78,34 @@ class BotController extends Controller
     {
         $payload = $request->all();
 
-        // 1. Extract phone_number_id
-        $phoneNumberId = null;
-        if (isset($payload['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'])) {
-            $phoneNumberId = $payload['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'];
+        $tenantIdParam = $request->route('tenant');
+        $tenant = null;
+
+        $isSimulator = false;
+
+        if ($tenantIdParam) {
+            $tenant = Tenant::find($tenantIdParam);
+            $isSimulator = true;
         } else {
-            // Check for simulator mode
-            $phoneNumberId = $request->phone_number_id;
+            // 1. Extract phone_number_id
+            $phoneNumberId = null;
+            if (isset($payload['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'])) {
+                $phoneNumberId = $payload['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'];
+            } else {
+                // Check for simulator mode
+                $phoneNumberId = $request->phone_number_id;
+            }
+
+            if (!$phoneNumberId) {
+                return response()->json(['status' => 'ignored']);
+            }
+
+            // 2. Identify Tenant
+            $tenant = Tenant::where('wa_phone_number_id', $phoneNumberId)->first();
         }
 
-        if (!$phoneNumberId) {
-            return response()->json(['status' => 'ignored']);
-        }
-
-        // 2. Identify Tenant
-        $tenant = Tenant::where('wa_phone_number_id', $phoneNumberId)->first();
         if (!$tenant) {
-            \Log::warning('Webhook received for unknown phone_number_id: ' . $phoneNumberId);
+            \Log::warning('Webhook received for unknown phone_number_id/tenant.');
             return response()->json(['status' => 'tenant_not_found'], 404);
         }
 
@@ -118,6 +129,9 @@ class BotController extends Controller
                 } elseif ($msg['interactive']['type'] === 'list_reply') {
                     $messageBody = $msg['interactive']['list_reply']['id'];
                 }
+            } elseif ($msg['type'] === 'location') {
+                $messageType = 'location';
+                $messageBody = json_encode($msg['location']);
             }
         } elseif ($request->has('simulator')) {
             $fromNumber = $request->phone ?? '+1234567890';
@@ -139,7 +153,7 @@ class BotController extends Controller
         );
 
         if ($session->isExpired()) {
-            $session->update(['current_state' => 'START', 'context' => null, 'expires_at' => now()->addHours(2)]);
+            $session->update(['current_state' => 'START', 'expires_at' => now()->addHours(2)]);
         } else {
             $session->update(['expires_at' => now()->addHours(2)]);
         }
@@ -176,6 +190,10 @@ class BotController extends Controller
         if ($responsePayload && isset($responsePayload['type'])) {
             $type = $responsePayload['type'];
             $payload = $responsePayload[$type];
+
+            if ($isSimulator) {
+                return response()->json($responsePayload);
+            }
 
             // Send via Meta API
             app('whatsapp')->messages()->send($fromNumber, $type, $payload);
