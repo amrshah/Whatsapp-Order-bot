@@ -41,6 +41,24 @@ class TenantController extends Controller
         ]);
     }
 
+    public function update(\Illuminate\Http\Request $request, \App\Models\Tenant $tenant)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'is_active' => 'boolean',
+        ]);
+
+        $tenant->update($validated);
+
+        return redirect()->back()->with('success', 'Tenant updated successfully.');
+    }
+
+    public function destroy(\App\Models\Tenant $tenant)
+    {
+        $tenant->delete();
+        return redirect()->route('admin.tenants.index')->with('success', 'Tenant deleted successfully.');
+    }
+
     public function updateBilling(\Illuminate\Http\Request $request, \App\Models\Tenant $tenant)
     {
         $validated = $request->validate([

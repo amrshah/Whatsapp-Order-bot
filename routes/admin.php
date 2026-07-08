@@ -11,6 +11,8 @@ Route::middleware(['web', 'auth', \App\Http\Middleware\IsSuperAdmin::class])->pr
     
     Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');
     Route::get('/tenants/{tenant}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
+    Route::put('/tenants/{tenant}', [TenantController::class, 'update'])->name('tenants.update');
+    Route::delete('/tenants/{tenant}', [TenantController::class, 'destroy'])->name('tenants.destroy');
     Route::get('/tenants/{tenant}/orders', [TenantController::class, 'orders'])->name('tenants.orders');
     Route::post('/tenants/{tenant}/billing', [TenantController::class, 'updateBilling'])->name('tenants.billing.update');
     Route::post('/tenants/{tenant}/invoice', [TenantController::class, 'generateInvoice'])->name('tenants.invoice.generate');

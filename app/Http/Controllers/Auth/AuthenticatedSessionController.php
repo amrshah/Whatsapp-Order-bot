@@ -33,6 +33,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        if (Auth::user()->tenant && !Auth::user()->tenant->is_active) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => 'Your account has been deactivated. Please contact support.',
+            ]);
+        }
+
         if (Auth::user()->hasRole('Super Admin')) {
             return redirect()->intended(route('admin.dashboard', absolute: false));
         }

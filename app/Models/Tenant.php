@@ -13,6 +13,7 @@ class Tenant extends BaseTenant
     protected $fillable = [
         'id',
         'name',
+        'is_active',
         'data',
         'wa_access_token',
         'wa_phone_number_id',
@@ -29,6 +30,7 @@ class Tenant extends BaseTenant
         return [
             'id',
             'name',
+            'is_active',
             'wa_access_token',
             'wa_phone_number_id',
             'wa_business_account_id',

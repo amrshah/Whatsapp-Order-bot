@@ -46,6 +46,8 @@ export default function Integrations({ whatsapp }) {
                                             value={data.phone_number_id}
                                             onChange={(e) => setData('phone_number_id', e.target.value)}
                                             placeholder="e.g. 10245353245"
+                                            autoComplete="off"
+                                            data-1p-ignore
                                         />
                                         <InputError className="mt-2" message={errors.phone_number_id} />
                                     </div>
@@ -59,6 +61,8 @@ export default function Integrations({ whatsapp }) {
                                             onChange={(e) => setData('access_token', e.target.value)}
                                             type="password"
                                             placeholder="EAAG..."
+                                            autoComplete="new-password"
+                                            data-1p-ignore
                                         />
                                         <InputError className="mt-2" message={errors.access_token} />
                                     </div>

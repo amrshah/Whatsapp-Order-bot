@@ -22,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
+        if (str_starts_with(config('app.url'), 'https://')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('global_settings')) {
                 $settings = \Illuminate\Support\Facades\Cache::rememberForever('global_settings', function () {

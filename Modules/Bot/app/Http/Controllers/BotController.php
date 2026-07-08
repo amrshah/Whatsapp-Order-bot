@@ -104,9 +104,9 @@ class BotController extends Controller
             $tenant = Tenant::where('wa_phone_number_id', $phoneNumberId)->first();
         }
 
-        if (!$tenant) {
-            \Log::warning('Webhook received for unknown phone_number_id/tenant.');
-            return response()->json(['status' => 'tenant_not_found'], 404);
+        if (!$tenant || !$tenant->is_active) {
+            \Log::warning('Webhook received for unknown or inactive phone_number_id/tenant.');
+            return response()->json(['status' => 'tenant_not_found_or_inactive'], 404);
         }
 
         // 3. Initialize Tenancy
@@ -195,8 +195,22 @@ class BotController extends Controller
                 return response()->json($responsePayload);
             }
 
-            // Send via Meta API
-            app('whatsapp')->messages()->send($fromNumber, $type, $payload);
+            // Send via Meta API using Tenant's token
+            $waPhoneNumberId = $tenant->wa_phone_number_id ?? env('WHATSAPP_PHONE_NUMBER_ID');
+            $waAccessToken = $tenant->wa_access_token ?? env('WHATSAPP_ACCESS_TOKEN');
+
+            if ($waPhoneNumberId && $waAccessToken) {
+                \Illuminate\Support\Facades\Http::withToken($waAccessToken)
+                    ->post("https://graph.facebook.com/v19.0/{$waPhoneNumberId}/messages", [
+                        'messaging_product' => 'whatsapp',
+                        'recipient_type' => 'individual',
+                        'to' => $fromNumber,
+                        'type' => $type,
+                        $type => $payload
+                    ]);
+            } else {
+                \Log::error("Tenant {$tenant->id} is missing WhatsApp credentials.");
+            }
         }
 
         return response()->json(['status' => 'success']);

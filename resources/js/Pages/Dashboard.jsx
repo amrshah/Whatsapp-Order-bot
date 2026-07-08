@@ -3,7 +3,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Dashboard({ kpis }) {
     const { appName, auth } = usePage().props;
-    const name = appName || 'Hotel Wala Bot';
+    const name = appName || 'Bracemen Bot';
     const user = auth.user;
 
     return (

@@ -37,7 +37,9 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $tenant = \Stancl\Tenancy\Database\Models\Tenant::create();
+        $tenant = \Stancl\Tenancy\Database\Models\Tenant::create([
+            'name' => $request->name,
+        ]);
 
         $user = User::create([
             'name' => $request->name,

@@ -44,25 +44,67 @@ export default function Edit({ tenant, metrics }) {
                     </div>
 
                     <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Tenant Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Tenant Name</p>
-                                <p className="font-medium text-gray-900 dark:text-gray-100">{tenant.name || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Tenant ID</p>
-                                <p className="font-medium text-gray-900 dark:text-gray-100">{tenant.id}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Domain</p>
-                                <p className="font-medium text-gray-900 dark:text-gray-100">{tenant.domains.length > 0 ? tenant.domains[0].domain : 'No domain configured'}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Created At</p>
-                                <p className="font-medium text-gray-900 dark:text-gray-100">{new Date(tenant.created_at).toLocaleString()}</p>
-                            </div>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Tenant Information</h3>
+                            <button 
+                                onClick={() => {
+                                    if(confirm('Are you absolutely sure you want to delete this tenant and all its data? This cannot be undone.')) {
+                                        router.delete(route('admin.tenants.destroy', tenant.id));
+                                    }
+                                }}
+                                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm font-medium"
+                            >
+                                Delete Tenant
+                            </button>
                         </div>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            router.put(route('admin.tenants.update', tenant.id), {
+                                name: e.target.name.value,
+                                is_active: e.target.is_active.checked
+                            });
+                        }}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">Tenant Name</label>
+                                    <input 
+                                        name="name"
+                                        type="text"
+                                        defaultValue={tenant.name || ''} 
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-900 dark:border-gray-700 dark:text-white"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex flex-col justify-center pt-5">
+                                    <label className="flex items-center">
+                                        <input 
+                                            name="is_active"
+                                            type="checkbox" 
+                                            defaultChecked={tenant.is_active !== 0 && tenant.is_active !== false}
+                                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                        />
+                                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Active Account</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Tenant ID</p>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">{tenant.id}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Domain</p>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">{tenant.domains?.length > 0 ? tenant.domains[0].domain : 'No domain configured'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Created At</p>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">{new Date(tenant.created_at).toLocaleString()}</p>
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition text-sm">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
                     </div>
 
                     <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6">

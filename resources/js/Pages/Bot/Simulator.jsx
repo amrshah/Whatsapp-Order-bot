@@ -14,6 +14,9 @@ export default function Simulator({ tenant, tenants = [] }) {
     // If no tenant is provided via URL, default to the first one available
     const [currentTenant, setCurrentTenant] = useState(tenant || (tenants.length > 0 ? tenants[0].id : ''));
 
+    const currentTenantObj = tenants.find(t => t.id === currentTenant);
+    const tenantDisplayName = currentTenantObj ? currentTenantObj.name : (currentTenant || 'None');
+
     useEffect(() => {
         let savedPhone = localStorage.getItem('simulator_phone');
         if (!savedPhone) {
@@ -21,9 +24,6 @@ export default function Simulator({ tenant, tenants = [] }) {
             localStorage.setItem('simulator_phone', savedPhone);
         }
         setPhoneNumber(savedPhone);
-
-        const currentTenantObj = tenants.find(t => t.id === currentTenant);
-        const tenantDisplayName = currentTenantObj ? currentTenantObj.name : (currentTenant || 'None');
 
         setMessages([{
             id: Date.now(),
@@ -245,7 +245,7 @@ export default function Simulator({ tenant, tenants = [] }) {
                         🤖
                     </div>
                     <div>
-                        <div className="font-medium text-lg leading-tight">{name}</div>
+                        <div className="font-medium text-lg leading-tight">{tenantDisplayName || name}</div>
                         <div className="text-xs text-white/80">Simulator mode</div>
                     </div>
                 </div>

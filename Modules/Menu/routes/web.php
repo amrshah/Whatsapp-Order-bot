@@ -21,6 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->prefix('menu')->name('menu.')->group(function () {
+    Route::post('categories/template', [CategoryController::class, 'applyTemplate'])->name('categories.template');
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
     Route::resource('products', ProductController::class)->except(['create', 'show', 'edit']);
     

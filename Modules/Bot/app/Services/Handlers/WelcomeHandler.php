@@ -14,7 +14,7 @@ class WelcomeHandler implements BotHandlerInterface
         }
 
         $session->update(['current_state' => 'START']);
-        $appName = config('app.name', 'Hotel Wala Bot');
+        $appName = config('app.name', 'Bracemen Bot');
 
         $lastOrder = \Modules\Orders\Models\Order::where('customer_phone', $session->phone_number)
             ->with('items.product')

@@ -82,11 +82,44 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Category $category)
     {
-        $category = Category::findOrFail($id);
         $category->delete();
 
         return redirect()->back()->with('success', 'Category deleted successfully.');
+    }
+
+    /**
+     * Apply a predefined menu template.
+     */
+    public function applyTemplate(Request $request)
+    {
+        $validated = $request->validate([
+            'categories' => 'required|array',
+            'categories.*.name' => 'required|string',
+            'categories.*.items' => 'nullable|array',
+            'categories.*.items.*' => 'string'
+        ]);
+
+        foreach ($validated['categories'] as $categoryData) {
+            $category = Category::create([
+                'name' => $categoryData['name'],
+                'is_active' => true
+            ]);
+
+            if (!empty($categoryData['items'])) {
+                foreach ($categoryData['items'] as $itemName) {
+                    \Modules\Menu\Models\Product::create([
+                        'category_id' => $category->id,
+                        'name' => $itemName,
+                        'price' => 100, // Default price
+                        'is_active' => true,
+                        'type' => 'simple'
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->back()->with('success', 'Template applied successfully.');
     }
 }
