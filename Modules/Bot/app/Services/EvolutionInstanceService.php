@@ -78,13 +78,15 @@ class EvolutionInstanceService
         $response = Http::withHeaders([
             'apikey' => $this->apiKey,
         ])->post("{$this->apiUrl}/webhook/set/{$instanceName}", [
-            'enabled' => true,
-            'url' => $webhookUrl,
-            'webhookByEvents' => false,
-            'events' => [
-                'QRCODE_UPDATED',
-                'CONNECTION_UPDATE',
-                'MESSAGES_UPSERT',
+            'webhook' => [
+                'enabled' => true,
+                'url' => $webhookUrl,
+                'webhookByEvents' => false,
+                'events' => [
+                    'QRCODE_UPDATED',
+                    'CONNECTION_UPDATE',
+                    'MESSAGES_UPSERT',
+                ],
             ],
         ]);
 
