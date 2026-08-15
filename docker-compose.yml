@@ -23,6 +23,8 @@ services:
       - CACHE_STORE=redis
       - QUEUE_CONNECTION=redis
       - SESSION_DRIVER=redis
+      - EVOLUTION_API_URL=${EVOLUTION_API_URL:-https://evoapi.alamiaai.com}
+      - EVOLUTION_API_KEY=${EVOLUTION_API_KEY}
       # Add other important env vars here (APP_KEY, etc.)
     networks:
       - alamia-network
@@ -51,6 +53,8 @@ services:
       - CACHE_STORE=redis
       - QUEUE_CONNECTION=redis
       - SESSION_DRIVER=redis
+      - EVOLUTION_API_URL=${EVOLUTION_API_URL:-https://evoapi.alamiaai.com}
+      - EVOLUTION_API_KEY=${EVOLUTION_API_KEY}
     networks:
       - alamia-network
     restart: unless-stopped
@@ -78,6 +82,8 @@ services:
       - CACHE_STORE=redis
       - QUEUE_CONNECTION=redis
       - SESSION_DRIVER=redis
+      - EVOLUTION_API_URL=${EVOLUTION_API_URL:-https://evoapi.alamiaai.com}
+      - EVOLUTION_API_KEY=${EVOLUTION_API_KEY}
     networks:
       - alamia-network
     restart: unless-stopped
