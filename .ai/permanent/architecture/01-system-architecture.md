@@ -20,3 +20,4 @@ Bracemen Bot is a multi-tenant SaaS Restaurant Operating System. It allows resta
 
 ## Deployment & Environments
 - **Local Tunnel**: Uses Cloudflare Tunnels (e.g., silver-stable.samwebdevs.dpdns.org) to route Meta webhooks to the local Docker/serve environment.
+- **Production VPS Stack**: Deployed via Portainer orchestrating a `docker-compose.yml` stack. The stack uses a multi-stage Docker build producing a custom `webdevops/php-nginx:8.3-alpine` image to serve the Laravel App. It incorporates companion containers for Postgres (Database), Redis (Cache & Queues), a Background Worker (`queue:work`), a Cron Job Scheduler (`schedule:run`), and a `cloudflared` tunnel for secure web traffic ingress.
