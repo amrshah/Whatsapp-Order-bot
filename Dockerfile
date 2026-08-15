@@ -28,9 +28,4 @@ COPY --from=node-builder --chown=application:application /app/public/build /app/
 # Ensure storage and bootstrap cache directories are writable
 RUN chmod -R 775 /app/storage /app/bootstrap/cache
 
-# Run Laravel optimizations during image build (optional but recommended for prod)
-USER application
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
-USER root
+
