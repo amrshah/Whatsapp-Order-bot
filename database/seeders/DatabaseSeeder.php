@@ -27,11 +27,12 @@ class DatabaseSeeder extends Seeder
             'name' => $tenantName,
         ]);
 
-        $user = \App\Models\User::factory()->create([
+        $user = \App\Models\User::create([
             'name' => 'Restaurant Owner',
             'email' => 'admin@restaurant.com',
             'password' => bcrypt('password123'),
             'tenant_id' => $tenant->id,
+            'email_verified_at' => now(),
         ]);
 
         // We can optionally initialize tenancy to ensure the role assignment works cleanly in scope if needed,
