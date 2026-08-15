@@ -74,7 +74,7 @@ class SettingsController extends Controller
 
             if (!$qrcode && $connection->status !== 'open') {
                 // Instance might have been deleted from Evolution. Recreate it!
-                Log::info("Evolution: Instance '{$connection->instance_name}' not found on Evolution. Recreating.");
+                \Log::info("Evolution: Instance '{$connection->instance_name}' not found on Evolution. Recreating.");
                 try {
                     $service->deleteInstance($connection);
                 } catch (\Exception $e) {
