@@ -70,9 +70,11 @@ class SettingsController extends Controller
 
             $result = $service->connectInstance($connection->instance_name);
 
-            if (isset($result['code'])) {
+            $qrcode = $result['base64'] ?? $result['code'] ?? null;
+
+            if ($qrcode) {
                 $connection->update([
-                    'qrcode' => $result['code'],
+                    'qrcode' => $qrcode,
                     'status' => 'connecting',
                 ]);
             }
