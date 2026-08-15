@@ -85,16 +85,7 @@ services:
       - alamia-network
     restart: unless-stopped
 
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    command: tunnel run
-    environment:
-      - TUNNEL_TOKEN=${CF_TUNNEL_TOKEN}
-    networks:
-      - alamia-network
-    restart: unless-stopped
-    depends_on:
-      - app
+
 
 volumes:
   db-data:
