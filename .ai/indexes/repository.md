@@ -13,7 +13,9 @@ Maps high-level business logic concepts to specific code directories and files.
 
 ## WhatsApp Bot Module
 - **Namespace**: `Modules\Bot`
-- **Webhook Entrypoint**: `Modules/Bot/app/Http/Controllers/BotController.php`
+- **Webhook Entrypoints**: `Modules/Bot/app/Http/Controllers/BotController.php` (Meta API), `Modules/Bot/app/Http/Controllers/EvolutionWebhookController.php` (Evolution/Baileys API)
+- **Models**: `Modules/Bot/app/Models/BotSession.php`, `Modules/Bot/app/Models/WhatsAppConnection.php` (Tenant active WhatsApp channel instance)
+- **Services & Providers**: `Modules/Bot/app/Services/Contracts/WhatsAppProvider.php` (Message sending interface), `Modules/Bot/app/Services/Providers/` (EvolutionApiProvider & MetaCloudProvider implementations), `Modules/Bot/app/Services/WhatsAppProviderResolver.php` (Dynamically resolves connection model)
 - **Message Handlers**: `Modules/Bot/app/Services/Handlers/` (e.g., `WelcomeHandler.php`)
 - **Simulator UI**: `resources/js/Pages/Bot/Simulator.jsx`
 
@@ -24,7 +26,7 @@ Maps high-level business logic concepts to specific code directories and files.
 - **UI**: `resources/js/Pages/Menu/`
 
 ## Integrations
-- **Tenant WhatsApp Settings**: `app/Http/Controllers/SettingsController.php`, `resources/js/Pages/Settings/Integrations.jsx`
+- **Tenant WhatsApp Settings**: `app/Http/Controllers/SettingsController.php`, `resources/js/Pages/Settings/Integrations.jsx` (Allows scanning connection QR Code or saving Meta credentials)
 
 ## Documentation
 - **Tenant Onboarding Guide**: `docs/TENANT_WHATSAPP_ONBOARDING.md`

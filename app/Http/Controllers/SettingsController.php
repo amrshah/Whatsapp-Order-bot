@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Modules\Bot\Models\WhatsAppConnection;
+use Modules\Bot\Services\EvolutionInstanceService;
 
 class SettingsController extends Controller
 {
@@ -12,13 +14,24 @@ class SettingsController extends Controller
         // Get the current tenant via tenancy helper
         $tenant = tenant();
 
+        $connection = WhatsAppConnection::where('tenant_id', $tenant->id)
+            ->where('provider', 'evolution')
+            ->first();
+
         return Inertia::render('Settings/Integrations', [
             'whatsapp' => [
                 'access_token' => $tenant->wa_access_token ?? '',
                 'phone_number_id' => $tenant->wa_phone_number_id ?? '',
                 'verify_token' => $tenant->wa_verify_token ?? '',
                 'app_secret' => $tenant->wa_app_secret ?? '',
-            ]
+            ],
+            'evolution' => $connection ? [
+                'instance_name' => $connection->instance_name,
+                'status' => $connection->status,
+                'phone_number' => $connection->phone_number,
+                'qrcode' => $connection->qrcode,
+                'connected_at' => $connection->connected_at ? $connection->connected_at->toDateTimeString() : null,
+            ] : null,
         ]);
     }
 
@@ -40,6 +53,88 @@ class SettingsController extends Controller
         ]);
 
         return redirect()->route('settings.integrations')->with('success', 'Integration settings updated successfully.');
+    }
+
+    public function connectEvolution(Request $request, EvolutionInstanceService $service)
+    {
+        $tenant = tenant();
+
+        try {
+            $connection = WhatsAppConnection::where('tenant_id', $tenant->id)
+                ->where('provider', 'evolution')
+                ->first();
+
+            if (! $connection) {
+                $connection = $service->createInstance($tenant);
+            }
+
+            $result = $service->connectInstance($connection->instance_name);
+
+            if (isset($result['code'])) {
+                $connection->update([
+                    'qrcode' => $result['code'],
+                    'status' => 'connecting',
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'status' => $connection->status,
+                'qrcode' => $connection->qrcode,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function checkEvolutionState(Request $request, EvolutionInstanceService $service)
+    {
+        $tenant = tenant();
+        $connection = WhatsAppConnection::where('tenant_id', $tenant->id)
+            ->where('provider', 'evolution')
+            ->first();
+
+        if (! $connection) {
+            return response()->json(['status' => 'not_created']);
+        }
+
+        $liveState = $service->getConnectionState($connection->instance_name);
+
+        if ($liveState !== $connection->status) {
+            $connection->update([
+                'status' => $liveState === 'open' ? 'open' : 'disconnected',
+                'qrcode' => $liveState === 'open' ? null : $connection->qrcode,
+                'connected_at' => $liveState === 'open' ? now() : $connection->connected_at,
+            ]);
+        }
+
+        return response()->json([
+            'status' => $connection->status,
+            'qrcode' => $connection->qrcode,
+            'phone_number' => $connection->phone_number,
+        ]);
+    }
+
+    public function disconnectEvolution(Request $request, EvolutionInstanceService $service)
+    {
+        $tenant = tenant();
+        $connection = WhatsAppConnection::where('tenant_id', $tenant->id)
+            ->where('provider', 'evolution')
+            ->first();
+
+        if ($connection) {
+            try {
+                $service->logoutInstance($connection->instance_name);
+            } catch (\Exception $e) {
+                // Ignore logout errors if instance is already dead
+            }
+            $service->deleteInstance($connection);
+        }
+
+        return redirect()->route('settings.integrations')->with('success', 'WhatsApp connection deleted successfully.');
     }
 
     public function updateBusinessProfile(Request $request)

@@ -1,9 +1,13 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Settings\BillingController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Modules\Menu\Models\Product;
+use Modules\Orders\Models\Order;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -15,15 +19,15 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    if (auth()->user()->is_super_admin && !tenant()) {
+    if (auth()->user()->is_super_admin && ! tenant()) {
         return redirect()->route('admin.dashboard');
     }
 
-    $totalOrders = \Modules\Orders\Models\Order::count();
-    $activeItems = \Modules\Menu\Models\Product::where('is_active', true)->count();
-    
+    $totalOrders = Order::count();
+    $activeItems = Product::where('is_active', true)->count();
+
     // Assume 30% commission saved on total sales
-    $totalSales = \Modules\Orders\Models\Order::whereIn('status', ['Completed', 'Delivered'])->sum('total_amount');
+    $totalSales = Order::whereIn('status', ['Completed', 'Delivered'])->sum('total_amount');
     $savedCommission = $totalSales * 0.30;
 
     return Inertia::render('Dashboard', [
@@ -31,7 +35,7 @@ Route::get('/dashboard', function () {
             'totalOrders' => $totalOrders,
             'activeItems' => $activeItems,
             'savedCommission' => $savedCommission,
-        ]
+        ],
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -40,11 +44,14 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/settings/integrations', [\App\Http\Controllers\SettingsController::class, 'integrations'])->name('settings.integrations');
-    Route::post('/settings/integrations', [\App\Http\Controllers\SettingsController::class, 'updateIntegrations']);
-    Route::get('/settings/billing', [\App\Http\Controllers\Settings\BillingController::class, 'index'])->name('settings.billing');
-    Route::get('/settings/billing/invoices/{invoice}', [\App\Http\Controllers\Settings\BillingController::class, 'show'])->name('settings.billing.invoices.show');
-    Route::patch('/settings/business', [\App\Http\Controllers\SettingsController::class, 'updateBusinessProfile'])->name('settings.business.update');
+    Route::get('/settings/integrations', [SettingsController::class, 'integrations'])->name('settings.integrations');
+    Route::post('/settings/integrations', [SettingsController::class, 'updateIntegrations']);
+    Route::post('/settings/whatsapp/evolution/connect', [SettingsController::class, 'connectEvolution'])->name('settings.whatsapp.evolution.connect');
+    Route::get('/settings/whatsapp/evolution/state', [SettingsController::class, 'checkEvolutionState'])->name('settings.whatsapp.evolution.state');
+    Route::post('/settings/whatsapp/evolution/disconnect', [SettingsController::class, 'disconnectEvolution'])->name('settings.whatsapp.evolution.disconnect');
+    Route::get('/settings/billing', [BillingController::class, 'index'])->name('settings.billing');
+    Route::get('/settings/billing/invoices/{invoice}', [BillingController::class, 'show'])->name('settings.billing.invoices.show');
+    Route::patch('/settings/business', [SettingsController::class, 'updateBusinessProfile'])->name('settings.business.update');
 });
 
 require __DIR__.'/auth.php';
@@ -56,4 +63,3 @@ Route::get('/test-tenancy', function () {
         'tenant' => tenant('id'),
     ]);
 })->middleware(['auth', 'verified']);
-

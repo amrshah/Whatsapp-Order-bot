@@ -47,4 +47,9 @@ return [
         'redirect' => '/auth/facebook/callback',
     ],
 
+    'evolution' => [
+        'api_url' => env('EVOLUTION_API_URL', 'https://evoapi.alamiaai.com'),
+        'api_key' => env('EVOLUTION_API_KEY'),
+    ],
+
 ];

@@ -3,11 +3,19 @@
 namespace Modules\Bot\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Modules\Orders\Models\Order;
-use Modules\Menu\Models\Product;
-use Stancl\Tenancy\Features\TenantConfig;
 use App\Models\Tenant;
+use Illuminate\Http\Request;
+use Modules\Bot\Models\BotSession;
+use Modules\Bot\Services\Handlers\AddressHandler;
+use Modules\Bot\Services\Handlers\CartHandler;
+use Modules\Bot\Services\Handlers\CategoryHandler;
+use Modules\Bot\Services\Handlers\CheckoutHandler;
+use Modules\Bot\Services\Handlers\ConfirmationHandler;
+use Modules\Bot\Services\Handlers\MenuHandler;
+use Modules\Bot\Services\Handlers\ProductHandler;
+use Modules\Bot\Services\Handlers\WelcomeHandler;
+use Modules\Bot\Services\WhatsAppMessagingService;
+use Modules\Bot\Services\WhatsAppProviderResolver;
 
 class BotController extends Controller
 {
@@ -69,8 +77,10 @@ class BotController extends Controller
             if ($mode === 'subscribe' && $token === $verifyToken) {
                 return response($challenge, 200);
             }
+
             return response('Forbidden', 403);
         }
+
         return response('Bad Request', 400);
     }
 
@@ -96,7 +106,7 @@ class BotController extends Controller
                 $phoneNumberId = $request->phone_number_id;
             }
 
-            if (!$phoneNumberId) {
+            if (! $phoneNumberId) {
                 return response()->json(['status' => 'ignored']);
             }
 
@@ -104,8 +114,9 @@ class BotController extends Controller
             $tenant = Tenant::where('wa_phone_number_id', $phoneNumberId)->first();
         }
 
-        if (!$tenant || !$tenant->is_active) {
+        if (! $tenant || ! $tenant->is_active) {
             \Log::warning('Webhook received for unknown or inactive phone_number_id/tenant.');
+
             return response()->json(['status' => 'tenant_not_found_or_inactive'], 404);
         }
 
@@ -142,12 +153,12 @@ class BotController extends Controller
             return response()->json(['status' => 'event_ignored']);
         }
 
-        if (!$fromNumber) {
+        if (! $fromNumber) {
             return response()->json(['status' => 'no_sender']);
         }
 
         // 5. Bot Session Management
-        $session = \Modules\Bot\Models\BotSession::firstOrCreate(
+        $session = BotSession::firstOrCreate(
             ['phone_number' => $fromNumber, 'tenant_id' => tenant('id')],
             ['current_state' => 'START', 'expires_at' => now()->addHours(2)]
         );
@@ -159,29 +170,29 @@ class BotController extends Controller
         }
 
         $state = $session->current_state;
-        
+
         if ($messageType === 'text' && in_array(strtolower($messageBody), ['hi', 'hello', 'menu', 'start'])) {
             $state = 'START';
         }
 
         $handler = match ($state) {
-            'START' => new \Modules\Bot\Services\Handlers\WelcomeHandler(),
-            'CATEGORY_SELECT' => new \Modules\Bot\Services\Handlers\CategoryHandler(),
-            'PRODUCT_SELECT' => new \Modules\Bot\Services\Handlers\ProductHandler(),
-            'VIEWING_PRODUCT' => new \Modules\Bot\Services\Handlers\CartHandler(),
-            'VIEWING_CART' => new \Modules\Bot\Services\Handlers\CheckoutHandler(),
-            'CHECKOUT_TYPE' => new \Modules\Bot\Services\Handlers\AddressHandler(),
-            'AWAITING_ADDRESS' => new \Modules\Bot\Services\Handlers\AddressHandler(),
-            'CONFIRMATION' => new \Modules\Bot\Services\Handlers\ConfirmationHandler(),
-            default => new \Modules\Bot\Services\Handlers\WelcomeHandler()
+            'START' => new WelcomeHandler,
+            'CATEGORY_SELECT' => new CategoryHandler,
+            'PRODUCT_SELECT' => new ProductHandler,
+            'VIEWING_PRODUCT' => new CartHandler,
+            'VIEWING_CART' => new CheckoutHandler,
+            'CHECKOUT_TYPE' => new AddressHandler,
+            'AWAITING_ADDRESS' => new AddressHandler,
+            'CONFIRMATION' => new ConfirmationHandler,
+            default => new WelcomeHandler
         };
 
         if ($messageType === 'interactive' && $messageBody === 'action_view_menu') {
-            $handler = new \Modules\Bot\Services\Handlers\MenuHandler();
+            $handler = new MenuHandler;
         }
-        
+
         if ($messageType === 'interactive' && $messageBody === 'action_checkout') {
-            $handler = new \Modules\Bot\Services\Handlers\CheckoutHandler();
+            $handler = new CheckoutHandler;
         }
 
         // Handle the message
@@ -195,22 +206,9 @@ class BotController extends Controller
                 return response()->json($responsePayload);
             }
 
-            // Send via Meta API using Tenant's token
-            $waPhoneNumberId = $tenant->wa_phone_number_id ?? env('WHATSAPP_PHONE_NUMBER_ID');
-            $waAccessToken = $tenant->wa_access_token ?? env('WHATSAPP_ACCESS_TOKEN');
-
-            if ($waPhoneNumberId && $waAccessToken) {
-                \Illuminate\Support\Facades\Http::withToken($waAccessToken)
-                    ->post("https://graph.facebook.com/v19.0/{$waPhoneNumberId}/messages", [
-                        'messaging_product' => 'whatsapp',
-                        'recipient_type' => 'individual',
-                        'to' => $fromNumber,
-                        'type' => $type,
-                        $type => $payload
-                    ]);
-            } else {
-                \Log::error("Tenant {$tenant->id} is missing WhatsApp credentials.");
-            }
+            $provider = WhatsAppProviderResolver::resolve($tenant);
+            $messagingService = new WhatsAppMessagingService($provider);
+            $messagingService->sendMessage($fromNumber, $responsePayload);
         }
 
         return response()->json(['status' => 'success']);
