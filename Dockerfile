@@ -10,7 +10,7 @@ RUN npm run build
 FROM composer:2.7 AS composer-builder
 WORKDIR /app
 COPY . .
-RUN composer install --optimize-autoloader --no-dev --no-interaction --no-progress
+RUN composer install --optimize-autoloader --no-dev --no-interaction --no-progress --ignore-platform-reqs
 
 # Stage 3: Final Production Image
 FROM webdevops/php-nginx:8.3-alpine
