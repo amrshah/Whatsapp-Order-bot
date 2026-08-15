@@ -72,7 +72,7 @@ class EvolutionInstanceService
      */
     public function configureWebhook(string $instanceName): bool
     {
-        $webhookUrl = route('api.bot.evolution.webhook');
+        $webhookUrl = config('services.evolution.webhook_url') ?: route('api.bot.evolution.webhook');
         Log::info("Evolution: Configuring webhook for instance '{$instanceName}' -> {$webhookUrl}");
 
         $response = Http::withHeaders([

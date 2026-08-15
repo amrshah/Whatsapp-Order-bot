@@ -50,6 +50,7 @@ return [
     'evolution' => [
         'api_url' => env('EVOLUTION_API_URL', 'https://evoapi.alamiaai.com'),
         'api_key' => env('EVOLUTION_API_KEY'),
+        'webhook_url' => env('EVOLUTION_WEBHOOK_URL'),
     ],
 
 ];

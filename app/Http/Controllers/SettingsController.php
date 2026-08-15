@@ -107,10 +107,22 @@ class SettingsController extends Controller
 
         if ($liveState !== $connection->status) {
             $connection->update([
-                'status' => $liveState === 'open' ? 'open' : 'disconnected',
+                'status' => $liveState === 'open' ? 'open' : ($liveState === 'connecting' ? 'connecting' : 'disconnected'),
                 'qrcode' => $liveState === 'open' ? null : $connection->qrcode,
                 'connected_at' => $liveState === 'open' ? now() : $connection->connected_at,
             ]);
+        }
+
+        // Fallback: If not fully open/connected, poll fresh QR from Evolution to bypass webhook delay
+        if ($connection->status !== 'open') {
+            $result = $service->connectInstance($connection->instance_name);
+            $qrcode = $result['base64'] ?? $result['code'] ?? null;
+            if ($qrcode && $qrcode !== $connection->qrcode) {
+                $connection->update([
+                    'qrcode' => $qrcode,
+                    'status' => 'connecting'
+                ]);
+            }
         }
 
         return response()->json([
