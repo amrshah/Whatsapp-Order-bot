@@ -22,6 +22,13 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
         ]);
 
+        
+
+        $this->command->info('Seeding Super Admin...');
+        $this->call([
+            SuperAdminSeeder::class,
+        ]);
+
         $tenantName = "Default Restaurant";
         $tenantId = \Illuminate\Support\Str::slug($tenantName);
 
