@@ -15,6 +15,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->command->info('Starting Database Seeder...');
+
+        $this->command->info('Seeding Roles and Permissions...');
         $this->call([
             RolesAndPermissionsSeeder::class,
         ]);
@@ -22,11 +25,13 @@ class DatabaseSeeder extends Seeder
         $tenantName = "Default Restaurant";
         $tenantId = \Illuminate\Support\Str::slug($tenantName);
 
+        $this->command->info("Creating Default Tenant: {$tenantName}");
         $tenant = \App\Models\Tenant::create([
             'id' => $tenantId,
             'name' => $tenantName,
         ]);
 
+        $this->command->info('Creating Restaurant Owner User...');
         $user = \App\Models\User::create([
             'name' => 'Restaurant Owner',
             'email' => 'admin@restaurant.com',
@@ -35,8 +40,11 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
+        $this->command->info('Assigning Owner Role to User...');
         // We can optionally initialize tenancy to ensure the role assignment works cleanly in scope if needed,
         // though Spatie roles in this app might be global.
         $user->assignRole('Owner');
+        
+        $this->command->info('Database Seeding Completed Successfully!');
     }
 }
