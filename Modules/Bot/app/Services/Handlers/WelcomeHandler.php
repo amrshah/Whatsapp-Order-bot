@@ -62,9 +62,11 @@ class WelcomeHandler implements BotHandlerInterface
         }
 
         return [
-            'type' => 'text',
-            'text' => [
-                'body' => 'Hi! Welcome to Restaurant OS. Please reply 1 for Menu.',
+            'type' => 'interactive',
+            'interactive' => [
+                'type' => 'button',
+                'body' => ['text' => $text],
+                'action' => ['buttons' => array_slice($buttons, 0, 3)],
             ],
         ];
     }

@@ -45,10 +45,8 @@ class EvolutionApiProvider implements WhatsAppProvider
         foreach ($buttons as $btn) {
             $formattedButtons[] = [
                 'type' => 'reply',
-                'reply' => [
-                    'id' => $btn['id'],
-                    'title' => $btn['title'],
-                ],
+                'displayText' => $btn['title'],
+                'id' => $btn['id'],
             ];
         }
 
@@ -56,7 +54,9 @@ class EvolutionApiProvider implements WhatsAppProvider
             'apikey' => $this->apiKey,
         ])->post("{$this->apiUrl}/message/sendButtons/{$this->connection->instance_name}", [
             'number' => $this->formatNumber($to),
-            'body' => $body,
+            'title' => config('app.name', 'Restaurant OS'),
+            'description' => $body,
+            'footer' => config('app.name', 'Restaurant OS'),
             'buttons' => $formattedButtons,
         ]);
 
@@ -95,6 +95,7 @@ class EvolutionApiProvider implements WhatsAppProvider
             'title' => config('app.name', 'Menu'),
             'description' => $body,
             'buttonText' => $buttonText,
+            'footerText' => config('app.name', 'Restaurant OS'),
             'sections' => $formattedSections,
         ]);
 
