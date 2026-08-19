@@ -47,17 +47,17 @@ export default function Welcome({ auth }) {
           {who:'in', name:'Customer', text:'Hi! Ek large pepperoni pizza mil sakta hai?'},
           {who:'out', name: name, text:'Jee zaroor! 1x Large Pepperoni Pizza — Rs 1,650. Delivery ya pickup?'},
           {who:'in', name:'Customer', text:'Delivery, Gulberg III.'},
-          {who:'out', name: name, text:'Order confirm! 🎉 30 min mein pohanch jayega. Kitchen ko notify kar diya gaya hai.'}
+          {who:'out', name: name, text:'Order confirm! 30 min mein pohanch jayega. Kitchen ko notify kar diya gaya hai.'}
         ],
         table: [
           {who:'in', name:'Customer', text:'Aaj raat 8 baje ke liye 4 logon ka table chahiye.'},
           {who:'out', name: name, text:'Bilkul! Table for 4, tonight 8:00 PM — confirmed. Naam bata dein reservation ke liye?'},
           {who:'in', name:'Customer', text:'Bilal.'},
-          {who:'out', name: name, text:'Shukriya Bilal! Aapka table reserved hai. See you tonight! 🍽️'}
+          {who:'out', name: name, text:'Shukriya Bilal! Aapka table reserved hai. See you tonight!'}
         ],
         menu: [
           {who:'in', name:'Customer', text:'Menu bhej dein please.'},
-          {who:'out', name: name, text:'Yahan hamara menu hai: 🍕 Pizzas, 🍗 BBQ, 🥘 Karahi, 🥤 Beverages. Kis category mein interested hain?'},
+          {who:'out', name: name, text:'Yahan hamara menu hai: Pizzas, BBQ, Karahi, Beverages. Kis category mein interested hain?'},
           {who:'in', name:'Customer', text:'BBQ dikhayein.'},
           {who:'out', name: name, text:'Seekh Kabab Rs 950 · Malai Boti Rs 1,050 · Chicken Tikka Rs 850. Order karna chahenge?'}
         ],
@@ -65,7 +65,7 @@ export default function Welcome({ auth }) {
           {who:'in', name:'Customer', text:'Mera order kahan tak pohancha? #0149'},
           {who:'out', name: name, text:'Order #0149 abhi kitchen mein tayar ho raha hai — approx 12 min baaki hain.'},
           {who:'in', name:'Customer', text:'Shukriya!'},
-          {who:'out', name: name, text:'Aapka welcome! Rider assign hote hi hum aapko live location bhej denge. 🏍️'}
+          {who:'out', name: name, text:'Aapka welcome! Rider assign hote hi hum aapko live location bhej denge.'}
         ]
     };
 
@@ -428,12 +428,12 @@ export default function Welcome({ auth }) {
                 <div>
                 <div className="phone">
                     <div className="phone-screen">
-                    <div className="phone-bar"><div className="dot">🍴</div> Karachi Karahi House</div>
+                    <div className="phone-bar"><div className="dot">K</div> Karachi Karahi House</div>
                     <div className="phone-chat">
                         <div className="bubble in d1"><b>Ahmed</b>Assalam-o-alaikum, ek chicken karahi full aur 4 roti mil sakti hai?</div>
                         <div className="bubble out d2"><b>{name}</b>Jee zaroor! 1x Chicken Karahi (Full) + 4 Roti. Total: Rs 2,150. Delivery ya pickup?</div>
                         <div className="bubble in d3">Delivery please, DHA Phase 5.</div>
-                        <div className="bubble out d4">Order confirm! 🎉 25-30 min mein pohanch jayega. Payment: Cash on Delivery.</div>
+                        <div className="bubble out d4">Order confirm! 25-30 min mein pohanch jayega. Payment: Cash on Delivery.</div>
                     </div>
                     <div className="ticket-pop">
                         <div className="tt"><span>KITCHEN TICKET #0148</span><span>2 min ago</span></div>
@@ -453,14 +453,14 @@ export default function Welcome({ auth }) {
                 <h2 style={{fontSize:'26px'}}>Built for how Pakistan actually orders food</h2>
                 </div>
                 <div className="pf-row">
-                <div className="pf-chip"><span className="ic">🍔</span>Fast Food</div>
-                <div className="pf-chip"><span className="ic">☕</span>Cafés</div>
-                <div className="pf-chip"><span className="ic">🍽️</span>Restaurants</div>
-                <div className="pf-chip"><span className="ic">🥘</span>Dhabas</div>
-                <div className="pf-chip"><span className="ic">👩‍🍳</span>Home Chefs</div>
-                <div className="pf-chip"><span className="ic">🍱</span>Catering</div>
-                <div className="pf-chip"><span className="ic">🏍️</span>Cloud Kitchens</div>
-                <div className="pf-chip"><span className="ic">🍕</span>Pizza Shops</div>
+                <div className="pf-chip">Fast Food</div>
+                <div className="pf-chip">Cafés</div>
+                <div className="pf-chip">Restaurants</div>
+                <div className="pf-chip">Dhabas</div>
+                <div className="pf-chip">Home Chefs</div>
+                <div className="pf-chip">Catering</div>
+                <div className="pf-chip">Cloud Kitchens</div>
+                <div className="pf-chip">Pizza Shops</div>
                 </div>
             </div>
             </section>
@@ -527,7 +527,7 @@ export default function Welcome({ auth }) {
             <section className="calc-section" id="calculator">
             <div className="wrap">
                 <div className="calc-head">
-                <div className="eyebrow on-dark">⭐ See Your Own Numbers</div>
+                <div className="eyebrow on-dark">See Your Own Numbers</div>
                 <h2>How Much Are Delivery Apps Costing You?</h2>
                 <p>Move the sliders to match your restaurant. Watch what stays in your pocket instead of theirs.</p>
                 </div>
@@ -564,14 +564,14 @@ export default function Welcome({ auth }) {
                     <div className="rv">{fmt(Math.max(totalSavings, 0))}</div>
                     </div>
                     <div className="breakdown">
-                    <div className="bd-row"><span className="bl2">💰 Commission avoided</span><span className="br2">{fmt(commissionLost)}</span></div>
-                    <div className="bd-row"><span className="bl2">🤖 Staff hours saved (est.)</span><span className="br2">{fmt(laborSaved)}</span></div>
-                    <div className="bd-row"><span className="bl2">📈 Recovered missed orders</span><span className="br2">{fmt(recoveredOrders)}</span></div>
+                    <div className="bd-row"><span className="bl2">Commission avoided</span><span className="br2">{fmt(commissionLost)}</span></div>
+                    <div className="bd-row"><span className="bl2">Staff hours saved (est.)</span><span className="br2">{fmt(laborSaved)}</span></div>
+                    <div className="bd-row"><span className="bl2">Recovered missed orders</span><span className="br2">{fmt(recoveredOrders)}</span></div>
                     <div className="bd-row" style={{borderBottom:'none'}}><span className="bl2">{name} flat fee</span><span className="br2" style={{color:'var(--amber)'}}>− Rs 4,999 / mo</span></div>
                     </div>
                 </div>
                 </div>
-                <div className="calc-footnote">🎉 That's often enough to hire another employee — or fund your next branch.</div>
+                <div className="calc-footnote">That's often enough to hire another employee — or fund your next branch.</div>
             </div>
             </section>
 
@@ -583,10 +583,10 @@ export default function Welcome({ auth }) {
                 <h2 style={{fontSize:'clamp(26px,3.2vw,36px)'}}>From "Hello" to Hot Food, in Four Steps</h2>
                 </div>
                 <div className="steps">
-                <div className="step"><div className="sn">STEP 1</div><div className="si">💬</div><h4>Customer Messages</h4><p>They text your existing WhatsApp number — no new app to download.</p><div className="step-arrow">→</div></div>
-                <div className="step"><div className="sn">STEP 2</div><div className="si">🤖</div><h4>AI Takes the Order</h4><p>{name} replies, confirms items, and calculates the total in seconds.</p><div className="step-arrow">→</div></div>
-                <div className="step"><div className="sn">STEP 3</div><div className="si">🖥️</div><h4>Kitchen Gets Notified</h4><p>The order lands on your Kitchen Display instantly, with an audio alert.</p><div className="step-arrow">→</div></div>
-                <div className="step"><div className="sn">STEP 4</div><div className="si">✅</div><h4>Ready to Serve</h4><p>Marked ready for pickup or handed to your rider — fully tracked.</p></div>
+                <div className="step"><div className="sn">STEP 1</div><div className="si" style={{fontWeight:'800',color:'var(--green-dark)',fontSize:'18px'}}>01</div><h4>Customer Messages</h4><p>They text your existing WhatsApp number — no new app to download.</p><div className="step-arrow">→</div></div>
+                <div className="step"><div className="sn">STEP 2</div><div className="si" style={{fontWeight:'800',color:'var(--orange)',fontSize:'18px'}}>02</div><h4>AI Takes the Order</h4><p>{name} replies, confirms items, and calculates the total in seconds.</p><div className="step-arrow">→</div></div>
+                <div className="step"><div className="sn">STEP 3</div><div className="si" style={{fontWeight:'800',color:'var(--amber)',fontSize:'18px'}}>03</div><h4>Kitchen Gets Notified</h4><p>The order lands on your Kitchen Display instantly, with an audio alert.</p><div className="step-arrow">→</div></div>
+                <div className="step"><div className="sn">STEP 4</div><div className="si" style={{fontWeight:'800',color:'var(--muted)',fontSize:'18px'}}>04</div><h4>Ready to Serve</h4><p>Marked ready for pickup or handed to your rider — fully tracked.</p></div>
                 </div>
             </div>
             </section>
@@ -600,12 +600,12 @@ export default function Welcome({ auth }) {
                 <p className="lede">Own your customers. Own your data. Own your profits.</p>
                 </div>
                 <div className="love-grid">
-                <div className="love-card"><div className="lic">⚡</div><h4>Never Miss an Order</h4><p>AI replies within seconds, even during your busiest rush hour.</p></div>
-                <div className="love-card"><div className="lic">🌙</div><h4>Available 24/7</h4><p>Customers can order even after your staff has gone home.</p></div>
-                <div className="love-card"><div className="lic">🎯</div><h4>Fewer Mistakes</h4><p>Orders go straight to the kitchen — no mishearing, no lost notes.</p></div>
-                <div className="love-card"><div className="lic">💵</div><h4>Higher Profit</h4><p>Keep every rupee from every order placed directly with you.</p></div>
-                <div className="love-card"><div className="lic">📇</div><h4>Customer Database</h4><p>Own your customer list forever — no aggregator standing in between.</p></div>
-                <div className="love-card"><div className="lic">⭐</div><h4>Better Reviews</h4><p>Faster replies and accurate orders mean happier, returning customers.</p></div>
+                <div className="love-card"><h4>Never Miss an Order</h4><p>AI replies within seconds, even during your busiest rush hour.</p></div>
+                <div className="love-card"><h4>Available 24/7</h4><p>Customers can order even after your staff has gone home.</p></div>
+                <div className="love-card"><h4>Fewer Mistakes</h4><p>Orders go straight to the kitchen — no mishearing, no lost notes.</p></div>
+                <div className="love-card"><h4>Higher Profit</h4><p>Keep every rupee from every order placed directly with you.</p></div>
+                <div className="love-card"><h4>Customer Database</h4><p>Own your customer list forever — no aggregator standing in between.</p></div>
+                <div className="love-card"><h4>Better Reviews</h4><p>Faster replies and accurate orders mean happier, returning customers.</p></div>
                 </div>
             </div>
             </section>
@@ -650,16 +650,16 @@ export default function Welcome({ auth }) {
                 <h2 style={{fontSize:'clamp(26px,3.2vw,34px)', marginBottom:'16px'}}>See {name} Handle a Real Order</h2>
                 <p style={{color:'var(--muted)', fontSize:'16px', marginBottom:'28px'}}>Tap an option below and watch the conversation update, exactly like your customers would experience it.</p>
                 <div className="demo-buttons">
-                    <button className={`demo-btn ${activeDemo === 'order' ? 'active' : ''}`} onClick={() => setActiveDemo('order')}>🍕 Order Food</button>
-                    <button className={`demo-btn ${activeDemo === 'table' ? 'active' : ''}`} onClick={() => setActiveDemo('table')}>🪑 Reserve a Table</button>
-                    <button className={`demo-btn ${activeDemo === 'menu' ? 'active' : ''}`} onClick={() => setActiveDemo('menu')}>📋 Ask for Menu</button>
-                    <button className={`demo-btn ${activeDemo === 'track' ? 'active' : ''}`} onClick={() => setActiveDemo('track')}>📍 Track My Order</button>
+                    <button className={`demo-btn ${activeDemo === 'order' ? 'active' : ''}`} onClick={() => setActiveDemo('order')}>Order Food</button>
+                    <button className={`demo-btn ${activeDemo === 'table' ? 'active' : ''}`} onClick={() => setActiveDemo('table')}>Reserve a Table</button>
+                    <button className={`demo-btn ${activeDemo === 'menu' ? 'active' : ''}`} onClick={() => setActiveDemo('menu')}>Ask for Menu</button>
+                    <button className={`demo-btn ${activeDemo === 'track' ? 'active' : ''}`} onClick={() => setActiveDemo('track')}>Track My Order</button>
                 </div>
                 </div>
                 <div className="demo-phone">
                 <div className="phone" style={{width:'280px'}}>
                     <div className="phone-screen" style={{height:'420px'}}>
-                    <div className="phone-bar"><div className="dot">🍴</div> Demo Chat</div>
+                    <div className="phone-bar"><div className="dot">D</div> Demo Chat</div>
                     <div className="phone-chat">
                         {demoData[activeDemo].map((msg, i) => (
                             <div key={i} className={`bubble ${msg.who === 'in' ? 'in' : 'out'}`} style={{animationDelay: `${i * 0.35}s`}}>

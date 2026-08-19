@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
+import { 
+    Palette, 
+    Settings, 
+    CreditCard, 
+    MessageSquare, 
+    Eye, 
+    Send, 
+    Save 
+} from 'lucide-react';
 
 export default function MiniApp({ settings, tenantId }) {
     // Current tab selection
     const [activeSection, setActiveSection] = useState('branding');
 
-    // Load initial settings with fallbacks
+    // Load initial settings with fallbacks (no emojis in default templates)
     const [form, setForm] = useState({
         branding: {
             logo: settings.branding?.logo || '',
@@ -27,10 +36,10 @@ export default function MiniApp({ settings, tenantId }) {
             bank_instructions: settings.payments?.bank_instructions || '',
         },
         whatsapp: {
-            order_received: settings.whatsapp?.order_received || 'Order {order_number} received! 🍕',
-            order_preparing: settings.whatsapp?.order_preparing || 'Order {order_number} is now preparing in the kitchen! 🍳',
-            order_ready: settings.whatsapp?.order_ready || 'Order {order_number} is ready! 🚴',
-            order_delivered: settings.whatsapp?.order_delivered || 'Order {order_number} has been delivered! Enjoy your meal 😋',
+            order_received: settings.whatsapp?.order_received || 'Order {order_number} received!',
+            order_preparing: settings.whatsapp?.order_preparing || 'Order {order_number} is now preparing in the kitchen.',
+            order_ready: settings.whatsapp?.order_ready || 'Order {order_number} is ready!',
+            order_delivered: settings.whatsapp?.order_delivered || 'Order {order_number} has been delivered!',
         },
         crm: {
             auto_tag: settings.crm?.auto_tag || 'lead',
@@ -61,7 +70,7 @@ export default function MiniApp({ settings, tenantId }) {
             preserveScroll: true,
             onSuccess: () => {
                 setIsSaving(false);
-                setStatusMessage({ type: 'success', text: 'Draft settings saved! Tap Preview to test.' });
+                setStatusMessage({ type: 'success', text: 'Draft settings saved. Tap Preview Draft to test.' });
             },
             onError: () => {
                 setIsSaving(false);
@@ -78,7 +87,7 @@ export default function MiniApp({ settings, tenantId }) {
             preserveScroll: true,
             onSuccess: () => {
                 setIsPublishing(false);
-                setStatusMessage({ type: 'success', text: 'Settings published to live PWA successfully!' });
+                setStatusMessage({ type: 'success', text: 'Settings published to live PWA successfully.' });
             },
             onError: () => {
                 setIsPublishing(false);
@@ -108,39 +117,45 @@ export default function MiniApp({ settings, tenantId }) {
                         {/* Sidebar Sections */}
                         <div className="w-full md:w-48 flex flex-col gap-1 border-r border-gray-100 dark:border-gray-750 pr-4">
                             {[
-                                { id: 'branding', label: '🎨 Branding' },
-                                { id: 'ordering', label: '🛵 Ordering Rules' },
-                                { id: 'payments', label: '💳 Payments' },
-                                { id: 'whatsapp', label: '💬 Notifications' },
-                            ].map(section => (
-                                <button
-                                    key={section.id}
-                                    onClick={() => setActiveSection(section.id)}
-                                    className={`text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                                        activeSection === section.id
-                                            ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300'
-                                            : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-750'
-                                    }`}
-                                >
-                                    {section.label}
-                                </button>
-                            ))}
+                                { id: 'branding', label: 'Branding', icon: Palette },
+                                { id: 'ordering', label: 'Ordering Rules', icon: Settings },
+                                { id: 'payments', label: 'Payments', icon: CreditCard },
+                                { id: 'whatsapp', label: 'Notifications', icon: MessageSquare },
+                            ].map(section => {
+                                const IconComponent = section.icon;
+                                return (
+                                    <button
+                                        key={section.id}
+                                        type="button"
+                                        onClick={() => setActiveSection(section.id)}
+                                        className={`flex items-center gap-2.5 text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                                            activeSection === section.id
+                                                ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300'
+                                                : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-750'
+                                        }`}
+                                    >
+                                        <IconComponent className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                                        {section.label}
+                                    </button>
+                                );
+                            })}
 
                             <div className="mt-8 pt-4 border-t border-gray-100 dark:border-gray-750 flex flex-col gap-2">
                                 <a
                                     href={route('pwa.menu', { tenant_slug: tenantId, preview: 'true' })}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-750 dark:hover:bg-gray-700 dark:text-gray-200 text-center font-bold py-2 rounded-lg text-xs"
+                                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-750 dark:hover:bg-gray-700 dark:text-gray-200 flex items-center justify-center gap-1.5 font-bold py-2 rounded-lg text-xs"
                                 >
-                                    🔍 Preview Draft
+                                    <Eye className="w-3.5 h-3.5" /> Preview Draft
                                 </a>
                                 <button
+                                    type="button"
                                     onClick={handlePublish}
                                     disabled={isPublishing}
-                                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg text-xs disabled:bg-gray-400"
+                                    className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-1.5 font-bold py-2 rounded-lg text-xs disabled:bg-gray-400"
                                 >
-                                    {isPublishing ? 'Publishing...' : '🚀 Publish Live'}
+                                    <Send className="w-3.5 h-3.5" /> {isPublishing ? 'Publishing...' : 'Publish Live'}
                                 </button>
                             </div>
                         </div>
@@ -274,9 +289,9 @@ export default function MiniApp({ settings, tenantId }) {
                                 <button
                                     type="submit"
                                     disabled={isSaving}
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg text-xs disabled:bg-gray-400"
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-1.5 font-bold py-2.5 px-6 rounded-lg text-xs disabled:bg-gray-400"
                                 >
-                                    {isSaving ? 'Saving Draft...' : '💾 Save Draft'}
+                                    <Save className="w-3.5 h-3.5" /> {isSaving ? 'Saving Draft...' : 'Save Draft'}
                                 </button>
                             </div>
                         </form>

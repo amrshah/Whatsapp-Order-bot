@@ -4,6 +4,7 @@ import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { Smartphone } from 'lucide-react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
@@ -106,9 +107,9 @@ export default function AuthenticatedLayout({ header, children }) {
                                     href={route('pwa.menu', { tenant_slug: user.tenant_id })}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="me-3 inline-flex items-center gap-1.5 bg-indigo-650 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition duration-150 ease-in-out shadow-sm border border-transparent"
+                                    className="me-3 inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition duration-150 ease-in-out shadow-sm"
                                 >
-                                    <span>📱</span> View Your App
+                                    <Smartphone className="w-3.5 h-3.5" /> View Your App
                                 </a>
                             )}
                             <div className="relative ms-3">
@@ -298,9 +299,9 @@ export default function AuthenticatedLayout({ header, children }) {
                             <ResponsiveNavLink
                                 href={route('pwa.menu', { tenant_slug: user.tenant_id })}
                                 target="_blank"
-                                className="pl-6 text-indigo-600 dark:text-indigo-400 font-bold"
+                                className="pl-6 text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1.5"
                             >
-                                📱 View Your App
+                                <Smartphone className="w-4 h-4" /> View Your App
                             </ResponsiveNavLink>
                         )}
                     </div>

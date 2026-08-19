@@ -7,6 +7,9 @@ RUN composer install --optimize-autoloader --no-dev --no-interaction --no-progre
 # Stage 2: Final Production Image
 FROM webdevops/php-nginx:8.3-alpine
 
+# Install Node.js and npm inside final image
+RUN apk add --no-cache nodejs npm
+
 # Set environment variables for the container
 ENV WEB_DOCUMENT_ROOT=/app/public
 ENV PHP_DATE_TIMEZONE="UTC"
