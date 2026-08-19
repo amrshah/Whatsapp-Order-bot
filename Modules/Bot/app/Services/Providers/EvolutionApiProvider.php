@@ -4,6 +4,7 @@ namespace Modules\Bot\Services\Providers;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Modules\Bot\Models\BotSession;
 use Modules\Bot\Models\WhatsAppConnection;
 use Modules\Bot\Services\Contracts\WhatsAppProvider;
 
@@ -38,72 +39,70 @@ class EvolutionApiProvider implements WhatsAppProvider
 
     public function sendInteractiveButtons(string $to, string $body, array $buttons): bool
     {
-        Log::info("Evolution [{$this->connection->instance_name}]: Sending buttons to {$to}");
+        Log::info("Evolution [{$this->connection->instance_name}]: Converting interactive buttons to plain text for {$to}");
 
-        // Evolution button format mapping
-        $formattedButtons = [];
+        $text = $body."\n\n";
+        $optionsMap = [];
+        $index = 1;
+
         foreach ($buttons as $btn) {
-            $formattedButtons[] = [
-                'type' => 'reply',
-                'displayText' => $btn['title'],
-                'id' => $btn['id'],
-            ];
+            $text .= "{$index}. ".$btn['title']."\n";
+            $optionsMap[(string) $index] = $btn['id'];
+            $index++;
         }
 
-        $response = Http::withHeaders([
-            'apikey' => $this->apiKey,
-        ])->post("{$this->apiUrl}/message/sendButtons/{$this->connection->instance_name}", [
-            'number' => $this->formatNumber($to),
-            'title' => config('app.name', 'Restaurant OS'),
-            'description' => $body,
-            'footer' => config('app.name', 'Restaurant OS'),
-            'buttons' => $formattedButtons,
-        ]);
-
-        if (! $response->successful()) {
-            Log::error('Evolution: Failed to send buttons. Response: '.$response->body());
+        // Save options map to session context
+        $cleanNumber = $this->formatNumber($to);
+        $session = BotSession::where('phone_number', $cleanNumber)
+            ->where('tenant_id', $this->connection->tenant_id)
+            ->first();
+        if ($session) {
+            $context = $session->context ?? [];
+            $context['options_map'] = $optionsMap;
+            $session->update(['context' => $context]);
         }
 
-        return $response->successful();
+        // Send as plain text
+        return $this->sendText($to, trim($text));
     }
 
     public function sendInteractiveList(string $to, string $body, string $buttonText, array $sections): bool
     {
-        Log::info("Evolution [{$this->connection->instance_name}]: Sending list menu to {$to}");
+        Log::info("Evolution [{$this->connection->instance_name}]: Converting interactive list to plain text for {$to}");
 
-        // Map standard sections format into Evolution list format
-        $formattedSections = [];
+        $text = $body."\n\n";
+        $optionsMap = [];
+        $index = 1;
+
         foreach ($sections as $sec) {
-            $rows = [];
-            foreach ($sec['rows'] ?? [] as $row) {
-                $rows[] = [
-                    'rowId' => $row['id'],
-                    'title' => $row['title'],
-                    'description' => $row['description'] ?? '',
-                ];
+            if (! empty($sec['title'])) {
+                $text .= '=== '.$sec['title']." ===\n";
             }
-            $formattedSections[] = [
-                'title' => $sec['title'] ?? 'Options',
-                'rows' => $rows,
-            ];
+            foreach ($sec['rows'] ?? [] as $row) {
+                $text .= "{$index}. ".$row['title'];
+                if (! empty($row['description'])) {
+                    $text .= ' - '.$row['description'];
+                }
+                $text .= "\n";
+                $optionsMap[(string) $index] = $row['id'];
+                $index++;
+            }
+            $text .= "\n";
         }
 
-        $response = Http::withHeaders([
-            'apikey' => $this->apiKey,
-        ])->post("{$this->apiUrl}/message/sendList/{$this->connection->instance_name}", [
-            'number' => $this->formatNumber($to),
-            'title' => config('app.name', 'Menu'),
-            'description' => $body,
-            'buttonText' => $buttonText,
-            'footerText' => config('app.name', 'Restaurant OS'),
-            'sections' => $formattedSections,
-        ]);
-
-        if (! $response->successful()) {
-            Log::error('Evolution: Failed to send list. Response: '.$response->body());
+        // Save options map to session context
+        $cleanNumber = $this->formatNumber($to);
+        $session = BotSession::where('phone_number', $cleanNumber)
+            ->where('tenant_id', $this->connection->tenant_id)
+            ->first();
+        if ($session) {
+            $context = $session->context ?? [];
+            $context['options_map'] = $optionsMap;
+            $session->update(['context' => $context]);
         }
 
-        return $response->successful();
+        // Send as plain text
+        return $this->sendText($to, trim($text));
     }
 
     public function sendLocation(string $to, float $lat, float $lng, string $name, string $address): bool

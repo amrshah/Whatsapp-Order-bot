@@ -148,6 +148,16 @@ class EvolutionWebhookController extends Controller
             $session->update(['expires_at' => now()->addHours(2)]);
         }
 
+        // Map numeric choices to interactive button/list IDs if options_map exists in session context
+        if ($messageType === 'text' && is_numeric(trim($messageBody))) {
+            $optionsMap = $session->context['options_map'] ?? [];
+            $cleanChoice = trim($messageBody);
+            if (isset($optionsMap[$cleanChoice])) {
+                $messageBody = $optionsMap[$cleanChoice];
+                $messageType = 'interactive';
+            }
+        }
+
         $state = $session->current_state;
 
         // Reset to start on hello/hi

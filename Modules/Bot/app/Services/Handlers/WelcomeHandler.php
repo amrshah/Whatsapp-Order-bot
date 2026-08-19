@@ -9,18 +9,6 @@ class WelcomeHandler implements BotHandlerInterface
 {
     public function handle(BotSession $session, string $message, string $type): array
     {
-        // Check if user replied '1' for menu
-        if ($type === 'text' && trim($message) === '1') {
-            $session->update(['current_state' => 'CATEGORY_SELECT']);
-
-            return [
-                'type' => 'text',
-                'text' => [
-                    'body' => "Categories:\n1. Fast Food 🍔\n2. Beverages 🥤\n\nPlease reply with the category number.",
-                ],
-            ];
-        }
-
         // Check if user clicked Repeat Last Order
         if ($type === 'interactive' && $message === 'action_repeat_last_order') {
             return $this->handleRepeatOrder($session);
