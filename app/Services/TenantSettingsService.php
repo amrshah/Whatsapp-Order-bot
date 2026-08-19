@@ -31,10 +31,10 @@ class TenantSettingsService
                 'bank_instructions' => '',
             ],
             'whatsapp' => [
-                'order_received' => 'Order {order_number} received! 🍕',
-                'order_preparing' => 'Order {order_number} is now preparing in the kitchen! 🍳',
-                'order_ready' => 'Order {order_number} is ready! 🚴',
-                'order_delivered' => 'Order {order_number} has been delivered! Enjoy your meal 😋',
+                'order_received' => 'Order {order_number} received!',
+                'order_preparing' => 'Order {order_number} is now preparing in the kitchen!',
+                'order_ready' => 'Order {order_number} is ready!',
+                'order_delivered' => 'Order {order_number} has been delivered!',
             ],
             'crm' => [
                 'auto_tag' => 'lead',

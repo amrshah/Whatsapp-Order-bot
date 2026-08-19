@@ -25,7 +25,7 @@ class WelcomeHandler implements BotHandlerInterface
         $pwaUrl = route('pwa.menu', ['tenant_slug' => $tenantId, 'auth' => $token]);
 
         $appName = tenant('name') ?: config('app.name', 'Restaurant OS');
-        $text = "Welcome to {$appName}! 👋\n\nTap the link below to browse our menu, customize items, and place your order:\n👉 {$pwaUrl}";
+        $text = "Welcome to {$appName}!\n\nTap the link below to browse our menu, customize items, and place your order:\n{$pwaUrl}";
 
         return [
             'type' => 'text',
