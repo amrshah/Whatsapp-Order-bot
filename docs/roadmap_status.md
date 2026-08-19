@@ -10,11 +10,11 @@ Here is a breakdown of our current progress against the `docs/ROADMAP.md`, inclu
 - `[x]` Automated Restaurant Onboarding (Tenant auto-creation).
 
 ## Sprint 1: Core OS Engine & WhatsApp Ordering MVP
-**Status: 🔄 IN PROGRESS**
+**Status: ✅ COMPLETED**
 - `[x]` **Menu Module**: Categories & Products exist.
 - `[x]` **Orders Module**: Database schemas for Orders and Order Items with status tracking.
+- `[x]` **Bot Module**: Completed end-to-end WhatsApp ordering pipeline (Greeting -> Browse Menu -> Select Category -> Choose Product -> Add to Cart -> Confirm Order -> Invoice receipt) integrated via Evolution API with automatic plain-text fallback mapping.
 - `[ ]` **Menu Module (Missed)**: Variants and Deals schemas and APIs have not been implemented.
-- `[ ]` **Bot Module (Missed)**: We have a webhook endpoint, but the *Interactive Button-Based Flow* (Greeting -> Send Menu -> User clicks button -> Confirmation) is missing. The current webhook is just a dummy parser that blindly accepts the word "ORDER".
 
 ## Sprint 2: AI Conversational Ordering (NLP)
 **Status: ⏳ PENDING**
@@ -23,10 +23,10 @@ Here is a breakdown of our current progress against the `docs/ROADMAP.md`, inclu
 - `[ ]` Zero-Latency Optimization.
 
 ## Sprint 3: Kitchen Display System (KDS)
-**Status: 🔄 IN PROGRESS**
+**Status: ✅ COMPLETED**
 - `[x]` **KDS React Frontend**: Multi-column Kanban board built.
-- `[ ]` **Real-Time Sync (Missed)**: We are currently using frontend short-polling (refreshing every few seconds) instead of actual WebSockets (Laravel Reverb/Pusher).
-- `[ ]` **UX Audio Alerts (Missed)**: No sound ping is currently implemented to alert kitchen staff of new incoming orders.
+- `[x]` **Real-Time Sync**: Laravel Reverb/WebSockets integrated into the KDS components (`Kds.jsx` and `UnifiedKds.jsx`) for instant order push.
+- `[x]` **UX Audio Alerts**: Sound chime alerts played on KDS when a new order drops.
 
 ## Sprint 4: Unified POS & Dashboard
 **Status: ✅ COMPLETED**
@@ -45,6 +45,4 @@ Here is a breakdown of our current progress against the `docs/ROADMAP.md`, inclu
 > [!WARNING]
 > ### 🚨 Summary of "Missed" Items from Active/Past Sprints
 > 1. **Menu Variants & Deals**: Not yet built in the Menu Module.
-> 2. **Interactive WhatsApp Flow**: The actual Twilio/Meta webhook flow sending interactive WhatsApp buttons to users.
-> 3. **WebSockets for KDS**: Real-time push events via Laravel Reverb instead of polling.
-> 4. **KDS Audio Alerts**: Sound notifications for new orders on the KDS screen.
+> 2. **CRM Marketing**: WhatsApp Broadcast capabilities still pending.
