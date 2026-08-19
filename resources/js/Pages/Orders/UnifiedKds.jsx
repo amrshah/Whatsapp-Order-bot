@@ -40,10 +40,15 @@ export default function UnifiedKds({ auth, orders: initialOrders, tenantId }) {
         if (!tenantId || !window.Echo) return;
 
         console.log("Listening for Echo events on KDS...", tenantId);
-        const channel = window.Echo.private(`tenant.${tenantId}`);
+        const channel = window.Echo.private(`tenant.${tenantId}.orders`);
         
         channel.listen('OrderCreated', (e) => {
             console.log('OrderCreated', e);
+            
+            // Play audio ping
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+            audio.play().catch(err => console.log('Audio play failed:', err));
+
             setOrders(prev => {
                 if (prev.find(o => o.id === e.order.id)) return prev;
                 return [...prev, e.order];
@@ -62,8 +67,7 @@ export default function UnifiedKds({ auth, orders: initialOrders, tenantId }) {
 
         return () => {
             if (window.Echo) {
-                channel.stopListening('OrderCreated');
-                channel.stopListening('OrderStatusUpdated');
+                window.Echo.leave(`tenant.${tenantId}.orders`);
             }
         };
     }, [tenantId]);

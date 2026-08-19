@@ -16,11 +16,14 @@ Here is a breakdown of our current progress against the `docs/ROADMAP.md`, inclu
 - `[x]` **Bot Module**: Completed end-to-end WhatsApp ordering pipeline (Greeting -> Browse Menu -> Select Category -> Choose Product -> Add to Cart -> Confirm Order -> Invoice receipt) integrated via Evolution API with automatic plain-text fallback mapping.
 - `[ ]` **Menu Module (Missed)**: Variants and Deals schemas and APIs have not been implemented.
 
-## Sprint 2: AI Conversational Ordering (NLP)
-**Status: ⏳ PENDING**
-- `[ ]` LLM Integration (OpenAI/Anthropic).
-- `[ ]` Intent Recognition.
-- `[ ]` Zero-Latency Optimization.
+## Sprint 2: PWA Mini-App Commerce Engine
+**Status: ⏳ UP NEXT**
+- `[ ]` **PWA Frontend**: Mobile-optimized React + Tailwind ordering app (`/order/{tenant_slug}`).
+- `[ ]` **Signed Deep Link Gateway**: Dynamic signed URL generator linking WhatsApp customer phone identity into PWA session.
+- `[ ]` **Visual Catalog & Modifiers**: Product images, variants, add-ons, item notes, and search.
+- `[ ]` **Persistent Cart & Checkout**: Address/location picker, COD & bank transfer payment options.
+- `[ ]` **Real-Time Order Tracking & WhatsApp Milestone Notifications**: PWA tracking timeline + automated WhatsApp status messages on order status changes.
+- `[ ]` **Offline Shell & Web App Manifest**: Fast loading, mobile install prompt, and service worker.
 
 ## Sprint 3: Kitchen Display System (KDS)
 **Status: ✅ COMPLETED**

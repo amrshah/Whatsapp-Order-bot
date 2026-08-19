@@ -1,6 +1,6 @@
 # Product Roadmap & Sprint Planning
 
-This document maps out exactly when each feature from the PRD and AI Blueprint will be implemented.
+This document maps out feature delivery across sprints, reflecting the **PWA Mini-App + WhatsApp Gateway Architecture**.
 
 ## Sprint 0: Foundation [COMPLETED]
 - Multi-tenancy isolation (`stancl/tenancy`).
@@ -8,32 +8,35 @@ This document maps out exactly when each feature from the PRD and AI Blueprint w
 - Role-Based Access Control (Owner, Manager, Staff, Customer).
 - Automated Restaurant Onboarding (Tenant auto-creation).
 
-## Sprint 1: Core OS Engine & WhatsApp Ordering MVP [UP NEXT]
-*Goal: A restaurant can manually add their menu, and customers can place orders via a structured, button-based WhatsApp flow.*
-- **Menu Module**: Database schemas and basic API for Categories, Products, Variants, and Deals.
+## Sprint 1: Core OS Engine & WhatsApp Gateway MVP [COMPLETED]
+- **Menu Module**: Database schemas and APIs for Categories, Products, and Images.
 - **Orders Module**: Database schemas for Orders and Order Items with status tracking (`Pending`, `Preparing`, `Ready`, `Delivered`).
-- **Bot Module (Webhook MVP)**: 
-  - Twilio/WhatsApp webhook receiver.
-  - Interactive Button-Based Flow: Greeting -> Send Menu -> User clicks button to order -> Order saves to DB -> Confirmation receipt sent.
+- **WhatsApp Gateway (Evolution API)**: Webhook receiver, device QR linking, tenant message isolation, and auto-conversion fallback.
 
-## Sprint 2: AI Conversational Ordering (NLP)
-*Goal: Replace the rigid buttons with an autonomous AI agent capable of understanding Roman Urdu and English.*
-- **LLM Integration**: OpenAI/Anthropic pipeline to parse raw text (`"2 Zinger Burger, COD delivery"`).
-- **Intent Recognition**: Extract order items, modifications (no onions), quantities, and delivery addresses dynamically.
-- **Zero-Latency Optimization**: Ensure the LLM processes and replies in under 3 seconds.
+## Sprint 2: PWA Mini-App Commerce Engine [UP NEXT]
+*Goal: Provide a lightning-fast, mobile-first ordering Mini-App launched seamlessly via WhatsApp signed deep links.*
+- **PWA Frontend**: Mobile-optimized React + Tailwind ordering app (`/order/{tenant-slug}`).
+- **Catalog & Customizations**: Visual food categories, variants, add-ons, item notes, and search.
+- **Persistent Cart & Checkout**: Seamless session linking (auto-detect customer phone from signed WhatsApp link), address/location picker, and COD / bank transfer checkout.
+- **Order Tracking**: Live order status timeline (`/order/{tenant-slug}/track/{order_id}`).
+- **Transactional WhatsApp Alerts**: Automated milestone notifications sent via Evolution API when order status updates.
+- **PWA Manifest & Offline Shell**: Web app manifest, service worker for instant loading and optional home-screen installation.
 
-## Sprint 3: Kitchen Display System (KDS)
-*Goal: Replace physical paper tickets with a digital workflow.*
-- **KDS React Frontend**: Multi-column Kanban board (New Orders, Preparing, Ready/Out).
-- **Real-Time Sync**: WebSockets (Laravel Reverb or Pusher) to push new WhatsApp orders instantly to the screen.
-- **UX Audio Alerts**: Persistent sound ping when a new order drops to alert busy kitchen staff.
+## Sprint 3: Kitchen Display System (KDS) [COMPLETED]
+- **KDS React Frontend**: Multi-column Kanban board (`Kds.jsx`) and Unified ticket grid (`UnifiedKds.jsx`).
+- **Real-Time WebSockets**: Laravel Reverb container pushing instant `OrderCreated` and `OrderStatusUpdated` broadcasts.
+- **UX Audio Alerts**: Persistent sound chime notifications when new orders drop.
 
-## Sprint 4: Unified POS & Dashboard
-*Goal: Provide a centralized hub for the restaurant owner.*
-- **Omnichannel POS**: Interface to manually punch in Walk-in and Dine-In orders, merging them into the same pipeline as WhatsApp orders.
+## Sprint 4: Unified POS & Dashboard [COMPLETED]
+- **Omnichannel POS**: Interface to manually punch in Walk-in and Dine-In orders, merging them into the same pipeline.
 - **ROI Dashboard**: Analytics showing gross sales, top items, and explicitly highlighting "Saved Commission" vs Foodpanda.
 
-## Sprint 5+: Advanced SaaS Features
-- CRM & Marketing (WhatsApp Broadcasts).
-- Inventory Management (Recipe deductions).
-- Finance & Payroll.
+## Sprint 5: AI Conversational Assistance & Smart Upselling
+- **Natural Language Parsing**: Optional AI fallback for raw text or voice note order translation.
+- **Smart Recommendations**: Dynamic cross-selling inside the PWA cart (e.g. "Add a drink for Rs. 100").
+
+## Sprint 6+: Multi-Vertical SaaS & Advanced Expansion
+- **Multi-Vertical Mini-Apps**: Appointment booking for Clinics, Salons, and Professional Services.
+- **CRM & Marketing**: Automated WhatsApp Broadcast campaigns and customer segmentation.
+- **Inventory & Recipe Management**: Automated ingredient deductions per order.
+- **Finance & Multi-Tenant Billing Engine**: Automated invoicing and payout tracking.
