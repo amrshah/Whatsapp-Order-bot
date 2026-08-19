@@ -24,25 +24,36 @@ We decouple **customer acquisition and notifications** from the **ordering comme
               "Hi" on WhatsApp
                     │
                     ▼
-             Evolution API (Gateway)
+          Evolution API (Gateway)
+                    │
+                    ▼
+          [1. UPSERT CRM Customer (phone)]
+          [2. Generate 15-min Opaque Exchange Token]
                     │
                     ▼
          "Order here 👇 [Signed Link]"
                     │
                     ▼
+          PWA Token Exchange Endpoint
+          [3. Consume Token -> Establish HttpOnly Session]
+                    │
+                    ▼
         ┌─────────────────────────┐
         │ Tenant PWA Mini-App     │
+        │ (Clean URL: /order/slug)│
         │                         │
-        │ 🍕 Visual Menu          │
+        │ 🍕 Interactive Menu     │
         │ 🏷️ Variants & Modifiers  │
-        │ 🛒 Interactive Cart     │
-        │ 📍 Map/Address Picker   │
-        │ 💳 COD / Online Pay     │
+        │ 🛒 Persistent Cart      │
+        │ 📍 Map / Address Picker │
+        │ 💳 COD / Bank Transfer  │
         │ 📦 Real-Time Tracking   │
         └────────────┬────────────┘
                      │
                      ▼
           Laravel Multi-Tenant APIs
+          [4. Update CRM Profile (Name, Address, LTV)]
+          [5. Create Order & Dispatch KDS Reverb Event]
                      │
             ┌────────┼────────┐
             ▼        ▼        ▼
@@ -50,23 +61,24 @@ We decouple **customer acquisition and notifications** from the **ordering comme
                      │
                      ▼
           Transactional WhatsApp
-          Status Notifications
+          Status Milestone Alerts
 ```
 
 ## Consequences
 
 ### Positive
-- **Unlimited UI/UX Fidelity**: Rich images, item options, category tabs, and search without chat UI constraints.
-- **Dramatically Reduced Ban Risk & Latency**: WhatsApp message exchanges per order drop from 15+ messages to 1–3 transactional pings.
+- **Instant Lead Capture**: CRM captures the customer's verified WhatsApp phone number at the very first message ("Hi"), retaining customer identity even if they drop off without completing an order.
+- **Enhanced Security & Privacy**: Customer phone numbers are never exposed in browser URLs. Links contain opaque, short-lived (15-min) exchange tokens that convert to secure `HttpOnly` sessions and redirect to clean URLs.
+- **Rich "Customer Memory" CRM**: Customer profile serves as the single source of truth (Identity, Saved Addresses, Order History, Lifetime Value, Favorite Items).
 - **Zero-Install Friction**: Operates instantly in the customer's mobile browser upon link tap, with optional PWA home-screen installability.
-- **Multi-Vertical Extensibility**: The exact same gateway + mini-app engine generalizes seamlessly to Doctors (Appointments), Salons (Booking), and Professional Services.
-- **Full Backend Continuity**: Direct integration into existing Stancl Tenancy, CRM customer capture, Order models, and Reverb KDS feeds.
+- **Multi-Vertical Extensibility**: The exact same gateway + mini-app engine generalizes seamlessly to Clinics, Salons, and Professional Services.
 
 ### Negative / Tradeoffs
 - Requires maintaining client-facing PWA routes alongside admin/tenant Inertia dashboard pages.
-- Requires secure, signed URL tokens to preserve customer phone identity from WhatsApp into the PWA session without friction.
+- Requires token exchange state management or cache consumption to enforce one-time usage.
 
 ## Security & Session Invariants
-1. **Identity Linking**: Incoming WhatsApp triggers generate a short-lived signed token or session associating `phone_number` and `tenant_id`. Sensitive credentials must never be exposed as raw URL query parameters.
-2. **Tenant Isolation**: All public PWA API endpoints (`/api/pwa/...` or Inertia routes) must execute inside initialized tenancy context (`tenancy()->initialize($tenant)`).
-3. **PWA Standalone Mode**: Customers accessing the PWA directly or via re-orders can input/verify their phone number seamlessly.
+1. **Opaque Exchange Tokens**: Gateway links contain encrypted/signed tokens referencing `tenant_id` + `customer_id` with a 15-minute expiration window. Raw phone numbers are never embedded in the URL.
+2. **One-Time Token Exchange**: Accessing `/order/{tenant_slug}?auth={token}` validates the token, seeds the secure customer session, and immediately redirects to the clean route `/order/{tenant_slug}` to strip the token from browser history and share sheets.
+3. **Tenant Isolation**: All public PWA API endpoints (`/api/pwa/...` or Inertia routes) must execute inside initialized tenancy context (`tenancy()->initialize($tenant)`).
+4. **PWA Standalone Mode**: Direct visitors without WhatsApp gateway tokens can browse the menu and provide their phone number during checkout, creating/linking their CRM profile.

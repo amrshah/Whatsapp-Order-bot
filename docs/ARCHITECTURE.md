@@ -25,7 +25,16 @@ The platform decouples **traffic acquisition & notification** from the **commerc
           WhatsApp Gateway (Evolution API)
                     │
                     ▼
+          [1. UPSERT CRM Customer (Verified WhatsApp Phone)]
+          [2. Generate 15-min Opaque Exchange Token]
+                    │
+                    ▼
          "Order from ABC Pizza 👇 [Signed Link]"
+                    │
+                    ▼
+          Token Exchange Endpoint (/order/{slug}?auth=token)
+          [3. Validate & Consume Token -> Set HttpOnly Session]
+          [4. 302 Redirect -> Clean URL: /order/{slug}]
                     │
                     ▼
         ┌─────────────────────────┐
@@ -41,6 +50,8 @@ The platform decouples **traffic acquisition & notification** from the **commerc
                      │
                      ▼
           Laravel Multi-Tenant APIs (`/api/pwa/*`)
+          [5. Update CRM Customer Profile & LTV]
+          [6. Create Order & Broadcast to KDS via Reverb]
                      │
             ┌────────┼────────┐
             ▼        ▼        ▼
@@ -52,7 +63,7 @@ The platform decouples **traffic acquisition & notification** from the **commerc
 ```
 
 ### Architectural Roles:
-1. **WhatsApp as Gateway**: Greets customer, authenticates phone identity with short-lived cryptographic signed URL, and delivers order milestone alerts.
-2. **PWA as Commerce Engine**: Delivers a rich, app-like ordering experience with zero installation barriers.
-3. **Laravel Multi-Tenant Core**: Centralized state management, CRM profile capture, order lifecycle dispatching, and Kitchen Display synchronization.
+1. **WhatsApp as Gateway**: Greets customer, immediately captures/upserts the verified WhatsApp phone number in the tenant's CRM database as an active lead, generates a 15-minute opaque exchange token, and delivers automated milestone alerts.
+2. **PWA as Commerce Engine**: Consumes exchange token on first load, establishes a secure `HttpOnly` session, and presents a rich visual ordering experience on a clean URL.
+3. **Laravel Multi-Tenant Core**: Centralizes "Customer Memory" (identity, addresses, order history, LTV), handles real-time KDS dispatching, and orchestrates transactional WhatsApp updates.
 
