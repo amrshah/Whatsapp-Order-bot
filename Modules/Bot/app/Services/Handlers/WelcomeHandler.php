@@ -3,6 +3,7 @@
 namespace Modules\Bot\Services\Handlers;
 
 use Modules\Bot\Models\BotSession;
+use Modules\Orders\Models\Order;
 
 class WelcomeHandler implements BotHandlerInterface
 {
@@ -16,7 +17,7 @@ class WelcomeHandler implements BotHandlerInterface
         $session->update(['current_state' => 'START']);
         $appName = config('app.name', 'Bracemen Bot');
 
-        $lastOrder = \Modules\Orders\Models\Order::where('customer_phone', $session->phone_number)
+        $lastOrder = Order::where('customer_phone', $session->phone_number)
             ->with('items.product')
             ->orderBy('created_at', 'desc')
             ->first();
@@ -35,7 +36,7 @@ class WelcomeHandler implements BotHandlerInterface
                 $text .= "✓ {$item->quantity}x {$productName}\n";
             }
             $text .= "\nRs. {$lastOrder->total_amount}";
-            
+
             // Prepend Repeat Order button
             array_unshift($buttons, ['type' => 'reply', 'reply' => ['id' => 'action_repeat_last_order', 'title' => '🍔 Repeat Order']]);
         }
@@ -43,29 +44,27 @@ class WelcomeHandler implements BotHandlerInterface
         // WhatsApp allows max 3 buttons.
         if (count($buttons) < 3) {
             $cart = $session->context['cart'] ?? [];
-            if (!empty($cart)) {
+            if (! empty($cart)) {
                 $buttons[] = ['type' => 'reply', 'reply' => ['id' => 'action_view_cart', 'title' => '🛒 View Cart']];
             }
         }
 
         return [
-            'type' => 'interactive',
-            'interactive' => [
-                'type' => 'button',
-                'body' => ['text' => $text],
-                'action' => ['buttons' => array_slice($buttons, 0, 3)]
-            ]
+            'type' => 'text',
+            'text' => [
+                'body' => 'Hi! Welcome to Restaurant OS. Please reply 1 for Menu.',
+            ],
         ];
     }
 
     private function handleRepeatOrder(BotSession $session): array
     {
-        $lastOrder = \Modules\Orders\Models\Order::where('customer_phone', $session->phone_number)
+        $lastOrder = Order::where('customer_phone', $session->phone_number)
             ->with('items.product')
             ->orderBy('created_at', 'desc')
             ->first();
 
-        if (!$lastOrder) {
+        if (! $lastOrder) {
             return $this->handle($session, '', 'text');
         }
 
@@ -74,7 +73,7 @@ class WelcomeHandler implements BotHandlerInterface
             if ($item->product_id) {
                 $cart[] = [
                     'product_id' => $item->product_id,
-                    'quantity' => $item->quantity
+                    'quantity' => $item->quantity,
                 ];
             }
         }
@@ -83,9 +82,9 @@ class WelcomeHandler implements BotHandlerInterface
         $context['cart'] = $cart;
         $session->update([
             'context' => $context,
-            'current_state' => 'VIEWING_CART'
+            'current_state' => 'VIEWING_CART',
         ]);
 
-        return (new CartHandler())->handle($session, 'action_view_cart', 'interactive');
+        return (new CartHandler)->handle($session, 'action_view_cart', 'interactive');
     }
 }
