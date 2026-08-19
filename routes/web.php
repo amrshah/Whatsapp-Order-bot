@@ -53,6 +53,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings/billing', [BillingController::class, 'index'])->name('settings.billing');
     Route::get('/settings/billing/invoices/{invoice}', [BillingController::class, 'show'])->name('settings.billing.invoices.show');
     Route::patch('/settings/business', [SettingsController::class, 'updateBusinessProfile'])->name('settings.business.update');
+
+    // Mini-App Settings Dashboard routes
+    Route::get('/settings/miniapp', [PwaController::class, 'showSettings'])->name('settings.miniapp');
+    Route::post('/settings/miniapp', [PwaController::class, 'saveSettings'])->name('settings.miniapp.save');
+    Route::post('/settings/miniapp/publish', [PwaController::class, 'publishSettings'])->name('settings.miniapp.publish');
 });
 
 require __DIR__.'/auth.php';

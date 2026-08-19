@@ -92,6 +92,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             <Dropdown.Content>
                                                 <Dropdown.Link href={route('settings.integrations')}>Integrations</Dropdown.Link>
                                                 <Dropdown.Link href={route('settings.billing')}>Billing</Dropdown.Link>
+                                                <Dropdown.Link href={route('settings.miniapp')}>Mini-App Configuration</Dropdown.Link>
                                             </Dropdown.Content>
                                         </Dropdown>
                                     </div>
@@ -100,6 +101,16 @@ export default function AuthenticatedLayout({ header, children }) {
                         </div>
 
                         <div className="hidden sm:ms-6 sm:flex sm:items-center">
+                            {user.tenant_id && (
+                                <a
+                                    href={route('pwa.menu', { tenant_slug: user.tenant_id })}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="me-3 inline-flex items-center gap-1.5 bg-indigo-650 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition duration-150 ease-in-out shadow-sm border border-transparent"
+                                >
+                                    <span>📱</span> View Your App
+                                </a>
+                            )}
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
@@ -276,6 +287,22 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Billing
                         </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('settings.miniapp')}
+                            active={route().current('settings.miniapp')}
+                            className="pl-6"
+                        >
+                            Mini-App Settings
+                        </ResponsiveNavLink>
+                        {user.tenant_id && (
+                            <ResponsiveNavLink
+                                href={route('pwa.menu', { tenant_slug: user.tenant_id })}
+                                target="_blank"
+                                className="pl-6 text-indigo-600 dark:text-indigo-400 font-bold"
+                            >
+                                📱 View Your App
+                            </ResponsiveNavLink>
+                        )}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">

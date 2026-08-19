@@ -36,15 +36,20 @@ class SendOrderStatusWhatsAppNotification
             $provider = WhatsAppProviderResolver::resolve($tenant);
             $messagingService = new WhatsAppMessagingService($provider);
 
+            $settings = $tenant->settings('published');
+            $templates = $settings->whatsapp ?? [];
+
             $statusMessages = [
-                'Preparing' => "Your order {$order->order_number} is now in the kitchen 🍳",
-                'Ready' => "Your order {$order->order_number} is ready for pick-up / delivery! 🚴",
-                'Delivered' => "Your order {$order->order_number} has been delivered! Enjoy your meal 🍕",
+                'Preparing' => $templates['order_preparing'] ?? 'Your order {order_number} is now in the kitchen 🍳',
+                'Ready' => $templates['order_ready'] ?? 'Your order {order_number} is ready! 🚴',
+                'Delivered' => $templates['order_delivered'] ?? 'Your order {order_number} has been delivered! Enjoy your meal 🍕',
             ];
 
             if (isset($statusMessages[$order->status])) {
+                $templateText = $statusMessages[$order->status];
+                $messageBody = str_replace('{order_number}', $order->order_number, $templateText);
                 $trackingUrl = route('pwa.track', ['tenant_slug' => $tenantId, 'order_number' => $order->order_number]);
-                $body = $statusMessages[$order->status]."\n\nTrack order live:\n👉 ".$trackingUrl;
+                $body = $messageBody."\n\nTrack order live:\n👉 ".$trackingUrl;
 
                 $messagingService->sendMessage($order->customer_phone, [
                     'type' => 'text',

@@ -1,0 +1,89 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\TenantSetting;
+
+class TenantSettingsService
+{
+    /**
+     * Get fallback default values for setting groups.
+     */
+    public static function getDefaults(): array
+    {
+        return [
+            'branding' => [
+                'logo' => '',
+                'favicon' => '',
+                'primary_color' => '#ef4444',
+                'tagline' => 'Direct and Fresh',
+            ],
+            'ordering' => [
+                'type' => 'both', // both, delivery, takeaway
+                'min_order' => 0,
+                'delivery_fee' => 150,
+                'free_delivery_threshold' => 1500,
+                'prep_time_mins' => 35,
+            ],
+            'payments' => [
+                'cod_enabled' => true,
+                'bank_transfer_enabled' => false,
+                'bank_instructions' => '',
+            ],
+            'whatsapp' => [
+                'order_received' => 'Order {order_number} received! 🍕',
+                'order_preparing' => 'Order {order_number} is now preparing in the kitchen! 🍳',
+                'order_ready' => 'Order {order_number} is ready! 🚴',
+                'order_delivered' => 'Order {order_number} has been delivered! Enjoy your meal 😋',
+            ],
+            'crm' => [
+                'auto_tag' => 'lead',
+            ],
+        ];
+    }
+
+    /**
+     * Fetch settings or return a default model wrapper if empty.
+     */
+    public function getSettings(string $tenantId, string $status = 'published'): TenantSetting
+    {
+        $setting = TenantSetting::where('tenant_id', $tenantId)
+            ->where('status', $status)
+            ->first();
+
+        if (! $setting) {
+            $defaults = self::getDefaults();
+            $setting = new TenantSetting([
+                'tenant_id' => $tenantId,
+                'status' => $status,
+                'branding' => $defaults['branding'],
+                'ordering' => $defaults['ordering'],
+                'payments' => $defaults['payments'],
+                'whatsapp' => $defaults['whatsapp'],
+                'crm' => $defaults['crm'],
+            ]);
+        }
+
+        return $setting;
+    }
+
+    /**
+     * Copy all fields from draft status to published status.
+     */
+    public function publish(string $tenantId): void
+    {
+        $draft = $this->getSettings($tenantId, 'draft');
+
+        // Create or update published record
+        TenantSetting::updateOrCreate(
+            ['tenant_id' => $tenantId, 'status' => 'published'],
+            [
+                'branding' => $draft->branding,
+                'ordering' => $draft->ordering,
+                'payments' => $draft->payments,
+                'whatsapp' => $draft->whatsapp,
+                'crm' => $draft->crm,
+            ]
+        );
+    }
+}

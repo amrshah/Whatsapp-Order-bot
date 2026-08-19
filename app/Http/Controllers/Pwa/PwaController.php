@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Pwa;
 use App\Events\OrderCreated;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Models\TenantSetting;
+use App\Services\TenantSettingsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -59,7 +61,14 @@ class PwaController extends Controller
             $customer = Customer::with('addresses')->find($customerId);
         }
 
-        // 3. Load Active Menu Catalog
+        // 3. Load Tenant settings (Support Secure Live Preview Mode)
+        $status = 'published';
+        if ($request->query('preview') === 'true' && auth()->check() && auth()->user()->tenant_id === $tenant->id) {
+            $status = 'draft';
+        }
+        $settings = $tenant->settings($status);
+
+        // 4. Load Active Menu Catalog
         $categories = Category::where('is_active', true)
             ->with(['products' => function ($query) {
                 $query->where('is_active', true);
@@ -73,6 +82,8 @@ class PwaController extends Controller
             ],
             'customer' => $customer,
             'categories' => $categories,
+            'settings' => $settings,
+            'previewMode' => $status === 'draft',
         ]);
     }
 
@@ -82,6 +93,8 @@ class PwaController extends Controller
     public function manifest(Request $request, string $tenant_slug)
     {
         $tenant = $this->initializeTenant($tenant_slug);
+        $settings = $tenant->settings('published');
+        $branding = $settings->branding ?? [];
 
         $manifest = [
             'name' => $tenant->name,
@@ -89,10 +102,10 @@ class PwaController extends Controller
             'start_url' => route('pwa.menu', ['tenant_slug' => $tenant_slug]),
             'display' => 'standalone',
             'background_color' => '#ffffff',
-            'theme_color' => '#ef4444',
+            'theme_color' => $branding['primary_color'] ?? '#ef4444',
             'icons' => [
                 [
-                    'src' => 'https://cdn-icons-png.flaticon.com/512/3565/3565418.png',
+                    'src' => $branding['logo'] ?: 'https://cdn-icons-png.flaticon.com/512/3565/3565418.png',
                     'sizes' => '512x512',
                     'type' => 'image/png',
                 ],
@@ -108,6 +121,8 @@ class PwaController extends Controller
     public function submitOrder(Request $request, string $tenant_slug)
     {
         $tenant = $this->initializeTenant($tenant_slug);
+        $settings = $tenant->settings('published');
+        $orderingConfig = $settings->ordering ?? [];
 
         $request->validate([
             'customer_name' => 'required|string|max:255',
@@ -120,7 +135,7 @@ class PwaController extends Controller
             'cart.*.quantity' => 'required|integer|min:1',
         ]);
 
-        return DB::transaction(function () use ($request, $tenant, $tenant_slug) {
+        return DB::transaction(function () use ($request, $tenant, $tenant_slug, $orderingConfig) {
             // 1. Upsert CRM Customer
             $phone = preg_replace('/[^0-9]/', '', $request->input('customer_phone'));
             $customer = Customer::firstOrCreate(['phone' => $phone]);
@@ -139,14 +154,14 @@ class PwaController extends Controller
             }
 
             // 3. Compute Cart Totals & Create Order
-            $totalAmount = 0;
+            $subtotalAmount = 0;
             $itemsData = [];
 
             foreach ($request->input('cart') as $item) {
                 $product = Product::find($item['product_id']);
                 if ($product) {
                     $subtotal = $product->price * $item['quantity'];
-                    $totalAmount += $subtotal;
+                    $subtotalAmount += $subtotal;
 
                     $itemsData[] = [
                         'product_id' => $product->id,
@@ -155,6 +170,27 @@ class PwaController extends Controller
                         'subtotal' => $subtotal,
                     ];
                 }
+            }
+
+            // Enforce Minimum Order Threshold validation
+            $minOrder = $orderingConfig['min_order'] ?? 0;
+            if ($subtotalAmount < $minOrder) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['general' => "Minimum order amount is Rs. {$minOrder}."],
+                ], 422);
+            }
+
+            // Calculate delivery charges
+            $deliveryFee = $orderingConfig['delivery_fee'] ?? 150;
+            $freeThreshold = $orderingConfig['free_delivery_threshold'] ?? 1500;
+            if ($subtotalAmount >= $freeThreshold) {
+                $deliveryFee = 0;
+            }
+
+            $totalAmount = $subtotalAmount;
+            if ($request->input('order_type') === 'delivery') {
+                $totalAmount += $deliveryFee;
             }
 
             $order = Order::create([
@@ -216,5 +252,53 @@ class PwaController extends Controller
             ],
             'order' => $order,
         ]);
+    }
+
+    /**
+     * Display the settings form.
+     */
+    public function showSettings(Request $request)
+    {
+        $tenant = tenant();
+        $settings = $tenant->settings('draft');
+
+        return Inertia::render('Settings/MiniApp', [
+            'settings' => $settings,
+            'tenantId' => $tenant->id,
+        ]);
+    }
+
+    /**
+     * Save draft configurations.
+     */
+    public function saveSettings(Request $request)
+    {
+        $tenant = tenant();
+
+        $validated = $request->validate([
+            'branding' => 'required|array',
+            'ordering' => 'required|array',
+            'payments' => 'required|array',
+            'whatsapp' => 'required|array',
+            'crm' => 'required|array',
+        ]);
+
+        TenantSetting::updateOrCreate(
+            ['tenant_id' => $tenant->id, 'status' => 'draft'],
+            $validated
+        );
+
+        return redirect()->back()->with('success', 'Draft settings saved successfully.');
+    }
+
+    /**
+     * Publish draft configurations to live environment.
+     */
+    public function publishSettings(Request $request)
+    {
+        $tenant = tenant();
+        (new TenantSettingsService)->publish($tenant->id);
+
+        return redirect()->back()->with('success', 'Mini-App settings published successfully!');
     }
 }

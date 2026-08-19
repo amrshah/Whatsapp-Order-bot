@@ -2,6 +2,7 @@
 
 use App\Events\OrderStatusUpdated;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Modules\Bot\Models\WhatsAppConnection;
@@ -129,7 +130,7 @@ test('PWA checkout API validates and saves order details and updates CRM LTV', f
     $this->assertDatabaseHas('orders', [
         'customer_name' => 'John Doe',
         'customer_phone' => '923345112969',
-        'total_amount' => 1000,
+        'total_amount' => 1150,
         'type' => 'delivery',
         'status' => 'Pending',
     ]);
@@ -138,7 +139,7 @@ test('PWA checkout API validates and saves order details and updates CRM LTV', f
         'phone' => '923345112969',
         'name' => 'John Doe',
         'total_orders' => 1,
-        'total_spent' => 1000,
+        'total_spent' => 1150,
     ]);
 });
 
@@ -193,4 +194,59 @@ test('OrderStatusUpdated event triggers WhatsApp notification delivery', functio
             str_contains($request['text'], 'ORD-NOTIFY123') &&
             str_contains($request['text'], 'kitchen');
     });
+});
+
+test('tenant settings can be saved as draft and published live', function () {
+    $user = User::factory()->create([
+        'tenant_id' => $this->tenant->id,
+    ]);
+
+    $settingsData = [
+        'branding' => ['primary_color' => '#0000FF', 'tagline' => 'Blue Fast Food'],
+        'ordering' => ['type' => 'delivery', 'min_order' => 500, 'delivery_fee' => 100, 'free_delivery_threshold' => 2000, 'prep_time_mins' => 45],
+        'payments' => ['cod_enabled' => true],
+        'whatsapp' => ['order_preparing' => 'Cookin your meal {order_number}!'],
+        'crm' => ['auto_tag' => 'vip'],
+    ];
+
+    // Save as draft
+    $response = $this->actingAs($user)
+        ->post(route('settings.miniapp.save'), $settingsData);
+
+    $response->assertStatus(302);
+    $this->assertDatabaseHas('tenant_settings', [
+        'tenant_id' => $this->tenant->id,
+        'status' => 'draft',
+    ]);
+
+    // Verify PWA menu with auth returns draft settings in preview mode
+    $response = $this->actingAs($user)
+        ->get(route('pwa.menu', ['tenant_slug' => $this->tenant->id, 'preview' => 'true']));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('Pwa/OrderMenu')
+        ->where('settings.branding.primary_color', '#0000FF')
+        ->where('previewMode', true)
+    );
+
+    // Publish settings
+    $response = $this->actingAs($user)
+        ->post(route('settings.miniapp.publish'));
+
+    $response->assertStatus(302);
+    $this->assertDatabaseHas('tenant_settings', [
+        'tenant_id' => $this->tenant->id,
+        'status' => 'published',
+    ]);
+
+    // Verify public PWA (no auth, no preview) loads the published color
+    $response = $this->get(route('pwa.menu', ['tenant_slug' => $this->tenant->id]));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('Pwa/OrderMenu')
+        ->where('settings.branding.primary_color', '#0000FF')
+        ->where('previewMode', false)
+    );
 });

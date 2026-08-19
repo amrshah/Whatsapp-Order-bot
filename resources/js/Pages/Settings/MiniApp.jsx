@@ -1,0 +1,288 @@
+import React, { useState } from 'react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, router } from '@inertiajs/react';
+
+export default function MiniApp({ settings, tenantId }) {
+    // Current tab selection
+    const [activeSection, setActiveSection] = useState('branding');
+
+    // Load initial settings with fallbacks
+    const [form, setForm] = useState({
+        branding: {
+            logo: settings.branding?.logo || '',
+            favicon: settings.branding?.favicon || '',
+            primary_color: settings.branding?.primary_color || '#ef4444',
+            tagline: settings.branding?.tagline || 'Direct and Fresh',
+        },
+        ordering: {
+            type: settings.ordering?.type || 'both',
+            min_order: settings.ordering?.min_order || 0,
+            delivery_fee: settings.ordering?.delivery_fee || 150,
+            free_delivery_threshold: settings.ordering?.free_delivery_threshold || 1500,
+            prep_time_mins: settings.ordering?.prep_time_mins || 35,
+        },
+        payments: {
+            cod_enabled: settings.payments?.cod_enabled !== false,
+            bank_transfer_enabled: !!settings.payments?.bank_transfer_enabled,
+            bank_instructions: settings.payments?.bank_instructions || '',
+        },
+        whatsapp: {
+            order_received: settings.whatsapp?.order_received || 'Order {order_number} received! 🍕',
+            order_preparing: settings.whatsapp?.order_preparing || 'Order {order_number} is now preparing in the kitchen! 🍳',
+            order_ready: settings.whatsapp?.order_ready || 'Order {order_number} is ready! 🚴',
+            order_delivered: settings.whatsapp?.order_delivered || 'Order {order_number} has been delivered! Enjoy your meal 😋',
+        },
+        crm: {
+            auto_tag: settings.crm?.auto_tag || 'lead',
+        }
+    });
+
+    const [isSaving, setIsSaving] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
+    const [statusMessage, setStatusMessage] = useState(null);
+
+    // Deep merge helper for nested state updates
+    const updateField = (group, key, value) => {
+        setForm(prev => ({
+            ...prev,
+            [group]: {
+                ...prev[group],
+                [key]: value
+            }
+        }));
+    };
+
+    const handleSaveDraft = (e) => {
+        e.preventDefault();
+        setIsSaving(true);
+        setStatusMessage(null);
+
+        router.post(route('settings.miniapp.save'), form, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsSaving(false);
+                setStatusMessage({ type: 'success', text: 'Draft settings saved! Tap Preview to test.' });
+            },
+            onError: () => {
+                setIsSaving(false);
+                setStatusMessage({ type: 'error', text: 'Failed to save draft settings.' });
+            }
+        });
+    };
+
+    const handlePublish = () => {
+        setIsPublishing(true);
+        setStatusMessage(null);
+
+        router.post(route('settings.miniapp.publish'), {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsPublishing(false);
+                setStatusMessage({ type: 'success', text: 'Settings published to live PWA successfully!' });
+            },
+            onError: () => {
+                setIsPublishing(false);
+                setStatusMessage({ type: 'error', text: 'Failed to publish settings.' });
+            }
+        });
+    };
+
+    return (
+        <AuthenticatedLayout
+            header={<h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">Mini-App Configuration</h2>}
+        >
+            <Head title="Mini-App Settings" />
+
+            <div className="py-12">
+                <div className="mx-auto max-w-4xl sm:px-6 lg:px-8 space-y-6">
+                    {/* Status Alert */}
+                    {statusMessage && (
+                        <div className={`p-4 rounded-lg text-sm font-semibold shadow-sm ${
+                            statusMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                        }`}>
+                            {statusMessage.text}
+                        </div>
+                    )}
+
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700 flex flex-col md:flex-row gap-6">
+                        {/* Sidebar Sections */}
+                        <div className="w-full md:w-48 flex flex-col gap-1 border-r border-gray-100 dark:border-gray-750 pr-4">
+                            {[
+                                { id: 'branding', label: '🎨 Branding' },
+                                { id: 'ordering', label: '🛵 Ordering Rules' },
+                                { id: 'payments', label: '💳 Payments' },
+                                { id: 'whatsapp', label: '💬 Notifications' },
+                            ].map(section => (
+                                <button
+                                    key={section.id}
+                                    onClick={() => setActiveSection(section.id)}
+                                    className={`text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                                        activeSection === section.id
+                                            ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300'
+                                            : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-750'
+                                    }`}
+                                >
+                                    {section.label}
+                                </button>
+                            ))}
+
+                            <div className="mt-8 pt-4 border-t border-gray-100 dark:border-gray-750 flex flex-col gap-2">
+                                <a
+                                    href={route('pwa.menu', { tenant_slug: tenantId, preview: 'true' })}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-750 dark:hover:bg-gray-700 dark:text-gray-200 text-center font-bold py-2 rounded-lg text-xs"
+                                >
+                                    🔍 Preview Draft
+                                </a>
+                                <button
+                                    onClick={handlePublish}
+                                    disabled={isPublishing}
+                                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg text-xs disabled:bg-gray-400"
+                                >
+                                    {isPublishing ? 'Publishing...' : '🚀 Publish Live'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Settings Form content */}
+                        <form onSubmit={handleSaveDraft} className="flex-1 space-y-6">
+                            {activeSection === 'branding' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-extrabold text-gray-900 dark:text-white">Mini-App Branding</h3>
+                                    
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Theme Color (Primary)</label>
+                                        <div className="flex gap-3 items-center">
+                                            <input
+                                                type="color"
+                                                className="w-10 h-10 border border-gray-200 rounded-lg p-0.5"
+                                                value={form.branding.primary_color}
+                                                onChange={(e) => updateField('branding', 'primary_color', e.target.value)}
+                                            />
+                                            <span className="text-xs font-mono text-gray-500">{form.branding.primary_color}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Tagline / Headline</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                                            value={form.branding.tagline}
+                                            onChange={(e) => updateField('branding', 'tagline', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeSection === 'ordering' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-extrabold text-gray-900 dark:text-white">Ordering & Delivery Settings</h3>
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Minimum Order Amount (Rs.)</label>
+                                        <input
+                                            type="number"
+                                            className="w-full bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                                            value={form.ordering.min_order}
+                                            onChange={(e) => updateField('ordering', 'min_order', parseInt(e.target.value) || 0)}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Delivery Fee (Rs.)</label>
+                                            <input
+                                                type="number"
+                                                className="w-full bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                                                value={form.ordering.delivery_fee}
+                                                onChange={(e) => updateField('ordering', 'delivery_fee', parseInt(e.target.value) || 0)}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Free Delivery Over (Rs.)</label>
+                                            <input
+                                                type="number"
+                                                className="w-full bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                                                value={form.ordering.free_delivery_threshold}
+                                                onChange={(e) => updateField('ordering', 'free_delivery_threshold', parseInt(e.target.value) || 0)}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeSection === 'payments' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-extrabold text-gray-900 dark:text-white">Payment Options</h3>
+
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            id="cod"
+                                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                            checked={form.payments.cod_enabled}
+                                            onChange={(e) => updateField('payments', 'cod_enabled', e.target.checked)}
+                                        />
+                                        <label htmlFor="cod" className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                            Enable Cash on Delivery (COD)
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeSection === 'whatsapp' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-extrabold text-gray-900 dark:text-white">Custom Notification Alerts</h3>
+                                    <p className="text-[10px] text-gray-400">Use <code>&#123;order_number&#125;</code> inside templates to dynamically show order IDs.</p>
+
+                                    <div className="space-y-3">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Kitchen Preparing Alert</label>
+                                            <textarea
+                                                className="w-full bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                                                rows="2"
+                                                value={form.whatsapp.order_preparing}
+                                                onChange={(e) => updateField('whatsapp', 'order_preparing', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Ready / Out for Delivery Alert</label>
+                                            <textarea
+                                                className="w-full bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                                                rows="2"
+                                                value={form.whatsapp.order_ready}
+                                                onChange={(e) => updateField('whatsapp', 'order_ready', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Delivered Alert</label>
+                                            <textarea
+                                                className="w-full bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                                                rows="2"
+                                                value={form.whatsapp.order_delivered}
+                                                onChange={(e) => updateField('whatsapp', 'order_delivered', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Sticky footer action button */}
+                            <div className="border-t border-gray-100 dark:border-gray-750 pt-4 flex justify-end">
+                                <button
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg text-xs disabled:bg-gray-400"
+                                >
+                                    {isSaving ? 'Saving Draft...' : '💾 Save Draft'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </AuthenticatedLayout>
+    );
+}

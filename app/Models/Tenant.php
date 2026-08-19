@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
-use Stancl\Tenancy\Contracts\TenantWithDatabase;
+use App\Services\TenantSettingsService;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
+use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
 class Tenant extends BaseTenant
 {
@@ -41,5 +41,10 @@ class Tenant extends BaseTenant
             'wa_verify_token',
             'wa_app_secret',
         ];
+    }
+
+    public function settings(string $status = 'published')
+    {
+        return (new TenantSettingsService)->getSettings($this->id, $status);
     }
 }

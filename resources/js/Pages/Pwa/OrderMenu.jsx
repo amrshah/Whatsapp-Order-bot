@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PwaLayout from '@/Layouts/PwaLayout';
 import { Head } from '@inertiajs/react';
 
-export default function OrderMenu({ tenant, customer, categories }) {
+export default function OrderMenu({ tenant, customer, categories, settings, previewMode }) {
     // Cart state
     const [cart, setCart] = useState([]);
     
@@ -32,6 +32,12 @@ export default function OrderMenu({ tenant, customer, categories }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState({});
 
+    // Settings config mappings
+    const branding = settings?.branding || {};
+    const ordering = settings?.ordering || {};
+    const payments = settings?.payments || {};
+    const primaryColor = branding.primary_color || '#ef4444';
+
     // Filter products
     const filteredCategories = categories.map(cat => {
         const filteredProducts = cat.products.filter(prod => 
@@ -44,6 +50,13 @@ export default function OrderMenu({ tenant, customer, categories }) {
     // Cart calculations
     const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
     const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    
+    const minOrder = ordering.min_order || 0;
+    const deliveryFee = ordering.delivery_fee || 150;
+    const freeThreshold = ordering.free_delivery_threshold || 1500;
+    
+    const actualDeliveryFee = cartTotal >= freeThreshold ? 0 : deliveryFee;
+    const grandTotal = checkoutForm.order_type === 'delivery' ? cartTotal + actualDeliveryFee : cartTotal;
 
     // Add simple product directly or open options drawer
     const handleProductClick = (product) => {
@@ -57,8 +70,6 @@ export default function OrderMenu({ tenant, customer, categories }) {
     const addToCart = () => {
         if (!customizingProduct) return;
 
-        // Build customized item
-        const itemPrice = customizingProduct.price; // Expand here for dynamic variant prices
         const cartItem = {
             id: customizingProduct.id + '-' + selectedVariant + '-' + selectedAddOns.join(','),
             product_id: customizingProduct.id,
@@ -66,7 +77,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
             variant: selectedVariant,
             add_ons: selectedAddOns,
             notes: specialNotes,
-            price: itemPrice,
+            price: customizingProduct.price,
             quantity: quantity,
         };
 
@@ -102,6 +113,10 @@ export default function OrderMenu({ tenant, customer, categories }) {
             newErrors.delivery_address = 'Delivery address is required';
         }
 
+        if (cartTotal < minOrder) {
+            newErrors.general = `Minimum order amount is Rs. ${minOrder}. You need Rs. ${minOrder - cartTotal} more.`;
+        }
+
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
@@ -134,7 +149,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
             if (data.success) {
                 window.location.href = data.redirect_url;
             } else {
-                setErrors(data.errors || { general: 'Failed to place order.' });
+                setErrors(data.errors || { general: data.message || 'Failed to place order.' });
                 setIsSubmitting(false);
             }
         })
@@ -148,12 +163,29 @@ export default function OrderMenu({ tenant, customer, categories }) {
         <PwaLayout tenantName={tenant.name}>
             <Head title={`${tenant.name} - Online Menu`} />
 
+            {/* Dynamic Styling injected via Style tag */}
+            <style>{`
+                .theme-primary-bg { background-color: ${primaryColor} !important; }
+                .theme-primary-text { color: ${primaryColor} !important; }
+                .theme-primary-border { border-color: ${primaryColor} !important; }
+                .theme-primary-ring:focus { --tw-ring-color: ${primaryColor} !important; }
+            `}</style>
+
+            {/* Preview Banner */}
+            {previewMode && (
+                <div className="bg-amber-500 text-white text-center py-1.5 text-[10px] font-black tracking-widest uppercase sticky top-0 z-50">
+                    ⚠️ Preview Mode (Viewing Draft Changes)
+                </div>
+            )}
+
             {/* Visual banner */}
             <div className="relative h-36 bg-gray-900 overflow-hidden flex items-center justify-center text-white px-4">
                 <div className="absolute inset-0 opacity-40 bg-[url('https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=600')] bg-cover bg-center"></div>
-                <div className="relative text-center">
+                <div className="relative text-center space-y-1">
                     <h2 className="text-xl font-black uppercase tracking-wider">{tenant.name}</h2>
-                    <p className="text-xs text-gray-300 mt-1">Direct ordering via WhatsApp companion app</p>
+                    <p className="text-xs text-gray-300 italic">
+                        "{branding.tagline || 'Direct ordering via WhatsApp companion app'}"
+                    </p>
                 </div>
             </div>
 
@@ -166,7 +198,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
                     <input
                         type="text"
                         placeholder="Search menu..."
-                        className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 theme-primary-ring focus:border-red-500"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -181,7 +213,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
                         onClick={() => setActiveTab(cat.id)}
                         className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
                             activeTab === cat.id
-                                ? 'bg-red-500 text-white'
+                                ? 'theme-primary-bg text-white'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                     >
@@ -202,7 +234,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
                         .filter(cat => activeTab === '' || cat.id === activeTab)
                         .map((category) => (
                             <div key={category.id} className="space-y-3">
-                                <h3 className="text-base font-extrabold text-gray-900 border-l-4 border-red-500 pl-2">
+                                <h3 className="text-base font-extrabold text-gray-900 border-l-4 theme-primary-border pl-2">
                                     {category.name}
                                 </h3>
                                 <div className="space-y-3">
@@ -212,7 +244,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
                                             className="bg-white border border-gray-100 rounded-xl p-3 flex gap-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                                             onClick={() => handleProductClick(product)}
                                         >
-                                            {/* Product Image Fallback */}
+                                            {/* Product Image */}
                                             <div className="w-20 h-20 bg-gray-50 rounded-lg flex-shrink-0 flex items-center justify-center text-2xl border border-gray-100">
                                                 🍔
                                             </div>
@@ -225,11 +257,11 @@ export default function OrderMenu({ tenant, customer, categories }) {
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center justify-between mt-2">
-                                                    <span className="text-sm font-black text-red-600">
+                                                    <span className="text-sm font-black theme-primary-text">
                                                         Rs. {product.price}
                                                     </span>
                                                     <button
-                                                        className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
+                                                        className="bg-red-50 hover:bg-red-100 theme-primary-text border theme-primary-border px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
                                                     >
                                                         <span>+</span> Add
                                                     </button>
@@ -248,10 +280,10 @@ export default function OrderMenu({ tenant, customer, categories }) {
                 <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-40">
                     <button
                         onClick={() => setIsCartOpen(true)}
-                        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-5 rounded-xl shadow-lg flex items-center justify-between transition-transform active:scale-95"
+                        className="w-full theme-primary-bg hover:opacity-90 text-white font-bold py-3.5 px-5 rounded-xl shadow-lg flex items-center justify-between transition-transform active:scale-95 animate-bounce-short"
                     >
                         <div className="flex items-center gap-2">
-                            <span className="bg-red-800 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                            <span className="bg-black/35 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
                                 {cartCount}
                             </span>
                             <span className="text-sm">View Cart</span>
@@ -288,7 +320,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
                                         onClick={() => setSelectedVariant(size)}
                                         className={`flex-1 py-2 text-xs font-bold border rounded-lg transition-colors ${
                                             selectedVariant === size
-                                                ? 'border-red-500 bg-red-50 text-red-600'
+                                                ? 'theme-primary-border bg-red-50 theme-primary-text font-black'
                                                 : 'border-gray-200 text-gray-600'
                                         }`}
                                     >
@@ -303,7 +335,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
                             <label className="text-xs font-extrabold text-gray-700 block">Special Instructions</label>
                             <textarea
                                 placeholder="E.g., No onions, extra spicy, etc."
-                                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-red-500"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:outline-none focus:ring-1 theme-primary-ring"
                                 rows="2"
                                 value={specialNotes}
                                 onChange={(e) => setSpecialNotes(e.target.value)}
@@ -330,7 +362,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
 
                             <button
                                 onClick={addToCart}
-                                className="flex-1 ml-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg text-xs"
+                                className="flex-1 ml-4 theme-primary-bg text-white font-bold py-2.5 rounded-lg text-xs"
                             >
                                 Add to Cart (Rs. {customizingProduct.price * quantity})
                             </button>
@@ -387,12 +419,20 @@ export default function OrderMenu({ tenant, customer, categories }) {
                                 <span>Subtotal</span>
                                 <span>Rs. {cartTotal}</span>
                             </div>
+                            
+                            {cartTotal < minOrder && (
+                                <div className="text-[11px] text-red-500 font-semibold bg-red-50 p-2 rounded-lg text-center">
+                                    Minimum order amount is Rs. {minOrder}. Add Rs. {minOrder - cartTotal} more to checkout.
+                                </div>
+                            )}
+
                             <button
                                 onClick={() => {
                                     setIsCartOpen(false);
                                     setIsCheckoutOpen(true);
                                 }}
-                                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg text-xs"
+                                disabled={cartTotal < minOrder}
+                                className="w-full theme-primary-bg text-white font-bold py-3 rounded-lg text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Checkout Order
                             </button>
@@ -420,7 +460,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
                         </div>
 
                         {errors.general && (
-                            <div className="bg-red-50 text-red-600 text-xs p-2.5 rounded-lg font-bold">
+                            <div className="bg-red-50 text-red-650 text-xs p-2.5 rounded-lg font-bold text-center">
                                 {errors.general}
                             </div>
                         )}
@@ -429,20 +469,25 @@ export default function OrderMenu({ tenant, customer, categories }) {
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-extrabold text-gray-500 uppercase">Option</label>
                             <div className="flex gap-2">
-                                {['delivery', 'takeaway'].map((type) => (
-                                    <button
-                                        key={type}
-                                        type="button"
-                                        onClick={() => setCheckoutForm(prev => ({ ...prev, order_type: type }))}
-                                        className={`flex-1 py-2 text-xs font-bold border rounded-lg capitalize transition-colors ${
-                                            checkoutForm.order_type === type
-                                                ? 'border-red-500 bg-red-50 text-red-600'
-                                                : 'border-gray-200 text-gray-600'
-                                        }`}
-                                    >
-                                        🛵 {type}
-                                    </button>
-                                ))}
+                                {['delivery', 'takeaway'].map((type) => {
+                                    const isAvailable = ordering.type === 'both' || ordering.type === type;
+                                    if (!isAvailable) return null;
+
+                                    return (
+                                        <button
+                                            key={type}
+                                            type="button"
+                                            onClick={() => setCheckoutForm(prev => ({ ...prev, order_type: type }))}
+                                            className={`flex-1 py-2 text-xs font-bold border rounded-lg capitalize transition-colors ${
+                                                checkoutForm.order_type === type
+                                                    ? 'theme-primary-border bg-red-50 theme-primary-text font-black'
+                                                    : 'border-gray-200 text-gray-600'
+                                            }`}
+                                        >
+                                            {type === 'delivery' ? '🛵' : '🛍️'} {type}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -452,7 +497,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
                                 <label className="text-[10px] font-extrabold text-gray-500 uppercase">Your Name</label>
                                 <input
                                     type="text"
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-red-500"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:ring-1 theme-primary-ring"
                                     placeholder="Name"
                                     value={checkoutForm.customer_name}
                                     onChange={(e) => setCheckoutForm(prev => ({ ...prev, customer_name: e.target.value }))}
@@ -463,7 +508,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
                                 <label className="text-[10px] font-extrabold text-gray-500 uppercase">Phone Number</label>
                                 <input
                                     type="text"
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-red-500"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:ring-1 theme-primary-ring"
                                     placeholder="Phone"
                                     value={checkoutForm.customer_phone}
                                     onChange={(e) => setCheckoutForm(prev => ({ ...prev, customer_phone: e.target.value }))}
@@ -477,7 +522,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
                             <div className="space-y-1">
                                 <label className="text-[10px] font-extrabold text-gray-500 uppercase">Delivery Address</label>
                                 <textarea
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-red-500"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:ring-1 theme-primary-ring"
                                     placeholder="Complete street details"
                                     rows="2"
                                     value={checkoutForm.delivery_address}
@@ -492,7 +537,7 @@ export default function OrderMenu({ tenant, customer, categories }) {
                             <label className="text-[10px] font-extrabold text-gray-500 uppercase">Special Delivery Notes</label>
                             <input
                                 type="text"
-                                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-red-500"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:ring-1 theme-primary-ring"
                                 placeholder="E.g., Ring bell, call before arrival"
                                 value={checkoutForm.delivery_notes}
                                 onChange={(e) => setCheckoutForm(prev => ({ ...prev, delivery_notes: e.target.value }))}
@@ -500,20 +545,35 @@ export default function OrderMenu({ tenant, customer, categories }) {
                         </div>
 
                         {/* Payment Selection */}
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-extrabold text-gray-500 uppercase">Payment Option</label>
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setCheckoutForm(prev => ({ ...prev, payment_method: 'cod' }))}
-                                    className={`flex-1 py-2 text-xs font-bold border rounded-lg transition-colors ${
-                                        checkoutForm.payment_method === 'cod'
-                                            ? 'border-red-500 bg-red-50 text-red-600'
-                                            : 'border-gray-200 text-gray-600'
-                                    }`}
-                                >
-                                    💵 Cash on Delivery
-                                </button>
+                        {payments.cod_enabled !== false && (
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-extrabold text-gray-500 uppercase">Payment Option</label>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        className="flex-1 py-2 text-xs font-bold border border-transparent theme-primary-border bg-red-50 theme-primary-text rounded-lg"
+                                    >
+                                        💵 Cash on Delivery (COD)
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Price summary review */}
+                        <div className="bg-gray-50 p-3 rounded-xl text-xs space-y-1.5">
+                            <div className="flex justify-between text-gray-600">
+                                <span>Cart Subtotal</span>
+                                <span>Rs. {cartTotal}</span>
+                            </div>
+                            {checkoutForm.order_type === 'delivery' && (
+                                <div className="flex justify-between text-gray-600">
+                                    <span>Delivery Charges</span>
+                                    <span>{actualDeliveryFee === 0 ? 'Free' : `Rs. ${actualDeliveryFee}`}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between font-black text-gray-900 border-t border-gray-200 pt-1.5">
+                                <span>Total Amount</span>
+                                <span>Rs. {grandTotal}</span>
                             </div>
                         </div>
 
@@ -522,9 +582,9 @@ export default function OrderMenu({ tenant, customer, categories }) {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg text-xs disabled:bg-gray-400"
+                                className="w-full theme-primary-bg text-white font-bold py-3 rounded-lg text-xs disabled:bg-gray-400"
                             >
-                                {isSubmitting ? 'Placing Order...' : `Place Order (Rs. ${cartTotal})`}
+                                {isSubmitting ? 'Placing Order...' : `Place Order (Rs. ${grandTotal})`}
                             </button>
                         </div>
                     </form>
