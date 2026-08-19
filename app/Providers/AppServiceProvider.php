@@ -2,6 +2,13 @@
 
 namespace App\Providers;
 
+use App\Events\OrderStatusUpdated;
+use App\Listeners\SendOrderStatusWhatsAppNotification;
+use App\Models\GlobalSetting;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,19 +27,24 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(
+            OrderStatusUpdated::class,
+            SendOrderStatusWhatsAppNotification::class
+        );
+
         Vite::prefetch(concurrency: 3);
 
         if (str_starts_with(config('app.url'), 'https://')) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+            URL::forceScheme('https');
         }
 
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('global_settings')) {
-                $settings = \Illuminate\Support\Facades\Cache::rememberForever('global_settings', function () {
-                    return \App\Models\GlobalSetting::pluck('value', 'key')->toArray();
+            if (Schema::hasTable('global_settings')) {
+                $settings = Cache::rememberForever('global_settings', function () {
+                    return GlobalSetting::pluck('value', 'key')->toArray();
                 });
 
-                if (isset($settings['app_name']) && !empty($settings['app_name'])) {
+                if (isset($settings['app_name']) && ! empty($settings['app_name'])) {
                     config(['app.name' => $settings['app_name']]);
                 }
             }

@@ -1,12 +1,15 @@
 <?php
 
+use App\Events\OrderStatusUpdated;
 use App\Models\Tenant;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Modules\Bot\Models\WhatsAppConnection;
 use Modules\Bot\Services\CustomerPwaTokenService;
 use Modules\Crm\Models\Customer;
 use Modules\Menu\Models\Category;
 use Modules\Menu\Models\Product;
+use Modules\Orders\Models\Order;
 
 beforeEach(function () {
     // Clean up DB before test
@@ -137,4 +140,57 @@ test('PWA checkout API validates and saves order details and updates CRM LTV', f
         'total_orders' => 1,
         'total_spent' => 1000,
     ]);
+});
+
+test('PWA order tracking endpoint loads correct order page', function () {
+    $order = Order::create([
+        'order_number' => 'ORD-TEST1234',
+        'customer_phone' => '923345112969',
+        'customer_name' => 'John Doe',
+        'total_amount' => 500,
+        'status' => 'Pending',
+        'order_type' => 'WhatsApp',
+        'source' => 'whatsapp',
+    ]);
+
+    $response = $this->get(route('pwa.track', [
+        'tenant_slug' => $this->tenant->id,
+        'order_number' => $order->order_number,
+    ]));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('Pwa/OrderTracking')
+        ->where('order.order_number', $order->order_number)
+    );
+});
+
+test('OrderStatusUpdated event triggers WhatsApp notification delivery', function () {
+    // Create WhatsApp connection
+    WhatsAppConnection::create([
+        'tenant_id' => $this->tenant->id,
+        'provider' => 'evolution',
+        'instance_name' => 'test_instance_abc',
+        'status' => 'open',
+    ]);
+
+    $order = Order::create([
+        'order_number' => 'ORD-NOTIFY123',
+        'customer_phone' => '923345112969',
+        'customer_name' => 'John Doe',
+        'total_amount' => 500,
+        'status' => 'Preparing',
+        'order_type' => 'WhatsApp',
+        'source' => 'whatsapp',
+    ]);
+
+    // Dispatch status updated event
+    event(new OrderStatusUpdated($order, $this->tenant->id));
+
+    // Assert request was sent to Evolution API for text message notification
+    Http::assertSent(function (Request $request) {
+        return str_contains($request->url(), '/message/sendText') &&
+            str_contains($request['text'], 'ORD-NOTIFY123') &&
+            str_contains($request['text'], 'kitchen');
+    });
 });
