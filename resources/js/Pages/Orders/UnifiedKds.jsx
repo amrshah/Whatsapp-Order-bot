@@ -37,7 +37,7 @@ export default function UnifiedKds({ auth, orders: initialOrders, tenantId }) {
     }, [initialOrders]);
 
     useEffect(() => {
-        if (!tenantId) return;
+        if (!tenantId || !window.Echo) return;
 
         console.log("Listening for Echo events on KDS...", tenantId);
         const channel = window.Echo.private(`tenant.${tenantId}`);
@@ -61,8 +61,10 @@ export default function UnifiedKds({ auth, orders: initialOrders, tenantId }) {
         });
 
         return () => {
-            channel.stopListening('OrderCreated');
-            channel.stopListening('OrderStatusUpdated');
+            if (window.Echo) {
+                channel.stopListening('OrderCreated');
+                channel.stopListening('OrderStatusUpdated');
+            }
         };
     }, [tenantId]);
 

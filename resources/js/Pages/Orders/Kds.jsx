@@ -9,7 +9,7 @@ dayjs.extend(relativeTime);
 export default function Kds({ auth, orders, tenantId }) {
 
     useEffect(() => {
-        if (!tenantId) return;
+        if (!tenantId || !window.Echo) return;
 
         const channel = window.Echo.private(`tenant.${tenantId}.orders`);
 
@@ -26,7 +26,9 @@ export default function Kds({ auth, orders, tenantId }) {
         });
 
         return () => {
-            window.Echo.leave(`tenant.${tenantId}.orders`);
+            if (window.Echo) {
+                window.Echo.leave(`tenant.${tenantId}.orders`);
+            }
         };
     }, [tenantId]);
 
