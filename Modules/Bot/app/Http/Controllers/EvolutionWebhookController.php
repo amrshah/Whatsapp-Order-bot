@@ -17,6 +17,7 @@ use Modules\Bot\Services\Handlers\ProductHandler;
 use Modules\Bot\Services\Handlers\WelcomeHandler;
 use Modules\Bot\Services\WhatsAppMessagingService;
 use Modules\Bot\Services\WhatsAppProviderResolver;
+use Modules\Crm\Models\Customer;
 
 class EvolutionWebhookController extends Controller
 {
@@ -135,6 +136,13 @@ class EvolutionWebhookController extends Controller
         if (empty($connection->phone_number)) {
             $connection->update(['phone_number' => $fromNumber]);
         }
+
+        // Upsert customer in CRM at gateway entry (Lead Capture)
+        $customer = Customer::firstOrCreate(
+            ['phone' => $fromNumber],
+            ['name' => 'WhatsApp Customer']
+        );
+        $customer->touch();
 
         // Initialize Bot Session
         $session = BotSession::firstOrCreate(

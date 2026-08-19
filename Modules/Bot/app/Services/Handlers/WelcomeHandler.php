@@ -3,58 +3,34 @@
 namespace Modules\Bot\Services\Handlers;
 
 use Modules\Bot\Models\BotSession;
+use Modules\Bot\Services\CustomerPwaTokenService;
+use Modules\Crm\Models\Customer;
 use Modules\Orders\Models\Order;
 
 class WelcomeHandler implements BotHandlerInterface
 {
     public function handle(BotSession $session, string $message, string $type): array
     {
-        // Check if user clicked Repeat Last Order
-        if ($type === 'interactive' && $message === 'action_repeat_last_order') {
-            return $this->handleRepeatOrder($session);
-        }
-
         $session->update(['current_state' => 'START']);
-        $appName = config('app.name', 'Bracemen Bot');
+        $tenantId = tenant('id');
 
-        $lastOrder = Order::where('customer_phone', $session->phone_number)
-            ->with('items.product')
-            ->orderBy('created_at', 'desc')
-            ->first();
+        // Retrieve customer from CRM (created at gateway entry)
+        $customer = Customer::where('phone', $session->phone_number)->first();
+        $customerId = $customer ? $customer->id : 0;
 
-        $text = "Welcome to {$appName}! 👋\nHow can we help you today?";
-        $buttons = [
-            ['type' => 'reply', 'reply' => ['id' => 'action_view_menu', 'title' => '📖 Browse Menu']],
-            ['type' => 'reply', 'reply' => ['id' => 'action_offers', 'title' => '🔥 Today\'s Deals']],
-        ];
+        // Generate signed token
+        $token = CustomerPwaTokenService::generateToken($customerId, $tenantId);
 
-        if ($lastOrder && $lastOrder->items->count() > 0) {
-            $customerName = $lastOrder->customer_name ?? 'there';
-            $text = "🍕 Welcome back, {$customerName}!\n\nYour last order:\n";
-            foreach ($lastOrder->items as $item) {
-                $productName = $item->product ? $item->product->name : 'Item';
-                $text .= "✓ {$item->quantity}x {$productName}\n";
-            }
-            $text .= "\nRs. {$lastOrder->total_amount}";
+        // Resolve absolute URL
+        $pwaUrl = route('pwa.menu', ['tenant_slug' => $tenantId, 'auth' => $token]);
 
-            // Prepend Repeat Order button
-            array_unshift($buttons, ['type' => 'reply', 'reply' => ['id' => 'action_repeat_last_order', 'title' => '🍔 Repeat Order']]);
-        }
-
-        // WhatsApp allows max 3 buttons.
-        if (count($buttons) < 3) {
-            $cart = $session->context['cart'] ?? [];
-            if (! empty($cart)) {
-                $buttons[] = ['type' => 'reply', 'reply' => ['id' => 'action_view_cart', 'title' => '🛒 View Cart']];
-            }
-        }
+        $appName = tenant('name') ?: config('app.name', 'Restaurant OS');
+        $text = "Welcome to {$appName}! 👋\n\nTap the link below to browse our menu, customize items, and place your order:\n👉 {$pwaUrl}";
 
         return [
-            'type' => 'interactive',
-            'interactive' => [
-                'type' => 'button',
-                'body' => ['text' => $text],
-                'action' => ['buttons' => array_slice($buttons, 0, 3)],
+            'type' => 'text',
+            'text' => [
+                'body' => $text,
             ],
         ];
     }

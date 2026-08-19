@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Pwa\PwaController;
 use App\Http\Controllers\Settings\BillingController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Foundation\Application;
@@ -63,3 +64,11 @@ Route::get('/test-tenancy', function () {
         'tenant' => tenant('id'),
     ]);
 })->middleware(['auth', 'verified']);
+
+// Public PWA Mini-App Routes
+Route::group(['prefix' => 'order/{tenant_slug}'], function () {
+    Route::get('/', [PwaController::class, 'exchangeTokenAndShowMenu'])->name('pwa.menu');
+    Route::get('/manifest.json', [PwaController::class, 'manifest'])->name('pwa.manifest');
+    Route::post('/checkout', [PwaController::class, 'submitOrder'])->name('pwa.checkout');
+    Route::get('/track/{order_number}', [PwaController::class, 'trackOrder'])->name('pwa.track');
+});
