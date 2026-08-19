@@ -19,6 +19,18 @@ Maps high-level business logic concepts to specific code directories and files.
 - **Message Handlers**: `Modules/Bot/app/Services/Handlers/` (e.g., `WelcomeHandler.php`)
 - **Simulator UI**: `resources/js/Pages/Bot/Simulator.jsx`
 
+## Customer PWA Mini-App
+- **Controller**: `app/Http/Controllers/Pwa/PwaController.php` (Includes token exchange, menu rendering, checkout, order tracking, and dynamic manifest outputs)
+- **Token Cryptography**: `Modules/Bot/app/Services/CustomerPwaTokenService.php` (15-min signed tokens)
+- **PWA Layout**: `resources/js/Layouts/PwaLayout.jsx` (Includes Hamburger menu side-navigation drawer and localStorage order trackers)
+- **PWA Client Pages**: `resources/js/Pages/Pwa/OrderMenu.jsx`, `resources/js/Pages/Pwa/OrderTracking.jsx` (Dynamic styles and real-time Reverb broadcasts)
+
+## Configuration & Settings Layer
+- **Tenant Settings Model**: `app/Models/TenantSetting.php`
+- **Settings Service**: `app/Services/TenantSettingsService.php`
+- **Settings Dashboard UI**: `resources/js/Pages/Settings/MiniApp.jsx`
+- **Custom Status Notifications Listener**: `app/Listeners/SendOrderStatusWhatsAppNotification.php`
+
 ## Menu Module
 - **Namespace**: `Modules\Menu`
 - **Category & Products**: `Modules/Menu/app/Models/Category.php`, `Modules/Menu/app/Models/Product.php`
