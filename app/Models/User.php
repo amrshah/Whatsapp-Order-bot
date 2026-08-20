@@ -13,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'tenant_id', 'phone', 'provider_name', 'provider_id', 'avatar'])]
+#[Fillable(['name', 'email', 'password', 'password_set_at', 'tenant_id', 'phone', 'provider_name', 'provider_id', 'avatar'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -29,6 +29,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'password_set_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -46,6 +47,10 @@ class User extends Authenticatable
      */
     public function hasPassword(): bool
     {
+        if (! empty($this->provider_name) && is_null($this->password_set_at)) {
+            return false;
+        }
+
         return ! empty($this->password);
     }
 

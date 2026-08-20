@@ -1,14 +1,18 @@
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import { Calendar, Clock, MessageSquare, CheckCircle, Info, Sparkles, MapPin, Phone } from 'lucide-react';
+import axios from 'axios';
 
-export default function MiniApp({ tenant, customer, settings, currentExperience, capabilities = [], previewMode = false }) {
+export default function MiniApp({ tenant, customer, services = [], settings, currentExperience, capabilities = [], previewMode = false }) {
     const [bookingSubmitted, setBookingSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState('');
     const [bookingForm, setBookingForm] = useState({
         name: customer?.name || '',
         phone: customer?.phone || '',
+        service_id: services.length > 0 ? String(services[0].id) : '',
         preferredDate: '',
-        preferredTime: '',
+        preferredTime: '10:00',
         notes: '',
     });
 
@@ -16,9 +20,26 @@ export default function MiniApp({ tenant, customer, settings, currentExperience,
     const branding = settings?.branding || {};
     const primaryColor = branding.primary_color || '#4f46e5';
 
-    const handleBookingSubmit = (e) => {
+    const handleBookingSubmit = async (e) => {
         e.preventDefault();
-        setBookingSubmitted(true);
+        setSubmitting(true);
+        setSubmitError('');
+
+        try {
+            await axios.post(`/app/${tenant.id}/book`, {
+                customer_name: bookingForm.name,
+                customer_phone: bookingForm.phone,
+                service_id: bookingForm.service_id ? Number(bookingForm.service_id) : null,
+                booking_date: bookingForm.preferredDate,
+                booking_time: bookingForm.preferredTime,
+                notes: bookingForm.notes,
+            });
+            setBookingSubmitted(true);
+        } catch (err) {
+            setSubmitError(err.response?.data?.message || 'Failed to submit appointment request. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -53,10 +74,10 @@ export default function MiniApp({ tenant, customer, settings, currentExperience,
                     style={{ background: `linear-gradient(135deg, ${primaryColor}, #312e81)` }}
                 >
                     <div className="relative z-10">
-                        <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-md text-xs font-semibold px-2.5 py-1 rounded-full mb-3">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold mb-3">
                             <Sparkles className="w-3.5 h-3.5" />
-                            {isBooking ? 'Fast & Easy Booking' : 'Welcome'}
-                        </span>
+                            <span>{isBooking ? 'Official Booking Portal' : 'Verified Business Portal'}</span>
+                        </div>
                         <h2 className="text-2xl font-black mb-1">{tenant.name}</h2>
                         <p className="text-xs text-white/80 leading-relaxed max-w-md">
                             {branding.description || 'Schedule your appointment or connect with our team directly.'}
@@ -71,6 +92,12 @@ export default function MiniApp({ tenant, customer, settings, currentExperience,
                             <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                             <h3 className="font-bold text-base text-gray-900 dark:text-white">Request an Appointment</h3>
                         </div>
+
+                        {submitError && (
+                            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs rounded-xl border border-rose-200 dark:border-rose-800">
+                                {submitError}
+                            </div>
+                        )}
 
                         {bookingSubmitted ? (
                             <div className="text-center py-8 space-y-3">
@@ -114,6 +141,24 @@ export default function MiniApp({ tenant, customer, settings, currentExperience,
                                     />
                                 </div>
 
+                                {services.length > 0 && (
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Service Offering</label>
+                                        <select
+                                            value={bookingForm.service_id}
+                                            onChange={(e) => setBookingForm({ ...bookingForm, service_id: e.target.value })}
+                                            className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                        >
+                                            <option value="">Select a service...</option>
+                                            {services.map((s) => (
+                                                <option key={s.id} value={s.id}>
+                                                    {s.name} ({s.duration_minutes} mins) - ${Number(s.price).toFixed(2)}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Preferred Date</label>
@@ -138,22 +183,23 @@ export default function MiniApp({ tenant, customer, settings, currentExperience,
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Service / Notes (Optional)</label>
+                                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Notes / Additional Info (Optional)</label>
                                     <textarea
                                         rows={2}
                                         value={bookingForm.notes}
                                         onChange={(e) => setBookingForm({ ...bookingForm, notes: e.target.value })}
-                                        placeholder="Specific service requested, concerns, or notes..."
+                                        placeholder="Specific concerns or questions..."
                                         className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                                     />
                                 </div>
 
                                 <button
                                     type="submit"
-                                    className="w-full py-3 text-white font-bold rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2"
+                                    disabled={submitting}
+                                    className="w-full py-3 text-white font-bold rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 disabled:opacity-50"
                                     style={{ backgroundColor: primaryColor }}
                                 >
-                                    <Calendar className="w-4 h-4" /> Confirm Appointment Request
+                                    <Calendar className="w-4 h-4" /> {submitting ? 'Submitting...' : 'Confirm Appointment Request'}
                                 </button>
                             </form>
                         )}

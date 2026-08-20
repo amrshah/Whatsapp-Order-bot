@@ -83,6 +83,24 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </div>
                                 )}
 
+                                {hasCapability('booking') && (
+                                    <NavLink
+                                        href={route('bookings.index')}
+                                        active={route().current('bookings.*')}
+                                    >
+                                        Appointments
+                                    </NavLink>
+                                )}
+
+                                {hasCapability('services') && (
+                                    <NavLink
+                                        href={route('services.index')}
+                                        active={route().current('services.*')}
+                                    >
+                                        Services
+                                    </NavLink>
+                                )}
+
                                 <NavLink
                                     href={route('crm.index')}
                                     active={route().current('crm.*')}
@@ -282,6 +300,24 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Products
                                 </ResponsiveNavLink>
                             </>
+                        )}
+
+                        {hasCapability('booking') && (
+                            <ResponsiveNavLink
+                                href={route('bookings.index')}
+                                active={route().current('bookings.*')}
+                            >
+                                Appointments
+                            </ResponsiveNavLink>
+                        )}
+
+                        {hasCapability('services') && (
+                            <ResponsiveNavLink
+                                href={route('services.index')}
+                                active={route().current('services.*')}
+                            >
+                                Services
+                            </ResponsiveNavLink>
                         )}
 
                         <div className="block px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2">Management</div>

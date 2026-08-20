@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
+use App\Http\Controllers\BookingsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Pwa\MiniAppController;
 use App\Http\Controllers\Pwa\PwaController;
+use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\Settings\BillingController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Foundation\Application;
@@ -99,10 +101,21 @@ Route::get('/order/{tenant_slug}/track/{order_number}', function (string $tenant
     return redirect("/app/{$tenant_slug}/track/{$order_number}", 301);
 });
 
+Route::middleware(['auth', 'verified', 'capability:services'])->group(function () {
+    Route::resource('services', ServicesController::class)->except(['create', 'show', 'edit']);
+});
+
+Route::middleware(['auth', 'verified', 'capability:booking'])->group(function () {
+    Route::get('bookings', [BookingsController::class, 'index'])->name('bookings.index');
+    Route::patch('bookings/{booking}/status', [BookingsController::class, 'updateStatus'])->name('bookings.status.update');
+    Route::delete('bookings/{booking}', [BookingsController::class, 'destroy'])->name('bookings.destroy');
+});
+
 Route::group(['prefix' => 'app/{tenant_slug}'], function () {
     Route::get('/', [MiniAppController::class, 'index'])->name('pwa.app.index');
     Route::get('/manifest.json', [PwaController::class, 'manifest'])->name('pwa.manifest');
     Route::post('/checkout', [PwaController::class, 'submitOrder'])->middleware('capability:ordering')->name('pwa.checkout');
+    Route::post('/book', [MiniAppController::class, 'submitBooking'])->middleware('capability:booking')->name('pwa.book');
     Route::get('/track/{order_number}', [PwaController::class, 'trackOrder'])->name('pwa.track');
     Route::get('/order', [MiniAppController::class, 'experience'])->defaults('experience', 'order')->name('pwa.menu');
     Route::get('/{experience}', [MiniAppController::class, 'experience'])->name('pwa.app.experience');

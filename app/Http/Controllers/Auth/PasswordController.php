@@ -30,6 +30,7 @@ class PasswordController extends Controller
 
         $user->update([
             'password' => Hash::make($validated['password']),
+            'password_set_at' => now(),
         ]);
 
         return back();

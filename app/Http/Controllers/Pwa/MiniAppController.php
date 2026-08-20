@@ -6,6 +6,8 @@ use App\Capability\CapabilityRegistry;
 use App\Capability\PwaExperienceResolver;
 use App\Enums\TenantCapability;
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
+use App\Models\Service;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -102,6 +104,47 @@ class MiniAppController extends Controller
     }
 
     /**
+     * Submit an appointment / booking request from PWA.
+     */
+    public function submitBooking(Request $request, string $tenant_slug)
+    {
+        $tenant = $this->initializeTenant($tenant_slug);
+
+        $validated = $request->validate([
+            'customer_name' => 'required|string|max:255',
+            'customer_phone' => 'required|string|max:50',
+            'booking_date' => 'required|date',
+            'booking_time' => 'required|string|max:20',
+            'service_id' => 'nullable|exists:services,id',
+            'notes' => 'nullable|string',
+        ]);
+
+        // Upsert CRM customer
+        $phone = preg_replace('/[^0-9]/', '', $validated['customer_phone']);
+        $customer = Customer::firstOrCreate(['phone' => $phone]);
+        $customer->name = $validated['customer_name'];
+        $customer->touch();
+
+        $booking = Booking::create([
+            'tenant_id' => $tenant->id,
+            'customer_id' => $customer->id,
+            'service_id' => $validated['service_id'] ?? null,
+            'customer_name' => $validated['customer_name'],
+            'customer_phone' => $validated['customer_phone'],
+            'booking_date' => $validated['booking_date'],
+            'booking_time' => $validated['booking_time'],
+            'status' => 'pending',
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'booking' => $booking,
+            'message' => 'Appointment request submitted successfully.',
+        ]);
+    }
+
+    /**
      * Render the single-page PWA shell with necessary context.
      */
     protected function renderMiniApp(Tenant $tenant, ?string $experience): Response
@@ -129,6 +172,14 @@ class MiniAppController extends Controller
                 ->get();
         }
 
+        // Load active services if services capability is enabled
+        $services = [];
+        if ($tenant->hasCapability(TenantCapability::Services)) {
+            $services = Service::where('is_active', true)
+                ->orderBy('name')
+                ->get();
+        }
+
         // Render legacy OrderMenu component directly if ordering capability is active and experience is order
         if (($experience === 'order' || $experience === 'ordering') && $tenant->hasCapability(TenantCapability::Ordering)) {
             return Inertia::render('Pwa/OrderMenu', [
@@ -152,6 +203,7 @@ class MiniAppController extends Controller
             ],
             'customer' => $customer,
             'categories' => $categories,
+            'services' => $services,
             'settings' => $settings,
             'currentExperience' => $experience,
             'capabilities' => $activeCapabilities,
