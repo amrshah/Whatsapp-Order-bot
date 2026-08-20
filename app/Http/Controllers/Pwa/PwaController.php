@@ -294,6 +294,35 @@ class PwaController extends Controller
     }
 
     /**
+     * Upload brand logo image.
+     */
+    public function uploadLogo(Request $request)
+    {
+        $request->validate([
+            'logo' => 'required|image|mimes:jpg,jpeg,png,webp,svg|max:3072',
+        ]);
+
+        $tenant = tenant();
+        $file = $request->file('logo');
+        $filename = 'logo_'.time().'.'.$file->getClientOriginalExtension();
+        $path = $file->storeAs("logos/{$tenant->id}", $filename, 'public');
+        $url = asset("storage/{$path}");
+
+        // Also update draft settings branding logo automatically
+        $settings = $tenant->settings('draft');
+        $branding = $settings->branding ?? [];
+        $branding['logo'] = $url;
+        $settings->branding = $branding;
+        $settings->save();
+
+        return response()->json([
+            'success' => true,
+            'url' => $url,
+            'message' => 'Logo uploaded successfully.',
+        ]);
+    }
+
+    /**
      * Publish draft configurations to live environment.
      */
     public function publishSettings(Request $request)

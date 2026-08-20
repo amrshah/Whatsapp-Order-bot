@@ -208,11 +208,16 @@ export default function OrderMenu({ tenant, customer, categories, settings, prev
             )}
 
             {/* Visual banner */}
-            <div className="relative h-32 bg-gray-900 overflow-hidden flex items-center justify-center text-white px-4">
+            <div className="relative h-36 bg-gray-900 overflow-hidden flex items-center justify-center text-white px-4">
                 <div className="absolute inset-0 opacity-45 bg-[url('https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=600')] bg-cover bg-center"></div>
-                <div className="relative text-center space-y-1">
-                    <h2 className="text-lg font-black uppercase tracking-wider">{businessName}</h2>
-                    <p className="text-xs text-gray-300 font-medium italic">
+                <div className="relative text-center flex flex-col items-center space-y-1.5 z-10">
+                    {branding.logo && (
+                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/80 shadow-md bg-white">
+                            <img src={branding.logo} alt={businessName} className="w-full h-full object-cover" />
+                        </div>
+                    )}
+                    <h2 className="text-lg font-black uppercase tracking-wider leading-none">{businessName}</h2>
+                    <p className="text-[11px] text-gray-200 font-medium italic">
                         {branding.tagline || 'Fresh ordering companion app'}
                     </p>
                 </div>

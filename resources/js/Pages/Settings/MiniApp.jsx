@@ -8,12 +8,17 @@ import {
     MessageSquare, 
     Eye, 
     Send, 
-    Save 
+    Save,
+    Upload,
+    Image,
+    Trash2,
+    Loader2
 } from 'lucide-react';
 
 export default function MiniApp({ settings, tenantId }) {
     // Current tab selection
     const [activeSection, setActiveSection] = useState('branding');
+    const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
     // Load initial settings with fallbacks (no emojis in default templates)
     const [form, setForm] = useState({
@@ -63,6 +68,37 @@ export default function MiniApp({ settings, tenantId }) {
         }));
     };
 
+    const handleLogoUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingLogo(true);
+        const formData = new FormData();
+        formData.append('logo', file);
+
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const response = await fetch(route('settings.miniapp.logo'), {
+                method: 'POST',
+                headers: {
+                    ...(token ? { 'X-CSRF-TOKEN': token } : {}),
+                },
+                body: formData,
+            });
+            const data = await response.json();
+            if (data.success && data.url) {
+                updateField('branding', 'logo', data.url);
+                setStatusMessage({ type: 'success', text: 'Logo uploaded successfully.' });
+            } else {
+                setStatusMessage({ type: 'error', text: data.message || 'Failed to upload logo.' });
+            }
+        } catch (err) {
+            setStatusMessage({ type: 'error', text: 'Network error uploading logo.' });
+        } finally {
+            setIsUploadingLogo(false);
+        }
+    };
+
     const handleSaveDraft = (e) => {
         e.preventDefault();
         setIsSaving(true);
@@ -72,7 +108,7 @@ export default function MiniApp({ settings, tenantId }) {
             preserveScroll: true,
             onSuccess: () => {
                 setIsSaving(false);
-                setStatusMessage({ type: 'success', text: 'Draft settings saved. Tap Preview Draft to test.' });
+                setStatusMessage({ type: 'success', text: 'Draft settings saved successfully.' });
             },
             onError: () => {
                 setIsSaving(false);
@@ -81,7 +117,8 @@ export default function MiniApp({ settings, tenantId }) {
         });
     };
 
-    const handlePublish = () => {
+    const handlePublish = (e) => {
+        e.preventDefault();
         setIsPublishing(true);
         setStatusMessage(null);
 
@@ -165,9 +202,77 @@ export default function MiniApp({ settings, tenantId }) {
                         {/* Settings Form content */}
                         <form onSubmit={handleSaveDraft} className="flex-1 space-y-6">
                             {activeSection === 'branding' && (
-                                <div className="space-y-4">
+                                <div className="space-y-5">
                                     <h3 className="text-sm font-extrabold text-gray-900 dark:text-white">Mini-App Branding</h3>
                                     
+                                    {/* Store Logo Upload & Preview Card */}
+                                    <div className="space-y-2 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-150 dark:border-gray-750">
+                                        <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                            Store Logo & Avatar
+                                        </label>
+                                        <div className="flex items-center gap-4">
+                                            {form.branding.logo ? (
+                                                <div className="relative group w-16 h-16 rounded-2xl border-2 border-indigo-200 dark:border-indigo-800 overflow-hidden bg-white shadow-sm flex items-center justify-center">
+                                                    <img src={form.branding.logo} alt="Logo" className="w-full h-full object-cover" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => updateField('branding', 'logo', '')}
+                                                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 text-white flex items-center justify-center transition"
+                                                        title="Remove logo"
+                                                    >
+                                                        <Trash2 className="w-4 h-4 text-red-400" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-750 bg-white dark:bg-gray-800 flex items-center justify-center text-gray-400">
+                                                    <Image className="w-6 h-6" />
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-1.5 flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-bold text-xs border border-indigo-200 dark:border-indigo-800 transition">
+                                                        {isUploadingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                                                        <span>{isUploadingLogo ? 'Uploading...' : 'Upload Image'}</span>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                                                            className="hidden"
+                                                            onChange={handleLogoUpload}
+                                                            disabled={isUploadingLogo}
+                                                        />
+                                                    </label>
+                                                    {form.branding.logo && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => updateField('branding', 'logo', '')}
+                                                            className="text-xs text-red-600 dark:text-red-400 hover:underline font-semibold"
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                                                    PNG, JPG, WebP or SVG (Recommended: 400x400 square, max 3MB).
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Direct Logo URL fallback */}
+                                        <div className="pt-2 border-t border-gray-150 dark:border-gray-800">
+                                            <label className="text-[11px] font-semibold text-gray-500 dark:text-gray-400">
+                                                Or Direct Image URL
+                                            </label>
+                                            <input
+                                                type="url"
+                                                className="w-full bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                                                value={form.branding.logo}
+                                                onChange={(e) => updateField('branding', 'logo', e.target.value)}
+                                                placeholder="https://example.com/logo.png"
+                                            />
+                                        </div>
+                                    </div>
+
                                     <div className="space-y-1">
                                         <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Theme Color (Primary)</label>
                                         <div className="flex gap-3 items-center">

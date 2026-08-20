@@ -73,15 +73,22 @@ export default function MiniApp({ tenant, customer, services = [], settings, cur
                     className="rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
                     style={{ background: `linear-gradient(135deg, ${primaryColor}, #312e81)` }}
                 >
-                    <div className="relative z-10">
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold mb-3">
-                            <Sparkles className="w-3.5 h-3.5" />
-                            <span>{isBooking ? 'Official Booking Portal' : 'Verified Business Portal'}</span>
+                    <div className="relative z-10 flex items-start gap-4">
+                        {branding.logo && (
+                            <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white/80 shadow-md bg-white flex-shrink-0">
+                                <img src={branding.logo} alt={tenant.name} className="w-full h-full object-cover" />
+                            </div>
+                        )}
+                        <div>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold mb-2">
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>{isBooking ? 'Official Booking Portal' : 'Verified Business Portal'}</span>
+                            </div>
+                            <h2 className="text-2xl font-black mb-1">{tenant.name}</h2>
+                            <p className="text-xs text-white/80 leading-relaxed max-w-md">
+                                {branding.description || 'Schedule your appointment or connect with our team directly.'}
+                            </p>
                         </div>
-                        <h2 className="text-2xl font-black mb-1">{tenant.name}</h2>
-                        <p className="text-xs text-white/80 leading-relaxed max-w-md">
-                            {branding.description || 'Schedule your appointment or connect with our team directly.'}
-                        </p>
                     </div>
                 </div>
 

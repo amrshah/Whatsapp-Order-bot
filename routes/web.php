@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
     // Mini-App Settings Dashboard routes
     Route::get('/settings/miniapp', [PwaController::class, 'showSettings'])->name('settings.miniapp');
     Route::post('/settings/miniapp', [PwaController::class, 'saveSettings'])->name('settings.miniapp.save');
+    Route::post('/settings/miniapp/logo', [PwaController::class, 'uploadLogo'])->name('settings.miniapp.logo');
     Route::post('/settings/miniapp/publish', [PwaController::class, 'publishSettings'])->name('settings.miniapp.publish');
 
     // Two-Factor Authentication settings routes
