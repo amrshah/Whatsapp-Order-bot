@@ -2,9 +2,11 @@
 
 Maps high-level business logic concepts to specific code directories and files.
 
-## SaaS Administration
+## Central SaaS Admin (Platform Administration / Tenant Management)
+- **Routes File**: `routes/admin.php`
 - **Tenant Management**: `app/Models/Tenant.php`, `app/Http/Controllers/Admin/TenantController.php`
-- **SaaS UI**: `resources/js/Pages/Admin/Tenants/Edit.jsx`
+- **Invoices & Settings**: `app/Http/Controllers/Admin/InvoiceController.php`, `app/Http/Controllers/Admin/SettingsController.php`
+- **SaaS UI Views**: `resources/js/Pages/Admin/Tenants/`, `resources/js/Pages/Admin/Settings.jsx`, `resources/js/Pages/Admin/Invoices/`
 
 ## Multi-Tenancy
 - **Package**: `stancl/tenancy`

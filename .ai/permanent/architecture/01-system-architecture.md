@@ -15,6 +15,7 @@ Bracemen Bot is a multi-tenant SaaS Restaurant Operating System. It allows resta
 2. **Single Global Webhook**: All WhatsApp messages hit single global webhook endpoints (e.g. `/api/bot/whatsapp/webhook` for Meta or `/api/bot/whatsapp/evolution/webhook` for Evolution). The system parses instance info or phone parameters to route the message to the correct tenant context.
 3. **Secure Opaque Credentials**: Customer phone numbers are never exposed in browser URLs. Bot entrypoints generate encrypted 15-minute URL-safe tokens which are exchanged on PWA entry for secure `HttpOnly` sessions, followed by a clean `302 Redirect`.
 4. **Draft/Published Setting Configurations**: Tenant-specific parameters ( branding, theme colors, minimum orders, delivery fees, WhatsApp message templates) are managed in a two-stage draft/published database configuration layer with real-time staff live-previews.
+5. **Central SaaS Admin (Platform Administration / Tenant Management)**: Accessed via lowercase `/admin/*` routes under the `IsSuperAdmin` middleware. The central platform manager operates in a non-tenant global database context to monitor system metrics, configure global branding constants, manage tenant lifecycle (ban/activate/delete), and generate fixed-rate or sales-commission subscription invoices.
 
 ## Deployment & Environments
 - **Local Tunnel**: Uses Cloudflare Tunnels to route incoming gateway webhooks to the local development environment.
