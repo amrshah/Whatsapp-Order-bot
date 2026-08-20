@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\BusinessType;
 use App\Enums\UserRole;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\TenantCapabilityService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -33,11 +35,12 @@ class DatabaseSeeder extends Seeder
         $tenantName = 'Default Restaurant';
         $tenantId = Str::slug($tenantName);
 
-        $this->command->info("Creating Default Tenant: {$tenantName}");
         $tenant = Tenant::create([
             'id' => $tenantId,
             'name' => $tenantName,
         ]);
+
+        app(TenantCapabilityService::class)->applyPreset($tenant, BusinessType::Restaurant);
 
         $this->command->info('Creating Restaurant Owner User...');
         $user = User::create([

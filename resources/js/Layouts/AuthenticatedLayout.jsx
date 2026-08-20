@@ -8,6 +8,12 @@ import { Smartphone } from 'lucide-react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+    const tenant = usePage().props.tenant;
+
+    const hasCapability = (cap) => {
+        if (!tenant) return true;
+        return tenant.capabilities && tenant.capabilities.includes(cap);
+    };
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
@@ -32,46 +38,50 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Dashboard
                                 </NavLink>
 
-                                <div className="hidden sm:flex sm:items-center">
-                                    <div className="relative">
-                                        <Dropdown>
-                                            <Dropdown.Trigger>
-                                                <button type="button" className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none h-16 ${route().current('orders.*') ? 'border-indigo-400 text-gray-900 focus:border-indigo-700 dark:border-indigo-600 dark:text-gray-100' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 focus:border-gray-300 focus:text-gray-700 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-300 dark:focus:border-gray-700 dark:focus:text-gray-300'}`}>
-                                                    Orders
-                                                    <svg className="ml-1 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                            </Dropdown.Trigger>
-                                            <Dropdown.Content>
-                                                <Dropdown.Link href={route('orders.kds-unified')}>Unified KDS</Dropdown.Link>
-                                                <Dropdown.Link href={route('orders.create')}>POS (Manual Order)</Dropdown.Link>
-                                                <Dropdown.Link href={route('simulator.index')}>Customer Bot Interface</Dropdown.Link>
-                                                <Dropdown.Link href={route('orders.history')}>Order History</Dropdown.Link>
-                                                <Dropdown.Link href={route('orders.index')}>Old KDS</Dropdown.Link>
-                                            </Dropdown.Content>
-                                        </Dropdown>
+                                {hasCapability('ordering') && (
+                                    <div className="hidden sm:flex sm:items-center">
+                                        <div className="relative">
+                                            <Dropdown>
+                                                <Dropdown.Trigger>
+                                                    <button type="button" className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none h-16 ${route().current('orders.*') ? 'border-indigo-400 text-gray-900 focus:border-indigo-700 dark:border-indigo-600 dark:text-gray-100' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 focus:border-gray-300 focus:text-gray-700 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-300 dark:focus:border-gray-700 dark:focus:text-gray-300'}`}>
+                                                        Orders
+                                                        <svg className="ml-1 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </button>
+                                                </Dropdown.Trigger>
+                                                <Dropdown.Content>
+                                                    <Dropdown.Link href={route('orders.kds-unified')}>Unified KDS</Dropdown.Link>
+                                                    <Dropdown.Link href={route('orders.create')}>POS (Manual Order)</Dropdown.Link>
+                                                    <Dropdown.Link href={route('simulator.index')}>Customer Bot Interface</Dropdown.Link>
+                                                    <Dropdown.Link href={route('orders.history')}>Order History</Dropdown.Link>
+                                                    <Dropdown.Link href={route('orders.index')}>Old KDS</Dropdown.Link>
+                                                </Dropdown.Content>
+                                            </Dropdown>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
-                                <div className="hidden sm:flex sm:items-center">
-                                    <div className="relative">
-                                        <Dropdown>
-                                            <Dropdown.Trigger>
-                                                <button type="button" className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none h-16 ${route().current('menu.*') ? 'border-indigo-400 text-gray-900 focus:border-indigo-700 dark:border-indigo-600 dark:text-gray-100' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 focus:border-gray-300 focus:text-gray-700 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-300 dark:focus:border-gray-700 dark:focus:text-gray-300'}`}>
-                                                    Menu
-                                                    <svg className="ml-1 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                            </Dropdown.Trigger>
-                                            <Dropdown.Content>
-                                                <Dropdown.Link href={route('menu.categories.index')}>Categories</Dropdown.Link>
-                                                <Dropdown.Link href={route('menu.products.index')}>Products</Dropdown.Link>
-                                            </Dropdown.Content>
-                                        </Dropdown>
+                                {hasCapability('catalog') && (
+                                    <div className="hidden sm:flex sm:items-center">
+                                        <div className="relative">
+                                            <Dropdown>
+                                                <Dropdown.Trigger>
+                                                    <button type="button" className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none h-16 ${route().current('menu.*') ? 'border-indigo-400 text-gray-900 focus:border-indigo-700 dark:border-indigo-600 dark:text-gray-100' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 focus:border-gray-300 focus:text-gray-700 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-300 dark:focus:border-gray-700 dark:focus:text-gray-300'}`}>
+                                                        Menu
+                                                        <svg className="ml-1 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </button>
+                                                </Dropdown.Trigger>
+                                                <Dropdown.Content>
+                                                    <Dropdown.Link href={route('menu.categories.index')}>Categories</Dropdown.Link>
+                                                    <Dropdown.Link href={route('menu.products.index')}>Products</Dropdown.Link>
+                                                </Dropdown.Content>
+                                            </Dropdown>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 <NavLink
                                     href={route('crm.index')}
@@ -213,58 +223,66 @@ export default function AuthenticatedLayout({ header, children }) {
                             Dashboard
                         </ResponsiveNavLink>
 
-                        <div className="block px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Orders</div>
-                        <ResponsiveNavLink
-                            href={route('orders.kds-unified')}
-                            active={route().current('orders.kds-unified')}
-                            className="pl-6"
-                        >
-                            Unified KDS
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('orders.create')}
-                            active={route().current('orders.create')}
-                            className="pl-6"
-                        >
-                            POS (Manual Order)
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('simulator.index')}
-                            active={route().current('simulator.index')}
-                            className="pl-6"
-                        >
-                            Customer Bot Interface
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('orders.history')}
-                            active={route().current('orders.history')}
-                            className="pl-6"
-                        >
-                            Order History
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('orders.index')}
-                            active={route().current('orders.index')}
-                            className="pl-6"
-                        >
-                            Old KDS
-                        </ResponsiveNavLink>
+                        {hasCapability('ordering') && (
+                            <>
+                                <div className="block px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Orders</div>
+                                <ResponsiveNavLink
+                                    href={route('orders.kds-unified')}
+                                    active={route().current('orders.kds-unified')}
+                                    className="pl-6"
+                                >
+                                    Unified KDS
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('orders.create')}
+                                    active={route().current('orders.create')}
+                                    className="pl-6"
+                                >
+                                    POS (Manual Order)
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('simulator.index')}
+                                    active={route().current('simulator.index')}
+                                    className="pl-6"
+                                >
+                                    Customer Bot Interface
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('orders.history')}
+                                    active={route().current('orders.history')}
+                                    className="pl-6"
+                                >
+                                    Order History
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('orders.index')}
+                                    active={route().current('orders.index')}
+                                    className="pl-6"
+                                >
+                                    Old KDS
+                                </ResponsiveNavLink>
+                            </>
+                        )}
 
-                        <div className="block px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2">Menu</div>
-                        <ResponsiveNavLink
-                            href={route('menu.categories.index')}
-                            active={route().current('menu.categories.*')}
-                            className="pl-6"
-                        >
-                            Categories
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('menu.products.index')}
-                            active={route().current('menu.products.*')}
-                            className="pl-6"
-                        >
-                            Products
-                        </ResponsiveNavLink>
+                        {hasCapability('catalog') && (
+                            <>
+                                <div className="block px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2">Menu</div>
+                                <ResponsiveNavLink
+                                    href={route('menu.categories.index')}
+                                    active={route().current('menu.categories.*')}
+                                    className="pl-6"
+                                >
+                                    Categories
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('menu.products.index')}
+                                    active={route().current('menu.products.*')}
+                                    className="pl-6"
+                                >
+                                    Products
+                                </ResponsiveNavLink>
+                            </>
+                        )}
 
                         <div className="block px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2">Management</div>
                         <ResponsiveNavLink

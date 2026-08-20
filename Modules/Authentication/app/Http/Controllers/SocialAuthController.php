@@ -2,10 +2,12 @@
 
 namespace Modules\Authentication\Http\Controllers;
 
+use App\Enums\BusinessType;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\TenantCapabilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -82,11 +84,12 @@ class SocialAuthController extends Controller
                     $count++;
                 }
 
-                // Use stancl/tenancy Tenant model
                 $tenant = Tenant::create([
                     'id' => $slug,
                     'name' => $tenantName,
                 ]);
+
+                app(TenantCapabilityService::class)->applyPreset($tenant, BusinessType::Restaurant);
 
                 // Associate user with tenant
                 $user->tenant_id = $tenant->id;

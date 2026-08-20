@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\BusinessType;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\TenantCapabilityService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,6 +57,8 @@ class RegisteredUserController extends Controller
             'id' => $slug,
             'name' => $request->name,
         ]);
+
+        app(TenantCapabilityService::class)->applyPreset($tenant, BusinessType::Restaurant);
 
         $user = User::create([
             'name' => $request->name,
