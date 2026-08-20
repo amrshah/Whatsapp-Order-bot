@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Pwa\MiniAppController;
 use App\Http\Controllers\Pwa\PwaController;
 use App\Http\Controllers\Settings\BillingController;
 use App\Http\Controllers\SettingsController;
@@ -84,9 +85,22 @@ Route::get('/test-tenancy', function () {
 })->middleware(['auth', 'verified']);
 
 // Public PWA Mini-App Routes
-Route::group(['prefix' => 'order/{tenant_slug}'], function () {
-    Route::get('/', [PwaController::class, 'exchangeTokenAndShowMenu'])->name('pwa.menu');
+Route::get('/order/{tenant_slug}', function (string $tenant_slug) {
+    $auth = request()->query('auth');
+    $query = $auth ? '?auth='.urlencode($auth) : '';
+
+    return redirect('/app/'.$tenant_slug.'/order'.$query, 301);
+});
+
+Route::get('/order/{tenant_slug}/track/{order_number}', function (string $tenant_slug, string $order_number) {
+    return redirect("/app/{$tenant_slug}/track/{$order_number}", 301);
+});
+
+Route::group(['prefix' => 'app/{tenant_slug}'], function () {
+    Route::get('/', [MiniAppController::class, 'index'])->name('pwa.app.index');
     Route::get('/manifest.json', [PwaController::class, 'manifest'])->name('pwa.manifest');
     Route::post('/checkout', [PwaController::class, 'submitOrder'])->name('pwa.checkout');
     Route::get('/track/{order_number}', [PwaController::class, 'trackOrder'])->name('pwa.track');
+    Route::get('/order', [MiniAppController::class, 'experience'])->defaults('experience', 'order')->name('pwa.menu');
+    Route::get('/{experience}', [MiniAppController::class, 'experience'])->name('pwa.app.experience');
 });

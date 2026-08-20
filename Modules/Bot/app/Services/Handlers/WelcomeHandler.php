@@ -2,6 +2,7 @@
 
 namespace Modules\Bot\Services\Handlers;
 
+use App\Capability\PwaExperienceResolver;
 use Modules\Bot\Models\BotSession;
 use Modules\Bot\Services\CustomerPwaTokenService;
 use Modules\Crm\Models\Customer;
@@ -18,14 +19,23 @@ class WelcomeHandler implements BotHandlerInterface
         $customer = Customer::where('phone', $session->phone_number)->first();
         $customerId = $customer ? $customer->id : 0;
 
+        $tenant = tenant();
+
         // Generate signed token
-        $token = CustomerPwaTokenService::generateToken($customerId, $tenantId);
+        $token = CustomerPwaTokenService::generateToken($customerId, $tenant->id);
 
-        // Resolve absolute URL
-        $pwaUrl = route('pwa.menu', ['tenant_slug' => $tenantId, 'auth' => $token]);
+        // Resolve primary experience URL
+        $resolver = app(PwaExperienceResolver::class);
+        $baseUrl = $resolver->primaryExperience($tenant);
+        $pwaUrl = $baseUrl.(str_contains($baseUrl, '?') ? '&' : '?').'auth='.urlencode($token);
 
-        $appName = tenant('name') ?: config('app.name', 'Restaurant OS');
-        $text = "Welcome to {$appName}!\n\nTap the link below to browse our menu, customize items, and place your order:\n{$pwaUrl}";
+        $appName = $tenant->name ?: config('app.name', 'Ormeasy');
+
+        if (str_contains($baseUrl, '/book')) {
+            $text = "Welcome to {$appName}!\n\nTap the link below to view our services and book an appointment:\n{$pwaUrl}";
+        } else {
+            $text = "Welcome to {$appName}!\n\nTap the link below to browse our menu, customize items, and place your order:\n{$pwaUrl}";
+        }
 
         return [
             'type' => 'text',

@@ -2,8 +2,8 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Edit({ tenant, metrics }) {
-    const { flash } = usePage().props;
+export default function Edit({ tenant, metrics, capabilities, capabilityDefinitions, businessTypes }) {
+    const { flash, errors } = usePage().props;
     const [rate, setRate] = useState(tenant.billing_rate || 0);
 
     return (
@@ -61,7 +61,8 @@ export default function Edit({ tenant, metrics }) {
                             e.preventDefault();
                             router.put(route('admin.tenants.update', tenant.id), {
                                 name: e.target.name.value,
-                                is_active: e.target.is_active.checked
+                                is_active: e.target.is_active.checked,
+                                business_type: tenant.business_type,
                             });
                         }}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -105,6 +106,149 @@ export default function Edit({ tenant, metrics }) {
                                 </button>
                             </div>
                         </form>
+                    </div>
+
+                    {/* Capability and Experience Settings */}
+                    <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Capability & Experience Settings</h3>
+                        
+                        {/* Preset Selection */}
+                        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Apply Business Preset</h4>
+                            <p className="text-xs text-gray-500 mb-3">Applying a business preset will automatically seed default capabilities and reset the primary PWA experience.</p>
+                            <div className="flex flex-wrap gap-2">
+                                {businessTypes.map((type) => (
+                                    <button
+                                        key={type.value}
+                                        type="button"
+                                        onClick={() => {
+                                            if (confirm(`Reset this business to ${type.label} capabilities and defaults?`)) {
+                                                router.put(route('admin.tenants.update', tenant.id), {
+                                                    name: tenant.name,
+                                                    is_active: tenant.is_active !== 0 && tenant.is_active !== false,
+                                                    business_type: type.value,
+                                                });
+                                            }
+                                        }}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                                            tenant.business_type === type.value
+                                                ? 'bg-indigo-600 border-indigo-600 text-white'
+                                                : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        {type.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Capability Toggles */}
+                        <div className="mb-6">
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Enabled Capabilities</h4>
+                            {errors?.capabilities && (
+                                <div className="bg-red-50 border-l-4 border-red-400 p-3 mb-4">
+                                    <p className="text-xs text-red-700">{errors.capabilities}</p>
+                                </div>
+                            )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {capabilityDefinitions.map((cap) => {
+                                    const isEnabled = capabilities.includes(cap.key);
+                                    return (
+                                        <div
+                                            key={cap.key}
+                                            className={`p-4 border rounded-xl flex flex-col justify-between transition ${
+                                                isEnabled
+                                                    ? 'border-indigo-200 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-900/10'
+                                                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
+                                            }`}
+                                        >
+                                            <div className="mb-4">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="font-semibold text-sm text-gray-900 dark:text-white">{cap.name}</span>
+                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                                                        isEnabled
+                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                                            : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                                                    }`}>
+                                                        {isEnabled ? 'Active' : 'Disabled'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{cap.description}</p>
+                                                {cap.dependencies.length > 0 && (
+                                                    <div className="text-[10px] text-gray-400">
+                                                        Requires: <span className="font-mono text-indigo-600 dark:text-indigo-400">{cap.dependencies.join(', ')}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    let nextCaps = [...capabilities];
+                                                    if (isEnabled) {
+                                                        nextCaps = nextCaps.filter((k) => k !== cap.key);
+                                                    } else {
+                                                        nextCaps.push(cap.key);
+                                                    }
+                                                    router.put(route('admin.tenants.update', tenant.id), {
+                                                        name: tenant.name,
+                                                        is_active: tenant.is_active !== 0 && tenant.is_active !== false,
+                                                        business_type: tenant.business_type,
+                                                        capabilities: nextCaps,
+                                                    });
+                                                }}
+                                                className={`w-full py-1.5 rounded-lg text-xs font-semibold transition ${
+                                                    isEnabled
+                                                        ? 'bg-red-50 hover:bg-red-100 text-red-700 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400'
+                                                        : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                                                }`}
+                                            >
+                                                {isEnabled ? 'Disable' : 'Enable'}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Primary Experience Override */}
+                        <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Primary WhatsApp CTA Experience</h4>
+                            <p className="text-xs text-gray-500 mb-3">Sets which experience link is sent to customers in the WhatsApp Bot greeting. Note: only active capabilities offering a PWA interface are valid.</p>
+                            
+                            <div className="max-w-xs">
+                                <select
+                                    value={tenant.primary_experience || ''}
+                                    onChange={(e) => {
+                                        router.put(route('admin.tenants.update', tenant.id), {
+                                            name: tenant.name,
+                                            is_active: tenant.is_active !== 0 && tenant.is_active !== false,
+                                            business_type: tenant.business_type,
+                                            primary_experience: e.target.value || '',
+                                        });
+                                    }}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-sm"
+                                >
+                                    <option value="">Default (Registry Auto-Resolved)</option>
+                                    {capabilityDefinitions
+                                        .filter((c) => c.has_pwa_experience)
+                                        .map((c) => {
+                                            // The resolver maps 'ordering' to 'order', and 'booking' to 'book' PWA experiences
+                                            const expKey = c.key === 'ordering' ? 'order' : (c.key === 'booking' ? 'book' : null);
+                                            if (!expKey) return null;
+                                            return (
+                                                <option key={expKey} value={expKey}>
+                                                    {c.name} ({expKey})
+                                                </option>
+                                            );
+                                        })
+                                    }
+                                </select>
+                                {errors?.primary_experience && (
+                                    <p className="text-xs text-red-600 mt-1">{errors.primary_experience}</p>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6">

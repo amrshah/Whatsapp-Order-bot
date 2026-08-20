@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Capability\CapabilityRegistry;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -48,6 +49,9 @@ class HandleInertiaRequests extends Middleware
                 'id' => tenant('id'),
                 'name' => tenant('name'),
                 'hasPendingInvoices' => Invoice::where('tenant_id', tenant('id'))->where('status', 'pending')->exists(),
+                'capabilities' => tenant()->capabilities()->pluck('capability')->map(fn ($c) => $c->value)->toArray(),
+                'primary_experience' => tenant('primary_experience'),
+                'capability_definitions' => array_map(fn ($dto) => $dto->toArray(), CapabilityRegistry::forFrontend()),
             ] : null,
         ];
     }
