@@ -30,6 +30,7 @@ export default function MiniApp({ settings, tenantId }) {
             delivery_fee: settings.ordering?.delivery_fee || 150,
             free_delivery_threshold: settings.ordering?.free_delivery_threshold || 1500,
             prep_time_mins: settings.ordering?.prep_time_mins || 35,
+            marketplace_commission_rate: settings.ordering?.marketplace_commission_rate || 25,
         },
         payments: {
             cod_enabled: settings.payments?.cod_enabled !== false,
@@ -236,6 +237,24 @@ export default function MiniApp({ settings, tenantId }) {
                                                 onChange={(e) => updateField('ordering', 'free_delivery_threshold', parseInt(e.target.value) || 0)}
                                             />
                                         </div>
+                                    </div>
+
+                                    <div className="space-y-1 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                        <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                            Marketplace Commission Benchmark (%)
+                                        </label>
+                                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                                            Typical commission take-rate charged by 3rd-party aggregators (e.g. Foodpanda / UberEats). Used on your dashboard to transparently calculate your direct savings.
+                                        </p>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.5"
+                                            className="w-full bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                                            value={form.ordering.marketplace_commission_rate}
+                                            onChange={(e) => updateField('ordering', 'marketplace_commission_rate', parseFloat(e.target.value) || 0)}
+                                        />
                                     </div>
                                 </div>
                             )}

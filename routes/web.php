@@ -9,12 +9,11 @@ use App\Http\Controllers\Pwa\PwaController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\Settings\BillingController;
 use App\Http\Controllers\SettingsController;
+use App\Services\MerchantRoiService;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Modules\Crm\Models\Customer;
-use Modules\Menu\Models\Product;
-use Modules\Orders\Models\Order;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -25,30 +24,21 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
+Route::get('/dashboard', function (Request $request, MerchantRoiService $roiService) {
     if (auth()->user()->isPlatformAdmin() && ! tenant()) {
         return redirect()->route('admin.dashboard');
     }
 
-    $totalOrders = Order::count();
-    $activeItems = Product::where('is_active', true)->count();
-    $totalCustomers = Customer::count();
-    $totalBookings = \App\Models\Booking::count();
-    $totalServices = \App\Models\Service::where('is_active', true)->count();
+    $period = $request->query('period', 'this_month');
+    if (! in_array($period, ['today', 'this_week', 'this_month', 'all_time'])) {
+        $period = 'this_month';
+    }
 
-    // Assume 30% commission saved on total sales
-    $totalSales = Order::whereIn('status', ['Completed', 'Delivered'])->sum('total_amount');
-    $savedCommission = $totalSales * 0.30;
+    $roi = $roiService->calculate(tenant('id'), $period);
 
     return Inertia::render('Dashboard', [
-        'kpis' => [
-            'totalOrders' => $totalOrders,
-            'activeItems' => $activeItems,
-            'savedCommission' => $savedCommission,
-            'totalCustomers' => $totalCustomers,
-            'totalBookings' => $totalBookings,
-            'totalServices' => $totalServices,
-        ],
+        'kpis' => $roi,
+        'selectedPeriod' => $period,
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 

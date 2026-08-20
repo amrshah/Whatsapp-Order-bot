@@ -1,11 +1,34 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { UtensilsCrossed, Monitor, Users, DollarSign, ShoppingCart, Package, Sparkles, MessageSquare, ArrowRight, Calendar } from 'lucide-react';
+import Modal from '@/Components/Modal';
+import SecondaryButton from '@/Components/SecondaryButton';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { 
+    Calendar, 
+    CheckCircle2, 
+    Clock, 
+    DollarSign, 
+    HelpCircle, 
+    Info, 
+    Monitor, 
+    Package, 
+    Percent, 
+    Repeat, 
+    Settings as SettingsIcon, 
+    ShoppingCart, 
+    Sparkles, 
+    TrendingUp, 
+    Users, 
+    UtensilsCrossed, 
+    Zap 
+} from 'lucide-react';
+import { useState } from 'react';
 
-export default function Dashboard({ kpis }) {
+export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month' }) {
     const { appName, auth, tenant } = usePage().props;
     const name = appName || 'Bracemen Bot';
     const user = auth.user;
+
+    const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
 
     const hasCap = (cap) => tenant?.capabilities ? tenant.capabilities.includes(cap) : true;
     const isOrdering = hasCap('ordering');
@@ -14,197 +37,423 @@ export default function Dashboard({ kpis }) {
     const isBooking = hasCap('booking');
     const isServices = hasCap('services');
 
+    const periods = [
+        { id: 'today', label: 'Today' },
+        { id: 'this_week', label: 'This Week' },
+        { id: 'this_month', label: 'This Month' },
+        { id: 'all_time', label: 'All Time' },
+    ];
+
+    const changePeriod = (newPeriod) => {
+        router.get(route('dashboard'), { period: newPeriod }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const commissionRate = kpis?.commission_rate || 25;
+    const grossRevenue = kpis?.gross_revenue || 0;
+    const commissionSaved = kpis?.commission_saved || 0;
+    const totalOrders = kpis?.total_orders || 0;
+    const aov = kpis?.average_order_value || 0;
+    const repeatRate = kpis?.repeat_rate || 0;
+    const returningCount = kpis?.returning_customers_count || 0;
+    const newCount = kpis?.new_customers_count || 0;
+    const totalCustomers = kpis?.total_customers || 0;
+    const totalBookings = kpis?.total_bookings || 0;
+    const activeServices = kpis?.active_services || 0;
+    const activeItems = kpis?.active_items || 0;
+
     return (
         <AuthenticatedLayout
+            user={user}
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                    Dashboard Overview
-                </h2>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+                            Merchant ROI & Performance
+                        </h2>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            Real-time direct commercial metrics and customer retention analytics.
+                        </p>
+                    </div>
+
+                    {/* Period Filter Tabs */}
+                    <div className="flex items-center bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
+                        {periods.map((p) => (
+                            <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => changePeriod(p.id)}
+                                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                                    selectedPeriod === p.id
+                                        ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 shadow-sm'
+                                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                }`}
+                            >
+                                {p.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
             }
         >
             <Head title="Dashboard" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    
-                    {/* Welcome Banner */}
-                    <div className="overflow-hidden bg-indigo-600 shadow-sm sm:rounded-2xl mb-8">
-                        <div className="p-8 text-white flex flex-col md:flex-row justify-between items-center gap-6">
-                            <div>
-                                <div className="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full text-xs font-semibold mb-3">
-                                    <Sparkles className="w-3.5 h-3.5" />
-                                    <span>Active Workspace</span>
+            <div className="py-8">
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-6">
+
+                    {/* HERO ROI IMPACT CARD (Ordering / Commerce Verticals) */}
+                    {isOrdering ? (
+                        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-700 to-indigo-900 text-white shadow-xl p-8 border border-emerald-500/30">
+                            {/* Decorative background circle */}
+                            <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+                            <div className="absolute -left-16 -bottom-16 w-64 h-64 rounded-full bg-emerald-400/10 blur-2xl pointer-events-none" />
+
+                            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                                <div className="space-y-2">
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider text-emerald-100">
+                                        <Zap className="w-3.5 h-3.5 text-amber-300" />
+                                        <span>Merchant Direct ROI Engine ({kpis?.period_label || 'This Month'})</span>
+                                    </div>
+                                    <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                                        Rs. {commissionSaved.toLocaleString()}
+                                    </h3>
+                                    <p className="text-sm text-emerald-100 max-w-xl font-medium">
+                                        Estimated Aggregator Marketplace Commission Saved by processing direct customer orders.
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-3 pt-2 text-xs text-emerald-200">
+                                        <span className="bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-400/30 font-semibold">
+                                            Calculated on Rs. {grossRevenue.toLocaleString()} direct sales
+                                        </span>
+                                        <span className="bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-400/30 font-semibold">
+                                            Benchmark: {commissionRate}% aggregator cut
+                                        </span>
+                                    </div>
                                 </div>
-                                <h3 className="text-2xl font-bold">Welcome to {name}!</h3>
-                                <p className="mt-2 text-indigo-100 text-sm max-w-xl">
-                                    Your intelligent WhatsApp assistant is running.
-                                    {user && user.tenant_id ? " Share your WhatsApp number with clients and customers to start receiving interactions automatically." : " Configure global settings or manage tenants from the sidebar."}
+
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCalcModalOpen(true)}
+                                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 backdrop-blur-md transition shadow"
+                                    >
+                                        <HelpCircle className="w-4 h-4 text-emerald-200" />
+                                        How is this calculated?
+                                    </button>
+
+                                    {isCatalog && (
+                                        <Link
+                                            href={route('menu.categories.index')}
+                                            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-emerald-900 font-bold text-xs hover:bg-emerald-50 transition shadow"
+                                        >
+                                            <Package className="w-4 h-4 text-emerald-700" />
+                                            Manage Menu
+                                        </Link>
+                                    )}
+
+                                    {isKds && (
+                                        <a
+                                            href={route('orders.kds-unified')}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs border border-emerald-400/50 transition shadow"
+                                        >
+                                            <Monitor className="w-4 h-4" />
+                                            Open KDS
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        /* Welcome & Quick Action Header for Service & Booking Verticals */
+                        <div className="overflow-hidden bg-gradient-to-r from-indigo-600 to-indigo-800 shadow-lg sm:rounded-3xl p-8 text-white">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                <div>
+                                    <div className="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full text-xs font-semibold mb-3">
+                                        <Sparkles className="w-3.5 h-3.5" />
+                                        <span>Active Workspace ({kpis?.period_label || 'This Month'})</span>
+                                    </div>
+                                    <h3 className="text-2xl sm:text-3xl font-extrabold">Welcome to {name}!</h3>
+                                    <p className="mt-1 text-indigo-100 text-sm max-w-xl">
+                                        Your digital assistant is receiving bookings and inquiries directly on WhatsApp.
+                                    </p>
+                                </div>
+                                <div className="flex flex-wrap gap-3">
+                                    {isServices && (
+                                        <Link 
+                                            href={route('services.index')} 
+                                            className="bg-white text-indigo-600 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-50 transition shadow flex items-center gap-1.5"
+                                        >
+                                            <Sparkles className="w-4 h-4" /> Manage Services
+                                        </Link>
+                                    )}
+                                    {isBooking && (
+                                        <Link 
+                                            href={route('bookings.index')} 
+                                            className="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow flex items-center gap-1.5"
+                                        >
+                                            <Calendar className="w-4 h-4" /> Appointments
+                                        </Link>
+                                    )}
+                                    <Link 
+                                        href={route('crm.index')}
+                                        className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow flex items-center gap-1.5"
+                                    >
+                                        <Users className="w-4 h-4" /> View CRM & Inquiries
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* COMMERCIAL & RETENTION METRICS GRID */}
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                        
+                        {/* Direct Revenue Card (Ordering only) */}
+                        {isOrdering && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/60 flex flex-col justify-between">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Direct Revenue
+                                    </span>
+                                    <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                                        <DollarSign className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <div className="mt-4">
+                                    <div className="text-2xl font-black text-gray-900 dark:text-white">
+                                        Rs. {grossRevenue.toLocaleString()}
+                                    </div>
+                                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1 flex items-center gap-1">
+                                        <CheckCircle2 className="w-3 h-3" /> 100% retained direct sales
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Average Order Value (AOV) Card (Ordering only) */}
+                        {isOrdering && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/60 flex flex-col justify-between">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Average Order Value
+                                    </span>
+                                    <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
+                                        <TrendingUp className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <div className="mt-4">
+                                    <div className="text-2xl font-black text-gray-900 dark:text-white">
+                                        Rs. {aov.toLocaleString()}
+                                    </div>
+                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium mt-1">
+                                        Across {totalOrders} direct orders
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Direct Orders Processed Card (Ordering only) */}
+                        {isOrdering && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/60 flex flex-col justify-between">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Direct Orders
+                                    </span>
+                                    <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400">
+                                        <ShoppingCart className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <div className="mt-4">
+                                    <div className="text-2xl font-black text-gray-900 dark:text-white">
+                                        {totalOrders}
+                                    </div>
+                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium mt-1">
+                                        Zero aggregator middleman fees
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Customer Retention / Repeat Rate Card (Ordering only) */}
+                        {isOrdering && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/60 flex flex-col justify-between">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Customer Repeat Rate
+                                    </span>
+                                    <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">
+                                        <Repeat className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <div className="mt-4">
+                                    <div className="text-2xl font-black text-gray-900 dark:text-white">
+                                        {repeatRate}%
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 font-medium mt-1">
+                                        <span className="text-indigo-600 dark:text-indigo-400 font-bold">{returningCount} returning</span>
+                                        <span>•</span>
+                                        <span>{newCount} new</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Appointments Card (Booking verticals) */}
+                        {isBooking && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/60 flex flex-col justify-between">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Appointments Booked
+                                    </span>
+                                    <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
+                                        <Calendar className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <div className="mt-4">
+                                    <div className="text-2xl font-black text-gray-900 dark:text-white">
+                                        {totalBookings}
+                                    </div>
+                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium mt-1">
+                                        Booked through WhatsApp & Mini-App
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Active Services Card (Services verticals) */}
+                        {isServices && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/60 flex flex-col justify-between">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Active Services
+                                    </span>
+                                    <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">
+                                        <Sparkles className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <div className="mt-4">
+                                    <div className="text-2xl font-black text-gray-900 dark:text-white">
+                                        {activeServices}
+                                    </div>
+                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium mt-1">
+                                        Live in client service catalog
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Owned Client / Customer Contacts Card (Universal) */}
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/60 flex flex-col justify-between">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    {isBooking || isServices ? 'Owned Client Contacts' : 'Owned Customer Contacts'}
+                                </span>
+                                <div className="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400">
+                                    <Users className="w-5 h-5" />
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                <div className="text-2xl font-black text-gray-900 dark:text-white">
+                                    {totalCustomers}
+                                </div>
+                                <p className="text-[11px] text-sky-600 dark:text-sky-400 font-semibold mt-1">
+                                    100% direct merchant ownership
                                 </p>
                             </div>
-                            <div className="flex flex-wrap gap-3">
-                                {isCatalog && (
-                                    <Link 
-                                        href={route('menu.categories.index')} 
-                                        className="bg-white text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-100 transition shadow flex items-center gap-1.5"
-                                    >
-                                        <Package className="w-3.5 h-3.5" /> Manage Menu
-                                    </Link>
-                                )}
-                                {isServices && (
-                                    <Link 
-                                        href={route('services.index')} 
-                                        className="bg-white text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-100 transition shadow flex items-center gap-1.5"
-                                    >
-                                        <Sparkles className="w-3.5 h-3.5" /> Manage Services
-                                    </Link>
-                                )}
-                                {isBooking && (
-                                    <Link 
-                                        href={route('bookings.index')} 
-                                        className="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-4 py-2 rounded-xl text-xs font-bold transition shadow flex items-center gap-1.5"
-                                    >
-                                        <Calendar className="w-3.5 h-3.5" /> Appointments
-                                    </Link>
-                                )}
-                                {isKds && (
-                                    <a 
-                                        href={route('orders.kds-unified')}
-                                        target="_blank"
-                                        className="bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-400 border border-indigo-400 transition shadow flex items-center gap-1.5"
-                                    >
-                                        <Monitor className="w-3.5 h-3.5" /> Open KDS
-                                    </a>
-                                )}
-                                <Link 
-                                    href={route('crm.index')}
-                                    className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl text-xs font-bold transition shadow flex items-center gap-1.5"
-                                >
-                                    <Users className="w-3.5 h-3.5" /> View CRM & Inquiries
-                                </Link>
-                            </div>
                         </div>
-                    </div>
 
-                    {/* KPI Stats Grid */}
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        
-                        {/* Saved Commission Card (Ordering only) */}
-                        {isOrdering && (
-                            <div className="overflow-hidden bg-white shadow-sm sm:rounded-2xl dark:bg-gray-800 border-l-4 border-emerald-500">
-                                <div className="p-6">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl p-3">
-                                            <DollarSign className="h-6 w-6" />
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="truncate text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aggregator Commission Saved</dt>
-                                                <dd className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">Rs. {kpis?.savedCommission?.toLocaleString() || 0}</dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Total Orders Card (Ordering only) */}
-                        {isOrdering && (
-                            <div className="overflow-hidden bg-white shadow-sm sm:rounded-2xl dark:bg-gray-800 border-l-4 border-indigo-500">
-                                <div className="p-6">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl p-3">
-                                            <ShoppingCart className="h-6 w-6" />
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="truncate text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Orders Processed</dt>
-                                                <dd className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{kpis?.totalOrders || 0}</dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Active Items Card (Catalog only) */}
+                        {/* Active Menu Items Card (Catalog only) */}
                         {isCatalog && (
-                            <div className="overflow-hidden bg-white shadow-sm sm:rounded-2xl dark:bg-gray-800 border-l-4 border-amber-500">
-                                <div className="p-6">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl p-3">
-                                            <Package className="h-6 w-6" />
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="truncate text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Active Catalog Items</dt>
-                                                <dd className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{kpis?.activeItems || 0}</dd>
-                                            </dl>
-                                        </div>
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/60 flex flex-col justify-between">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Active Menu Items
+                                    </span>
+                                    <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">
+                                        <Package className="w-5 h-5" />
                                     </div>
+                                </div>
+                                <div className="mt-4">
+                                    <div className="text-2xl font-black text-gray-900 dark:text-white">
+                                        {activeItems}
+                                    </div>
+                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium mt-1">
+                                        Live in customer PWA
+                                    </p>
                                 </div>
                             </div>
                         )}
-
-                        {/* Bookings Card (Booking only) */}
-                        {isBooking && (
-                            <div className="overflow-hidden bg-white shadow-sm sm:rounded-2xl dark:bg-gray-800 border-l-4 border-indigo-500">
-                                <div className="p-6">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl p-3">
-                                            <Calendar className="h-6 w-6" />
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="truncate text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Appointments</dt>
-                                                <dd className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{kpis?.totalBookings || 0}</dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Active Services Card (Services only) */}
-                        {isServices && (
-                            <div className="overflow-hidden bg-white shadow-sm sm:rounded-2xl dark:bg-gray-800 border-l-4 border-amber-500">
-                                <div className="p-6">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl p-3">
-                                            <Sparkles className="h-6 w-6" />
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="truncate text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Active Services</dt>
-                                                <dd className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{kpis?.totalServices || 0}</dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* CRM Inquiries Card (Universal) */}
-                        <div className="overflow-hidden bg-white shadow-sm sm:rounded-2xl dark:bg-gray-800 border-l-4 border-sky-500">
-                            <div className="p-6">
-                                <div className="flex items-center">
-                                    <div className="flex-shrink-0 bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 rounded-xl p-3">
-                                        <Users className="h-6 w-6" />
-                                    </div>
-                                    <div className="ml-5 w-0 flex-1">
-                                        <dl>
-                                            <dt className="truncate text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                {isBooking || isServices ? 'Client Contacts' : 'Customer Contacts'}
-                                            </dt>
-                                            <dd className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{kpis?.totalCustomers || 0}</dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                     </div>
                 </div>
             </div>
+
+            {/* Transparent Calculation Breakdown Modal */}
+            <Modal show={isCalcModalOpen} onClose={() => setIsCalcModalOpen(false)} maxWidth="md">
+                <div className="p-6 space-y-5">
+                    <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-3">
+                        <div className="flex items-center gap-2">
+                            <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600">
+                                <Zap className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="font-extrabold text-gray-900 dark:text-white text-base">
+                                    Transparent ROI Formula
+                                </h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    How your marketplace savings are derived
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-3 text-xs">
+                        <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                            <span>Direct Qualifying Revenue:</span>
+                            <span className="font-bold text-gray-900 dark:text-white font-mono">
+                                Rs. {grossRevenue.toLocaleString()}
+                            </span>
+                        </div>
+                        <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                            <span>Marketplace Commission Benchmark:</span>
+                            <span className="font-bold text-indigo-600 dark:text-indigo-400 font-mono">
+                                × {commissionRate}%
+                            </span>
+                        </div>
+                        <div className="pt-2 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                            <span>Estimated Cash Saved:</span>
+                            <span className="font-mono text-base">
+                                Rs. {commissionSaved.toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
+
+                    <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                        Third-party food delivery aggregators typically charge between <strong>20% and 35%</strong> on every order. By taking direct orders through your own branded WhatsApp bot & Mini-App, you avoid these fees entirely.
+                    </p>
+
+                    <div className="bg-indigo-50 dark:bg-indigo-950/40 p-3 rounded-xl border border-indigo-100 dark:border-indigo-800 flex items-center justify-between text-xs">
+                        <span className="text-indigo-900 dark:text-indigo-200">
+                            Want to change your commission benchmark?
+                        </span>
+                        <Link
+                            href={route('settings.miniapp')}
+                            className="font-bold text-indigo-600 hover:text-indigo-700 underline"
+                        >
+                            Adjust in Settings
+                        </Link>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <SecondaryButton onClick={() => setIsCalcModalOpen(false)}>
+                            Got it
+                        </SecondaryButton>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }

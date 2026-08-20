@@ -26,6 +26,7 @@ class TenantSettingsService
                 'delivery_fee' => 150,
                 'free_delivery_threshold' => 1500,
                 'prep_time_mins' => 35,
+                'marketplace_commission_rate' => 25,
             ],
             'payments' => [
                 'cod_enabled' => true,
