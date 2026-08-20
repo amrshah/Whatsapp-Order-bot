@@ -15,7 +15,7 @@ class IsSuperAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || !auth()->user()->hasRole('Super Admin') || auth()->user()->tenant_id !== null) {
+        if (! auth()->check() || ! auth()->user()->isPlatformAdmin()) {
             abort(403, 'Unauthorized access.');
         }
 

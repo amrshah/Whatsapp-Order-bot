@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -8,8 +9,7 @@ use Spatie\Permission\Models\Role;
 uses(RefreshDatabase::class);
 
 test('super admin is redirected to admin dashboard', function () {
-    // Seed Spatie role
-    $role = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+    $role = Role::firstOrCreate(['name' => UserRole::SuperAdmin->value, 'guard_name' => 'web']);
 
     $user = User::factory()->create([
         'tenant_id' => null,

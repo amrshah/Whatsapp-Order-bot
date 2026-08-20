@@ -2,9 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,24 +25,22 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
         ]);
 
-        
-
         $this->command->info('Seeding Super Admin...');
         $this->call([
             SuperAdminSeeder::class,
         ]);
 
-        $tenantName = "Default Restaurant";
-        $tenantId = \Illuminate\Support\Str::slug($tenantName);
+        $tenantName = 'Default Restaurant';
+        $tenantId = Str::slug($tenantName);
 
         $this->command->info("Creating Default Tenant: {$tenantName}");
-        $tenant = \App\Models\Tenant::create([
+        $tenant = Tenant::create([
             'id' => $tenantId,
             'name' => $tenantName,
         ]);
 
         $this->command->info('Creating Restaurant Owner User...');
-        $user = \App\Models\User::create([
+        $user = User::create([
             'name' => 'Restaurant Owner',
             'email' => 'admin@restaurant.com',
             'password' => bcrypt('password123'),
@@ -50,8 +51,8 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Assigning Owner Role to User...');
         // We can optionally initialize tenancy to ensure the role assignment works cleanly in scope if needed,
         // though Spatie roles in this app might be global.
-        $user->assignRole('Owner');
-        
+        $user->assignRole(UserRole::Owner->value);
+
         $this->command->info('Database Seeding Completed Successfully!');
     }
 }

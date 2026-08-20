@@ -5,6 +5,7 @@ import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import UpdateBusinessInformationForm from './Partials/UpdateBusinessInformationForm';
+import TwoFactorSettings from './Partials/TwoFactorSettings';
 
 export default function Edit({ mustVerifyEmail, status }) {
     const user = usePage().props.auth.user;
@@ -38,6 +39,10 @@ export default function Edit({ mustVerifyEmail, status }) {
 
                     <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8 dark:bg-gray-800">
                         <UpdatePasswordForm className="max-w-xl" />
+                    </div>
+
+                    <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8 dark:bg-gray-800">
+                        <TwoFactorSettings className="max-w-xl" />
                     </div>
 
                     <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8 dark:bg-gray-800">

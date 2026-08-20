@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,7 +35,9 @@ class HandleInertiaRequests extends Middleware
             'appName' => config('app.name'),
             'auth' => [
                 'user' => $request->user() ? array_merge($request->user()->toArray(), [
-                    'is_super_admin' => $request->user()->hasRole('Super Admin') && $request->user()->tenant_id === null,
+                    'is_super_admin' => $request->user()->isPlatformAdmin(),
+                    'two_factor_enabled' => $request->user()->hasEnabledTwoFactorAuthentication(),
+                    'two_factor_pending' => ! is_null($request->user()->two_factor_secret) && is_null($request->user()->two_factor_confirmed_at),
                 ]) : null,
             ],
             'flash' => [
@@ -44,7 +47,7 @@ class HandleInertiaRequests extends Middleware
             'tenant' => tenancy()->initialized ? [
                 'id' => tenant('id'),
                 'name' => tenant('name'),
-                'hasPendingInvoices' => \App\Models\Invoice::where('tenant_id', tenant('id'))->where('status', 'pending')->exists(),
+                'hasPendingInvoices' => Invoice::where('tenant_id', tenant('id'))->where('status', 'pending')->exists(),
             ] : null,
         ];
     }

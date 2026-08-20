@@ -3,12 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password', 'tenant_id', 'phone'])]
@@ -16,7 +18,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable;
+    use HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.
@@ -32,10 +34,18 @@ class User extends Authenticatable
     }
 
     /**
-     * Determine if the user is a super admin.
+     * Determine if the user belongs to the central platform (no tenant context).
      */
-    public function getIsSuperAdminAttribute(): bool
+    public function isPlatformUser(): bool
     {
-        return $this->hasRole('Super Admin') && $this->tenant_id === null;
+        return $this->tenant_id === null;
+    }
+
+    /**
+     * Determine if the user is a platform administrator.
+     */
+    public function isPlatformAdmin(): bool
+    {
+        return $this->hasRole(UserRole::SuperAdmin->value) && $this->isPlatformUser();
     }
 }

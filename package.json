@@ -28,6 +28,7 @@
         "@tiptap/starter-kit": "^3.27.3",
         "dayjs": "^1.11.21",
         "laravel-echo": "^2.3.7",
+        "lucide-react": "^1.33.0",
         "pusher-js": "^8.5.0"
     }
 }

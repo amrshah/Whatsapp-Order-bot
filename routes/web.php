@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Pwa\PwaController;
 use App\Http\Controllers\Settings\BillingController;
@@ -20,7 +22,7 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    if (auth()->user()->is_super_admin && ! tenant()) {
+    if (auth()->user()->isPlatformAdmin() && ! tenant()) {
         return redirect()->route('admin.dashboard');
     }
 
@@ -58,7 +60,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings/miniapp', [PwaController::class, 'showSettings'])->name('settings.miniapp');
     Route::post('/settings/miniapp', [PwaController::class, 'saveSettings'])->name('settings.miniapp.save');
     Route::post('/settings/miniapp/publish', [PwaController::class, 'publishSettings'])->name('settings.miniapp.publish');
+
+    // Two-Factor Authentication settings routes
+    Route::post('/user/two-factor-authentication', [TwoFactorAuthenticationController::class, 'enable'])->name('two-factor.enable');
+    Route::delete('/user/two-factor-authentication', [TwoFactorAuthenticationController::class, 'disable'])->name('two-factor.disable');
+    Route::post('/user/confirmed-two-factor-authentication', [TwoFactorAuthenticationController::class, 'confirm'])->name('two-factor.confirm');
+    Route::get('/user/two-factor-qr-code', [TwoFactorAuthenticationController::class, 'getQrCode'])->name('two-factor.qr-code');
+    Route::get('/user/two-factor-recovery-codes', [TwoFactorAuthenticationController::class, 'getRecoveryCodes'])->name('two-factor.recovery-codes');
+    Route::post('/user/two-factor-recovery-codes', [TwoFactorAuthenticationController::class, 'regenerateRecoveryCodes'])->name('two-factor.regenerate-recovery-codes');
 });
+
+Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'create'])->name('two-factor.login');
+Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store']);
 
 require __DIR__.'/auth.php';
 
