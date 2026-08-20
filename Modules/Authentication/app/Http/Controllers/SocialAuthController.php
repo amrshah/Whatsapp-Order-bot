@@ -22,6 +22,13 @@ class SocialAuthController extends Controller
      */
     public function redirect(string $provider)
     {
+        $config = config("services.{$provider}");
+        if (empty($config['client_id']) || empty($config['client_secret'])) {
+            Log::error("Social Auth Redirect Blocked: Missing credentials for '{$provider}'. Verify .env variables and clear config cache via 'php artisan config:clear'.");
+
+            return redirect()->route('login')->with('error', "Authentication configuration for '{$provider}' is incomplete on the server.");
+        }
+
         return Socialite::driver($provider)->redirect();
     }
 
