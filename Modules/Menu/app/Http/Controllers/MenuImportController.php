@@ -4,14 +4,12 @@ namespace Modules\Menu\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Modules\Menu\Services\Import\MenuImportPipeline;
-use Illuminate\Support\Facades\Response;
-use Modules\Menu\Models\Category;
-use Modules\Menu\Models\Product;
-use Modules\Menu\Models\Deal;
-use Modules\Menu\Models\DealItem;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Modules\Menu\Models\Category;
+use Modules\Menu\Models\Deal;
+use Modules\Menu\Models\Product;
+use Modules\Menu\Services\Import\MenuImportPipeline;
 
 class MenuImportController extends Controller
 {
@@ -23,11 +21,12 @@ class MenuImportController extends Controller
     public function process(Request $request, MenuImportPipeline $pipeline)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt,xls,xlsx,pdf|max:10240'
+            'file' => 'required|file|mimes:csv,txt,xls,xlsx,pdf|max:10240',
         ]);
 
         try {
             $normalizedData = $pipeline->process($request->file('file'));
+
             return response()->json($normalizedData);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
@@ -38,7 +37,7 @@ class MenuImportController extends Controller
     {
         $request->validate([
             'categories' => 'required|array',
-            'deals' => 'nullable|array'
+            'deals' => 'nullable|array',
         ]);
 
         $tenantId = tenant('id');
@@ -54,9 +53,9 @@ class MenuImportController extends Controller
                 // Find or create category
                 $category = Category::firstOrCreate([
                     'tenant_id' => $tenantId,
-                    'name' => $catData['name']
+                    'name' => $catData['name'],
                 ], [
-                    'is_active' => true
+                    'is_active' => true,
                 ]);
 
                 foreach ($catData['items'] as $itemData) {
@@ -68,20 +67,20 @@ class MenuImportController extends Controller
                         'name' => $itemData['name'],
                         'description' => $itemData['description'] ?? null,
                         'price' => $itemData['price'] ?? 0,
-                        'is_active' => true
+                        'is_active' => true,
                     ];
 
                     if (($itemData['duplicate_status'] ?? 'new') === 'update_existing') {
                         Product::updateOrCreate([
                             'tenant_id' => $tenantId,
                             'name' => $itemData['name'],
-                            'category_id' => $category->id
+                            'category_id' => $category->id,
                         ], $productData);
                     } else {
                         // Create new
                         Product::create(array_merge([
                             'tenant_id' => $tenantId,
-                            'category_id' => $category->id
+                            'category_id' => $category->id,
                         ], $productData));
                     }
                     $importedProducts++;
@@ -97,16 +96,16 @@ class MenuImportController extends Controller
 
                     $deal = Deal::updateOrCreate([
                         'tenant_id' => $tenantId,
-                        'name' => $dealData['name']
+                        'name' => $dealData['name'],
                     ], [
                         'description' => $dealData['description'] ?? null,
                         'price' => $dealData['price'] ?? 0,
-                        'is_active' => true
+                        'is_active' => true,
                     ]);
                     $importedDeals++;
 
                     // Note: Parsing deal_items_raw requires sophisticated logic to map to product_ids.
-                    // For Phase 1, we save the Deal. DealItems can be linked via UI later or 
+                    // For Phase 1, we save the Deal. DealItems can be linked via UI later or
                     // we can do simple fuzzy matching on product names if needed.
                 }
             }
@@ -116,7 +115,8 @@ class MenuImportController extends Controller
             return redirect()->route('menu.products.index')->with('success', "Successfully imported {$importedProducts} products and {$importedDeals} deals.");
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Import failed: '.$e->getMessage());
         }
     }
 

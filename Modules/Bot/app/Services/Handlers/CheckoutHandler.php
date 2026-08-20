@@ -15,7 +15,7 @@ class CheckoutHandler implements BotHandlerInterface
             'interactive' => [
                 'type' => 'button',
                 'body' => [
-                    'text' => "Great! How would you like your order?"
+                    'text' => 'Great! How would you like your order?',
                 ],
                 'action' => [
                     'buttons' => [
@@ -23,26 +23,26 @@ class CheckoutHandler implements BotHandlerInterface
                             'type' => 'reply',
                             'reply' => [
                                 'id' => 'order_type_delivery',
-                                'title' => 'Delivery'
-                            ]
+                                'title' => 'Delivery',
+                            ],
                         ],
                         [
                             'type' => 'reply',
                             'reply' => [
                                 'id' => 'order_type_takeaway',
-                                'title' => 'Takeaway'
-                            ]
+                                'title' => 'Takeaway',
+                            ],
                         ],
                         [
                             'type' => 'reply',
                             'reply' => [
                                 'id' => 'order_type_dinein',
-                                'title' => 'Book a Table'
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                'title' => 'Book a Table',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 }

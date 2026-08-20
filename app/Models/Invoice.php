@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Invoice extends Model
 {
@@ -27,15 +29,15 @@ class Invoice extends Model
         return $this->belongsTo(Tenant::class);
     }
 
-    public function renderTemplate(string $template = null): string
+    public function renderTemplate(?string $template = null): string
     {
-        $settings = \Illuminate\Support\Facades\Cache::rememberForever('global_settings', function () {
-            return \App\Models\GlobalSetting::pluck('value', 'key')->toArray();
+        $settings = Cache::rememberForever('global_settings', function () {
+            return GlobalSetting::pluck('value', 'key')->toArray();
         });
 
-        if (!$template) {
+        if (! $template) {
             $template = $settings['invoice_template'] ?? '';
-            if (!$template) {
+            if (! $template) {
                 $template = '<h2>Invoice #{{ invoice_id }}</h2><p><strong>Tenant:</strong> {{ tenant_name }}</p><p><strong>Amount Due:</strong> Rs. {{ amount }}</p><p><strong>Status:</strong> {{ status }}</p><p><strong>Billing Period:</strong> {{ period_start }} to {{ period_end }}</p><p><strong>Due Date:</strong> {{ due_date }}</p>';
             }
         }
@@ -52,10 +54,10 @@ class Invoice extends Model
             '{{ tenant_name }}' => $this->tenant->name ?? 'N/A',
             '{{ amount }}' => number_format($this->amount, 2),
             '{{ status }}' => strtoupper($this->status),
-            '{{ due_date }}' => \Carbon\Carbon::parse($this->due_date)->format('M d, Y'),
+            '{{ due_date }}' => Carbon::parse($this->due_date)->format('M d, Y'),
             '{{ date_generated }}' => $this->created_at->format('M d, Y'),
-            '{{ period_start }}' => \Carbon\Carbon::parse($this->billing_period_start)->format('M d, Y'),
-            '{{ period_end }}' => \Carbon\Carbon::parse($this->billing_period_end)->format('M d, Y'),
+            '{{ period_start }}' => Carbon::parse($this->billing_period_start)->format('M d, Y'),
+            '{{ period_end }}' => Carbon::parse($this->billing_period_end)->format('M d, Y'),
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $template);

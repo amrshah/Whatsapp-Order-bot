@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\GlobalSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class SettingsController extends Controller
@@ -37,14 +38,15 @@ class SettingsController extends Controller
             );
         }
 
-        \Illuminate\Support\Facades\Cache::forget('global_settings');
+        Cache::forget('global_settings');
 
         return redirect()->back()->with('success', 'Global settings updated successfully.');
     }
 
     public function clearCache()
     {
-        \Illuminate\Support\Facades\Cache::forget('global_settings');
+        Cache::forget('global_settings');
+
         return redirect()->back()->with('success', 'Global settings cache cleared successfully.');
     }
 }

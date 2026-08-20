@@ -2,8 +2,9 @@
 
 namespace Modules\Crm\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\Crm\Database\Factories\CustomerAddressFactory;
 
 class CustomerAddress extends Model
@@ -21,12 +22,12 @@ class CustomerAddress extends Model
         'longitude',
         'delivery_notes',
         'is_default',
-        'last_used_at'
+        'last_used_at',
     ];
 
     protected $casts = [
         'is_default' => 'boolean',
-        'last_used_at' => 'datetime'
+        'last_used_at' => 'datetime',
     ];
 
     public function customer()

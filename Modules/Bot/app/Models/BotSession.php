@@ -2,8 +2,9 @@
 
 namespace Modules\Bot\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\Bot\Database\Factories\BotSessionFactory;
 
 class BotSession extends Model
@@ -15,7 +16,7 @@ class BotSession extends Model
         'tenant_id',
         'current_state',
         'context',
-        'expires_at'
+        'expires_at',
     ];
 
     protected $casts = [

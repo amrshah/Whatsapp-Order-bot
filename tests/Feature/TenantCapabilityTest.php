@@ -8,8 +8,11 @@ use App\Exceptions\CapabilityDependencyCycleException;
 use App\Exceptions\CapabilityNotEnabledException;
 use App\Exceptions\InvalidPrimaryExperienceException;
 use App\Models\Tenant;
+use App\Models\User;
 use App\Services\TenantCapabilityService;
 use Illuminate\Support\Facades\Route;
+use Modules\Menu\Models\Category;
+use Modules\Menu\Models\Product;
 
 beforeEach(function () {
     Tenant::query()->delete();
@@ -176,4 +179,107 @@ test('PwaExperienceResolver resolves correct URLs and respects primary_experienc
     $resolved = $resolver->resolve($this->tenant);
     expect($resolved)->toHaveKey('book');
     expect($resolved['book'])->toBe(url("/app/{$this->tenant->id}/book"));
+});
+
+test('clinic tenant cannot access menu products or kds routes directly', function () {
+    $user = User::factory()->create([
+        'tenant_id' => $this->tenant->id,
+    ]);
+
+    // Apply Clinic preset (Services, Booking, Staff, Payments) - No Catalog, No Ordering, No KDS
+    $this->service->applyPreset($this->tenant, BusinessType::Clinic);
+
+    // 1. Direct hit on /menu/products should return 403
+    $this->actingAs($user)
+        ->get(route('menu.products.index'))
+        ->assertStatus(403);
+
+    // 2. Direct hit on /orders/kds-unified should return 403
+    $this->actingAs($user)
+        ->get(route('orders.kds-unified'))
+        ->assertStatus(403);
+
+    // 3. Now enable Catalog capability
+    $this->tenant->enableCapability(TenantCapability::Catalog);
+
+    // Menu products is now accessible
+    $this->actingAs($user)
+        ->get(route('menu.products.index'))
+        ->assertOk();
+});
+
+test('pwa customer requesting unsupported experience is gracefully redirected to primary experience', function () {
+    // Apply Clinic preset (primary experience = book)
+    $this->service->applyPreset($this->tenant, BusinessType::Clinic);
+
+    // Customer navigates to /app/{slug}/order
+    $response = $this->get("/app/{$this->tenant->id}/order");
+
+    // Must be redirected to /app/{slug}/book
+    $response->assertRedirect("/app/{$this->tenant->id}/book");
+});
+
+test('runtime capability disablement immediately rejects checkout mutation with 403', function () {
+    // 1. Start with Restaurant preset (Ordering enabled)
+    $this->service->applyPreset($this->tenant, BusinessType::Restaurant);
+
+    $category = Category::create([
+        'name' => 'Main Courses',
+        'is_active' => true,
+    ]);
+
+    $product = Product::create([
+        'category_id' => $category->id,
+        'name' => 'Burger',
+        'price' => 500,
+        'is_active' => true,
+    ]);
+
+    $payload = [
+        'customer_name' => 'Test Customer',
+        'customer_phone' => '1234567890',
+        'order_type' => 'takeaway',
+        'cart' => [
+            ['product_id' => $product->id, 'quantity' => 1],
+        ],
+    ];
+
+    // 2. Initial checkout succeeds
+    $response = $this->postJson("/app/{$this->tenant->id}/checkout", $payload);
+    $response->assertOk();
+
+    // 3. Admin disables Kds and Delivery and then Ordering capability at runtime
+    $this->tenant->disableCapability(TenantCapability::Kds);
+    $this->tenant->disableCapability(TenantCapability::Delivery);
+    $this->tenant->disableCapability(TenantCapability::Ordering);
+
+    // 4. Subsequent checkout attempt must be rejected with 403
+    $secondResponse = $this->postJson("/app/{$this->tenant->id}/checkout", $payload);
+    $secondResponse->assertStatus(403);
+});
+
+test('registration applies chosen business_type preset', function () {
+    // 1. Register as a Clinic
+    $response = $this->post('/register', [
+        'name' => 'City Dental Clinic',
+        'email' => 'doctor@citydental.com',
+        'password' => 'Pass!123',
+        'password_confirmation' => 'Pass!123',
+        'business_type' => 'clinic',
+    ]);
+
+    $response->assertRedirect(route('dashboard', absolute: false));
+
+    $clinicTenant = Tenant::where('id', 'city-dental-clinic')->first();
+    expect($clinicTenant)->not->toBeNull();
+    expect($clinicTenant->business_type)->toBe(BusinessType::Clinic->value);
+    expect($clinicTenant->primary_experience)->toBe('book');
+
+    // Capabilities must match exact Clinic preset (Services, Booking, Staff, Payments)
+    expect($clinicTenant->hasCapability(TenantCapability::Services))->toBeTrue();
+    expect($clinicTenant->hasCapability(TenantCapability::Booking))->toBeTrue();
+    expect($clinicTenant->hasCapability(TenantCapability::Staff))->toBeTrue();
+    expect($clinicTenant->hasCapability(TenantCapability::Payments))->toBeTrue();
+    expect($clinicTenant->hasCapability(TenantCapability::Catalog))->toBeFalse();
+    expect($clinicTenant->hasCapability(TenantCapability::Ordering))->toBeFalse();
 });

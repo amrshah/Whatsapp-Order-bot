@@ -1,8 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Menu\Http\Controllers\MenuController;
 use Modules\Menu\Http\Controllers\CategoryController;
+use Modules\Menu\Http\Controllers\MenuController;
+use Modules\Menu\Http\Controllers\MenuImportController;
 use Modules\Menu\Http\Controllers\ProductController;
 
 /*
@@ -16,18 +17,18 @@ use Modules\Menu\Http\Controllers\ProductController;
 |
 */
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'capability:catalog'])->group(function () {
     Route::resource('menus', MenuController::class)->names('menu');
 });
 
-Route::middleware(['auth', 'verified'])->prefix('menu')->name('menu.')->group(function () {
+Route::middleware(['auth', 'verified', 'capability:catalog'])->prefix('menu')->name('menu.')->group(function () {
     Route::post('categories/template', [CategoryController::class, 'applyTemplate'])->name('categories.template');
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
     Route::resource('products', ProductController::class)->except(['create', 'show', 'edit']);
-    
+
     // Import Routes
-    Route::get('import', [\Modules\Menu\Http\Controllers\MenuImportController::class, 'show'])->name('import.show');
-    Route::post('import/process', [\Modules\Menu\Http\Controllers\MenuImportController::class, 'process'])->name('import.process');
-    Route::post('import/confirm', [\Modules\Menu\Http\Controllers\MenuImportController::class, 'confirm'])->name('import.confirm');
-    Route::get('import/template', [\Modules\Menu\Http\Controllers\MenuImportController::class, 'downloadTemplate'])->name('import.template');
+    Route::get('import', [MenuImportController::class, 'show'])->name('import.show');
+    Route::post('import/process', [MenuImportController::class, 'process'])->name('import.process');
+    Route::post('import/confirm', [MenuImportController::class, 'confirm'])->name('import.confirm');
+    Route::get('import/template', [MenuImportController::class, 'downloadTemplate'])->name('import.template');
 });

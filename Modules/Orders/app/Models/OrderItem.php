@@ -2,18 +2,19 @@
 
 namespace Modules\Orders\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 // use Modules\Orders\Database\Factories\OrderItemFactory;
 
+use Modules\Menu\Models\Product;
 use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 class OrderItem extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
-        'order_id', 'product_id', 'quantity', 'unit_price', 'subtotal'
+        'order_id', 'product_id', 'quantity', 'unit_price', 'subtotal',
     ];
 
     public function order()
@@ -23,7 +24,7 @@ class OrderItem extends Model
 
     public function product()
     {
-        return $this->belongsTo(\Modules\Menu\Models\Product::class);
+        return $this->belongsTo(Product::class);
     }
 
     // protected static function newFactory(): OrderItemFactory

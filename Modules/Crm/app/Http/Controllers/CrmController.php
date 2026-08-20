@@ -4,14 +4,17 @@ namespace Modules\Crm\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Modules\Crm\Models\Customer;
 
 class CrmController extends Controller
 {
     public function index()
     {
-        $customers = \Modules\Crm\Models\Customer::orderBy('updated_at', 'desc')->paginate(15);
-        return \Inertia\Inertia::render('Crm/Index', [
-            'customers' => $customers
+        $customers = Customer::orderBy('updated_at', 'desc')->paginate(15);
+
+        return Inertia::render('Crm/Index', [
+            'customers' => $customers,
         ]);
     }
 

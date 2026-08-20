@@ -2,19 +2,19 @@
 
 namespace Modules\Orders\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 // use Modules\Orders\Database\Factories\OrderFactory;
 
 use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 class Order extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
-        'order_number', 'customer_phone', 'customer_name', 
-        'total_amount', 'status', 'order_type', 'delivery_address', 'table_number', 'type', 'source'
+        'order_number', 'customer_phone', 'customer_name',
+        'total_amount', 'status', 'order_type', 'delivery_address', 'table_number', 'type', 'source',
     ];
 
     public function items()

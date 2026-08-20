@@ -4,9 +4,9 @@ namespace Modules\Menu\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Menu\Models\Product;
-use Modules\Menu\Models\Category;
 use Inertia\Inertia;
+use Modules\Menu\Models\Category;
+use Modules\Menu\Models\Product;
 
 class ProductController extends Controller
 {
@@ -20,7 +20,7 @@ class ProductController extends Controller
 
         return Inertia::render('Menu/Products/Index', [
             'products' => $products,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -43,7 +43,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'image_url' => 'nullable|url',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         Product::create($validated);
@@ -80,7 +80,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'image_url' => 'nullable|url',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $product->update($validated);

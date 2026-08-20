@@ -14,7 +14,7 @@ class CartHandler implements BotHandlerInterface
             $context['cart'] = [];
             $session->update([
                 'context' => $context,
-                'current_state' => 'VIEWING_CART'
+                'current_state' => 'VIEWING_CART',
             ]);
         } elseif (str_starts_with($message, 'action_remove_item_')) {
             $idx = (int) str_replace('action_remove_item_', '', $message);
@@ -30,7 +30,7 @@ class CartHandler implements BotHandlerInterface
             if (empty($cart)) {
                 return $this->emptyCartResponse();
             }
-            
+
             $rows = [];
             foreach ($cart as $index => $item) {
                 $product = Product::find($item['product_id']);
@@ -38,7 +38,7 @@ class CartHandler implements BotHandlerInterface
                     $rows[] = [
                         'id' => "action_remove_item_{$index}",
                         'title' => substr("Remove {$product->name}", 0, 24),
-                        'description' => "Qty: {$item['quantity']}"
+                        'description' => "Qty: {$item['quantity']}",
                     ];
                 }
             }
@@ -54,17 +54,17 @@ class CartHandler implements BotHandlerInterface
                         'sections' => [
                             [
                                 'title' => 'Cart Items',
-                                'rows' => $rows
-                            ]
-                        ]
-                    ]
-                ]
+                                'rows' => $rows,
+                            ],
+                        ],
+                    ],
+                ],
             ];
         }
 
         // Display Cart
         $cart = $session->context['cart'] ?? [];
-        
+
         if (empty($cart)) {
             return $this->emptyCartResponse();
         }
@@ -90,7 +90,7 @@ class CartHandler implements BotHandlerInterface
             'interactive' => [
                 'type' => 'button',
                 'body' => [
-                    'text' => $cartText
+                    'text' => $cartText,
                 ],
                 'action' => [
                     'buttons' => [
@@ -98,26 +98,26 @@ class CartHandler implements BotHandlerInterface
                             'type' => 'reply',
                             'reply' => [
                                 'id' => 'action_view_menu',
-                                'title' => '➕ Add More'
-                            ]
+                                'title' => '➕ Add More',
+                            ],
                         ],
                         [
                             'type' => 'reply',
                             'reply' => [
                                 'id' => 'action_remove_item',
-                                'title' => '➖ Remove Item'
-                            ]
+                                'title' => '➖ Remove Item',
+                            ],
                         ],
                         [
                             'type' => 'reply',
                             'reply' => [
                                 'id' => 'action_checkout',
-                                'title' => '💳 Checkout'
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+                                'title' => '💳 Checkout',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -130,10 +130,10 @@ class CartHandler implements BotHandlerInterface
                 'body' => ['text' => 'Your cart is empty.'],
                 'action' => [
                     'buttons' => [
-                        ['type' => 'reply', 'reply' => ['id' => 'action_view_menu', 'title' => 'View Menu']]
-                    ]
-                ]
-            ]
+                        ['type' => 'reply', 'reply' => ['id' => 'action_view_menu', 'title' => 'View Menu']],
+                    ],
+                ],
+            ],
         ];
     }
 }

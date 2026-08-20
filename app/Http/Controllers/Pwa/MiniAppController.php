@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Pwa;
 
+use App\Capability\CapabilityRegistry;
+use App\Capability\PwaExperienceResolver;
 use App\Enums\TenantCapability;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
@@ -49,6 +51,17 @@ class MiniAppController extends Controller
             }
         }
 
+        // Dynamically resolve primary experience URL
+        $resolver = app(PwaExperienceResolver::class);
+        $activeExperiences = $resolver->resolve($tenant);
+
+        if (! empty($activeExperiences)) {
+            $primaryUrl = $resolver->primaryExperience($tenant);
+            if ($primaryUrl !== $request->url()) {
+                return redirect($primaryUrl);
+            }
+        }
+
         return $this->renderMiniApp($tenant, null);
     }
 
@@ -70,6 +83,18 @@ class MiniAppController extends Controller
 
                 // 302 Redirect to clean URL
                 return redirect($request->url());
+            }
+        }
+
+        // Validate that the requested experience is enabled for this tenant
+        $requiredCapability = CapabilityRegistry::capabilityForExperience($experience);
+        if ($requiredCapability && ! $tenant->hasCapability($requiredCapability)) {
+            // Customer UX: redirect to primary valid experience
+            $resolver = app(PwaExperienceResolver::class);
+            $primaryUrl = $resolver->primaryExperience($tenant);
+
+            if ($primaryUrl !== $request->url()) {
+                return redirect($primaryUrl);
             }
         }
 
@@ -104,8 +129,8 @@ class MiniAppController extends Controller
                 ->get();
         }
 
-        // Render legacy OrderMenu component directly if the experience is ordering (order)
-        if ($experience === 'order' || $experience === 'ordering' || ($experience === null && $tenant->primary_experience === 'order')) {
+        // Render legacy OrderMenu component directly if ordering capability is active and experience is order
+        if (($experience === 'order' || $experience === 'ordering') && $tenant->hasCapability(TenantCapability::Ordering)) {
             return Inertia::render('Pwa/OrderMenu', [
                 'tenant' => [
                     'id' => $tenant->id,
@@ -118,6 +143,8 @@ class MiniAppController extends Controller
             ]);
         }
 
+        $activeCapabilities = $tenant->capabilities()->pluck('capability')->map(fn ($c) => $c->value)->toArray();
+
         return Inertia::render('Pwa/MiniApp', [
             'tenant' => [
                 'id' => $tenant->id,
@@ -127,6 +154,8 @@ class MiniAppController extends Controller
             'categories' => $categories,
             'settings' => $settings,
             'currentExperience' => $experience,
+            'capabilities' => $activeCapabilities,
+            'previewMode' => $status === 'draft',
         ]);
     }
 }

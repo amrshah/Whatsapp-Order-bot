@@ -4,8 +4,9 @@ namespace Modules\Menu\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Menu\Models\Category;
 use Inertia\Inertia;
+use Modules\Menu\Models\Category;
+use Modules\Menu\Models\Product;
 
 class CategoryController extends Controller
 {
@@ -15,8 +16,9 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::latest()->get();
+
         return Inertia::render('Menu/Categories/Index', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -36,7 +38,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         // tenant_id is automatically assigned by stancl/tenancy global scope
@@ -71,7 +73,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $category->update($validated);
@@ -98,23 +100,23 @@ class CategoryController extends Controller
             'categories' => 'required|array',
             'categories.*.name' => 'required|string',
             'categories.*.items' => 'nullable|array',
-            'categories.*.items.*' => 'string'
+            'categories.*.items.*' => 'string',
         ]);
 
         foreach ($validated['categories'] as $categoryData) {
             $category = Category::create([
                 'name' => $categoryData['name'],
-                'is_active' => true
+                'is_active' => true,
             ]);
 
-            if (!empty($categoryData['items'])) {
+            if (! empty($categoryData['items'])) {
                 foreach ($categoryData['items'] as $itemName) {
-                    \Modules\Menu\Models\Product::create([
+                    Product::create([
                         'category_id' => $category->id,
                         'name' => $itemName,
                         'price' => 100, // Default price
                         'is_active' => true,
-                        'type' => 'simple'
+                        'type' => 'simple',
                     ]);
                 }
             }

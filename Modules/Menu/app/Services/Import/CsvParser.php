@@ -2,6 +2,8 @@
 
 namespace Modules\Menu\Services\Import;
 
+use Maatwebsite\Excel\Concerns\ToArray;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Facades\Excel;
 
 class CsvParser
@@ -9,7 +11,8 @@ class CsvParser
     public function parse(string $filePath): array
     {
         // We'll read the first sheet/file and skip empty rows.
-        $data = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray, \Maatwebsite\Excel\Concerns\WithHeadingRow {
+        $data = Excel::toArray(new class implements ToArray, WithHeadingRow
+        {
             public function array(array $array) {}
         }, $filePath)[0] ?? [];
 
@@ -25,9 +28,10 @@ class CsvParser
         foreach ($rows as $index => $row) {
             $categoryName = trim($row['category'] ?? 'Uncategorized');
             $itemName = trim($row['item_name'] ?? '');
-            
+
             if (empty($itemName)) {
-                $warnings[] = ['type' => 'missing_name', 'message' => "Row " . ($index + 2) . " is missing an item name."];
+                $warnings[] = ['type' => 'missing_name', 'message' => 'Row '.($index + 2).' is missing an item name.'];
+
                 continue;
             }
 
@@ -44,15 +48,16 @@ class CsvParser
                     'price' => $price,
                     'deal_items_raw' => $dealItemsRaw,
                     'confidence' => 1.0,
-                    'duplicate_status' => 'new'
+                    'duplicate_status' => 'new',
                 ];
+
                 continue;
             }
 
-            if (!isset($categories[$categoryName])) {
+            if (! isset($categories[$categoryName])) {
                 $categories[$categoryName] = [
                     'name' => $categoryName,
-                    'items' => []
+                    'items' => [],
                 ];
             }
 
@@ -64,7 +69,7 @@ class CsvParser
                 'variants' => [],
                 'modifiers' => [],
                 'confidence' => 1.0,
-                'duplicate_status' => 'new'
+                'duplicate_status' => 'new',
             ];
         }
 
@@ -74,8 +79,8 @@ class CsvParser
             'warnings' => $warnings,
             'metadata' => [
                 'source' => 'csv/excel',
-                'ai_used' => false
-            ]
+                'ai_used' => false,
+            ],
         ];
     }
 }

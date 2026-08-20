@@ -10,12 +10,12 @@ class CategoryHandler implements BotHandlerInterface
     public function handle(BotSession $session, string $message, string $type): array
     {
         // Expecting a payload like 'category_1'
-        if ($type !== 'interactive' || !str_starts_with($message, 'category_')) {
-            return (new WelcomeHandler())->handle($session, $message, $type);
+        if ($type !== 'interactive' || ! str_starts_with($message, 'category_')) {
+            return (new WelcomeHandler)->handle($session, $message, $type);
         }
 
         $categoryId = str_replace('category_', '', $message);
-        
+
         $products = Product::where('category_id', $categoryId)
             ->where('is_active', true)
             ->get();
@@ -24,8 +24,8 @@ class CategoryHandler implements BotHandlerInterface
             return [
                 'type' => 'text',
                 'text' => [
-                    'body' => 'No products found in this category.'
-                ]
+                    'body' => 'No products found in this category.',
+                ],
             ];
         }
 
@@ -34,9 +34,9 @@ class CategoryHandler implements BotHandlerInterface
         $rows = [];
         foreach ($products as $product) {
             $rows[] = [
-                'id' => 'product_' . $product->id,
+                'id' => 'product_'.$product->id,
                 'title' => substr($product->name, 0, 24),
-                'description' => substr("Rs {$product->price} - " . $product->description, 0, 72)
+                'description' => substr("Rs {$product->price} - ".$product->description, 0, 72),
             ];
         }
 
@@ -45,18 +45,18 @@ class CategoryHandler implements BotHandlerInterface
             'interactive' => [
                 'type' => 'list',
                 'body' => [
-                    'text' => "Select an item to view details or add to cart:"
+                    'text' => 'Select an item to view details or add to cart:',
                 ],
                 'action' => [
                     'button' => 'View Items',
                     'sections' => [
                         [
                             'title' => 'Products',
-                            'rows' => $rows
-                        ]
-                    ]
-                ]
-            ]
+                            'rows' => $rows,
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 }

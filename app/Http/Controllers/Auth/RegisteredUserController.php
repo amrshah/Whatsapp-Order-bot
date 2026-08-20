@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -39,11 +40,14 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'business_type' => ['nullable', 'string', new Enum(BusinessType::class)],
         ]);
+
+        $businessType = BusinessType::tryFrom($request->input('business_type')) ?? BusinessType::Restaurant;
 
         $slug = Str::slug($request->name);
         if (empty($slug)) {
-            $slug = 'restaurant';
+            $slug = $businessType->value;
         }
 
         $originalSlug = $slug;
@@ -58,7 +62,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
         ]);
 
-        app(TenantCapabilityService::class)->applyPreset($tenant, BusinessType::Restaurant);
+        app(TenantCapabilityService::class)->applyPreset($tenant, $businessType);
 
         $user = User::create([
             'name' => $request->name,

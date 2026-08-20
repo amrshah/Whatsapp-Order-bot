@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('order_type')->default('WhatsApp');
             $table->text('delivery_address')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
         });
     }

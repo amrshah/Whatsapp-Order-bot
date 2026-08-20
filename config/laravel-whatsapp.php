@@ -1,5 +1,15 @@
 <?php
 
+use Kstmostofa\LaravelWhatsApp\Events\InteractiveReplied;
+use Kstmostofa\LaravelWhatsApp\Events\MediaReceived;
+use Kstmostofa\LaravelWhatsApp\Events\MessageReceived;
+use Kstmostofa\LaravelWhatsApp\Events\MessageStatusUpdate;
+use Kstmostofa\LaravelWhatsApp\Events\TemplateStatusUpdate;
+use Kstmostofa\LaravelWhatsApp\Events\Web\Disconnected;
+use Kstmostofa\LaravelWhatsApp\Events\Web\MessageAck;
+use Kstmostofa\LaravelWhatsApp\Events\Web\QrGenerated;
+use Kstmostofa\LaravelWhatsApp\Events\Web\SessionReady;
+
 return [
 
     /*
@@ -47,11 +57,11 @@ return [
     */
 
     'events' => [
-        'message' => \Kstmostofa\LaravelWhatsApp\Events\MessageReceived::class,
-        'status' => \Kstmostofa\LaravelWhatsApp\Events\MessageStatusUpdate::class,
-        'interactive' => \Kstmostofa\LaravelWhatsApp\Events\InteractiveReplied::class,
-        'media' => \Kstmostofa\LaravelWhatsApp\Events\MediaReceived::class,
-        'template_status' => \Kstmostofa\LaravelWhatsApp\Events\TemplateStatusUpdate::class,
+        'message' => MessageReceived::class,
+        'status' => MessageStatusUpdate::class,
+        'interactive' => InteractiveReplied::class,
+        'media' => MediaReceived::class,
+        'template_status' => TemplateStatusUpdate::class,
     ],
 
     /*
@@ -112,11 +122,11 @@ return [
         ],
 
         'events' => [
-            'message' => \Kstmostofa\LaravelWhatsApp\Events\Web\MessageReceived::class,
-            'ready' => \Kstmostofa\LaravelWhatsApp\Events\Web\SessionReady::class,
-            'qr' => \Kstmostofa\LaravelWhatsApp\Events\Web\QrGenerated::class,
-            'disconnected' => \Kstmostofa\LaravelWhatsApp\Events\Web\Disconnected::class,
-            'message_ack' => \Kstmostofa\LaravelWhatsApp\Events\Web\MessageAck::class,
+            'message' => Kstmostofa\LaravelWhatsApp\Events\Web\MessageReceived::class,
+            'ready' => SessionReady::class,
+            'qr' => QrGenerated::class,
+            'disconnected' => Disconnected::class,
+            'message_ack' => MessageAck::class,
         ],
     ],
 

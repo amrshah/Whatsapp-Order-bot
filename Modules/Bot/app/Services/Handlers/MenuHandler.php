@@ -12,13 +12,13 @@ class MenuHandler implements BotHandlerInterface
         $session->update(['current_state' => 'CATEGORY_SELECT']);
 
         $categories = Category::where('is_active', true)->get();
-        
+
         $rows = [];
         foreach ($categories as $category) {
             $rows[] = [
-                'id' => 'category_' . $category->id,
+                'id' => 'category_'.$category->id,
                 'title' => substr($category->name, 0, 24), // Max 24 chars for Meta API list items
-                'description' => substr($category->description ?? 'View items', 0, 72) // Max 72 chars
+                'description' => substr($category->description ?? 'View items', 0, 72), // Max 72 chars
             ];
         }
 
@@ -27,8 +27,8 @@ class MenuHandler implements BotHandlerInterface
             return [
                 'type' => 'text',
                 'text' => [
-                    'body' => 'Sorry, our menu is currently empty!'
-                ]
+                    'body' => 'Sorry, our menu is currently empty!',
+                ],
             ];
         }
 
@@ -38,21 +38,21 @@ class MenuHandler implements BotHandlerInterface
                 'type' => 'list',
                 'header' => [
                     'type' => 'text',
-                    'text' => 'Our Menu'
+                    'text' => 'Our Menu',
                 ],
                 'body' => [
-                    'text' => 'Please choose a category from the list below:'
+                    'text' => 'Please choose a category from the list below:',
                 ],
                 'action' => [
                     'button' => 'Categories',
                     'sections' => [
                         [
                             'title' => 'Menu Categories',
-                            'rows' => $rows
-                        ]
-                    ]
-                ]
-            ]
+                            'rows' => $rows,
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 }

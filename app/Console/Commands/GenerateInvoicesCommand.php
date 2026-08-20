@@ -2,12 +2,14 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Models\Tenant;
-use App\Models\Invoice;
 use App\Models\GlobalSetting;
+use App\Models\Invoice;
+use App\Models\Tenant;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Modules\Orders\Models\Order;
 
 class GenerateInvoicesCommand extends Command
 {
@@ -31,26 +33,26 @@ class GenerateInvoicesCommand extends Command
     public function handle()
     {
         $tenants = Tenant::all();
-        $this->info("Checking billing for " . $tenants->count() . " tenants.");
+        $this->info('Checking billing for '.$tenants->count().' tenants.');
 
         foreach ($tenants as $tenant) {
             if ($tenant->billing_frequency === 'manual') {
                 continue;
             }
 
-            if (!$this->isDueForBilling($tenant)) {
+            if (! $this->isDueForBilling($tenant)) {
                 continue;
             }
 
             $this->generateInvoice($tenant);
         }
 
-        $this->info("Billing generation complete.");
+        $this->info('Billing generation complete.');
     }
 
     protected function isDueForBilling(Tenant $tenant)
     {
-        if (!$tenant->last_billed_at) {
+        if (! $tenant->last_billed_at) {
             return true;
         }
 
@@ -79,13 +81,13 @@ class GenerateInvoicesCommand extends Command
             $amount = $tenant->billing_rate;
         } elseif ($tenant->billing_model === 'commission') {
             tenancy()->initialize($tenant);
-            
-            $totalSales = \Modules\Orders\Models\Order::whereIn('status', ['Completed', 'Delivered'])
+
+            $totalSales = Order::whereIn('status', ['Completed', 'Delivered'])
                 ->whereBetween('created_at', [$periodStart, $periodEnd])
                 ->sum('total_amount');
 
             $amount = $totalSales * ($tenant->billing_rate / 100);
-            
+
             tenancy()->end();
         }
 
@@ -105,30 +107,30 @@ class GenerateInvoicesCommand extends Command
 
             $this->sendWhatsAppNotification($tenant, $invoice);
         } else {
-             $tenant->update(['last_billed_at' => now()]);
-             $this->info("Skipped invoice generation for tenant {$tenant->id} (Amount: 0)");
+            $tenant->update(['last_billed_at' => now()]);
+            $this->info("Skipped invoice generation for tenant {$tenant->id} (Amount: 0)");
         }
     }
 
     protected function sendWhatsAppNotification(Tenant $tenant, Invoice $invoice)
     {
         $notificationSetting = GlobalSetting::where('key', 'invoice_notifications')->first();
-        if (!$notificationSetting || $notificationSetting->value !== 'auto') {
+        if (! $notificationSetting || $notificationSetting->value !== 'auto') {
             return;
         }
 
         tenancy()->initialize($tenant);
         // Find the first user with a phone number
-        $user = \App\Models\User::whereNotNull('phone')->first();
+        $user = User::whereNotNull('phone')->first();
         tenancy()->end();
 
         if ($user && $user->phone) {
             $message = "Hello {$user->name},\n\nYour new invoice #{$invoice->id} for Rs. {$invoice->amount} has been generated. Please check your dashboard for payment instructions.";
-            
+
             // We'll log it for now to avoid actual API calls during automated cron testing
             Log::info("Would send WhatsApp to {$user->phone}: {$message}");
-            
-            // Assuming the SaaS platform has its own central WhatsApp integration to send this, 
+
+            // Assuming the SaaS platform has its own central WhatsApp integration to send this,
             // or uses the tenant's integration:
             // \Kstmostofa\LaravelWhatsapp\Facades\WhatsApp::sendText($user->phone, $message);
         }

@@ -10,15 +10,13 @@ class CreateTenantsTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up(): void
     {
         Schema::create('tenants', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('name')->nullable(); // Add the custom column here
-            
+
             // your custom columns may go here
 
             $table->timestamps();
@@ -28,8 +26,6 @@ class CreateTenantsTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down(): void
     {

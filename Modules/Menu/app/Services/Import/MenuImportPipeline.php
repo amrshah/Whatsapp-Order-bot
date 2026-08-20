@@ -3,7 +3,6 @@
 namespace Modules\Menu\Services\Import;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
 
 class MenuImportPipeline
 {
@@ -24,11 +23,11 @@ class MenuImportPipeline
         } elseif ($extension === 'pdf') {
             // AI Assisted path
             $parsed = $this->pdfParser->parse($filePath);
-            
+
             if (empty(trim($parsed['raw_text']))) {
-                throw new \Exception("Could not extract any selectable text from this PDF. Scanned images are not currently supported.");
+                throw new \Exception('Could not extract any selectable text from this PDF. Scanned images are not currently supported.');
             }
-            
+
             $normalizedData = $this->llmNormalizer->normalize($parsed['raw_text']);
         } else {
             throw new \Exception("Unsupported file type: {$extension}. Please upload a CSV, Excel, or text-based PDF file.");

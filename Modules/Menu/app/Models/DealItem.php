@@ -2,8 +2,9 @@
 
 namespace Modules\Menu\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\Menu\Database\Factories\DealItemFactory;
 
 class DealItem extends Model

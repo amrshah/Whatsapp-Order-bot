@@ -11,8 +11,9 @@ class LlmNormalizer
     {
         $apiKey = config('services.gemini.key', env('GEMINI_API_KEY'));
 
-        if (!$apiKey) {
+        if (! $apiKey) {
             Log::warning('GEMINI_API_KEY is missing. Mocking LLM normalization.');
+
             return $this->mockResponse();
         }
 
@@ -59,19 +60,19 @@ TEXT;
 
         try {
             $response = Http::withHeaders([
-                'Content-Type' => 'application/json'
+                'Content-Type' => 'application/json',
             ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}", [
                 'contents' => [
                     [
                         'parts' => [
-                            ['text' => $prompt]
-                        ]
-                    ]
+                            ['text' => $prompt],
+                        ],
+                    ],
                 ],
                 'generationConfig' => [
                     'temperature' => 0.1,
                     'responseMimeType' => 'application/json',
-                ]
+                ],
             ]);
 
             if ($response->successful()) {
@@ -106,19 +107,19 @@ TEXT;
                             'variants' => [],
                             'modifiers' => [],
                             'confidence' => 0.5,
-                            'duplicate_status' => 'new'
-                        ]
-                    ]
-                ]
+                            'duplicate_status' => 'new',
+                        ],
+                    ],
+                ],
             ],
             'deals' => [],
             'warnings' => [
-                ['type' => 'ai_error', 'message' => 'AI Processing failed or API key missing.']
+                ['type' => 'ai_error', 'message' => 'AI Processing failed or API key missing.'],
             ],
             'metadata' => [
                 'source' => 'pdf',
-                'ai_used' => false
-            ]
+                'ai_used' => false,
+            ],
         ];
     }
 }

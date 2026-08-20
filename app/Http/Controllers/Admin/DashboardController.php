@@ -3,16 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Tenant;
+use App\Models\User;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $totalTenants = \App\Models\Tenant::count();
-        $totalUsers = \App\Models\User::count();
+        $totalTenants = Tenant::count();
+        $totalUsers = User::count();
 
-        return \Inertia\Inertia::render('Admin/Dashboard', [
+        return Inertia::render('Admin/Dashboard', [
             'kpis' => [
                 'totalTenants' => $totalTenants,
                 'totalUsers' => $totalUsers,

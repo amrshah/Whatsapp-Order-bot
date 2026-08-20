@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use App\Models\Invoice;
 use App\Models\GlobalSetting;
+use App\Models\Invoice;
+use Illuminate\Support\Facades\Cache;
+use Inertia\Inertia;
 
 class BillingController extends Controller
 {
@@ -32,8 +32,8 @@ class BillingController extends Controller
             abort(403);
         }
 
-        $settings = \Illuminate\Support\Facades\Cache::rememberForever('global_settings', function () {
-            return \App\Models\GlobalSetting::pluck('value', 'key')->toArray();
+        $settings = Cache::rememberForever('global_settings', function () {
+            return GlobalSetting::pluck('value', 'key')->toArray();
         });
 
         return view('invoice', [

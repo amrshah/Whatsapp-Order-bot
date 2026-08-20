@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Enums\TenantCapability;
 use App\Exceptions\CapabilityNotEnabledException;
+use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,6 +26,13 @@ class RequireCapability
         }
 
         $tenant = tenant();
+
+        if (! $tenant && $request->route('tenant_slug')) {
+            $tenant = Tenant::find($request->route('tenant_slug'));
+            if ($tenant && $tenant->is_active) {
+                tenancy()->initialize($tenant);
+            }
+        }
 
         if (! $tenant) {
             abort(403, 'No active tenant.');

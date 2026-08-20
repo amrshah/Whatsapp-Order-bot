@@ -1,8 +1,10 @@
 <?php
 
+use App\Enums\BusinessType;
 use App\Events\OrderStatusUpdated;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\TenantCapabilityService;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Modules\Bot\Models\WhatsAppConnection;
@@ -24,6 +26,8 @@ beforeEach(function () {
         'name' => 'Test Restaurant',
         'is_active' => true,
     ]);
+
+    app(TenantCapabilityService::class)->applyPreset($this->tenant, BusinessType::Restaurant);
 
     tenancy()->initialize($this->tenant);
 

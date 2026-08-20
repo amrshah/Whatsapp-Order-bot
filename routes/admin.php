@@ -1,14 +1,15 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\TenantController;
-use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\TenantController;
+use App\Http\Middleware\IsSuperAdmin;
+use Illuminate\Support\Facades\Route;
 
-Route::middleware(['web', 'auth', \App\Http\Middleware\IsSuperAdmin::class])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['web', 'auth', IsSuperAdmin::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');
     Route::get('/tenants/{tenant}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
     Route::put('/tenants/{tenant}', [TenantController::class, 'update'])->name('tenants.update');

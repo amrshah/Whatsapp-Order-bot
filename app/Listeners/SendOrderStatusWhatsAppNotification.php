@@ -49,7 +49,7 @@ class SendOrderStatusWhatsAppNotification
                 $templateText = $statusMessages[$order->status];
                 $messageBody = str_replace('{order_number}', $order->order_number, $templateText);
                 $trackingUrl = route('pwa.track', ['tenant_slug' => $tenantId, 'order_number' => $order->order_number]);
-                $body = $messageBody . "\n\nTrack order live:\n" . $trackingUrl;
+                $body = $messageBody."\n\nTrack order live:\n".$trackingUrl;
 
                 $messagingService->sendMessage($order->customer_phone, [
                     'type' => 'text',

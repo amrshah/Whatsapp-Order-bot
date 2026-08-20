@@ -99,7 +99,7 @@ Route::get('/order/{tenant_slug}/track/{order_number}', function (string $tenant
 Route::group(['prefix' => 'app/{tenant_slug}'], function () {
     Route::get('/', [MiniAppController::class, 'index'])->name('pwa.app.index');
     Route::get('/manifest.json', [PwaController::class, 'manifest'])->name('pwa.manifest');
-    Route::post('/checkout', [PwaController::class, 'submitOrder'])->name('pwa.checkout');
+    Route::post('/checkout', [PwaController::class, 'submitOrder'])->middleware('capability:ordering')->name('pwa.checkout');
     Route::get('/track/{order_number}', [PwaController::class, 'trackOrder'])->name('pwa.track');
     Route::get('/order', [MiniAppController::class, 'experience'])->defaults('experience', 'order')->name('pwa.menu');
     Route::get('/{experience}', [MiniAppController::class, 'experience'])->name('pwa.app.experience');

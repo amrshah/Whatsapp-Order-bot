@@ -72,7 +72,7 @@ class SettingsController extends Controller
 
             $qrcode = $result['base64'] ?? $result['code'] ?? null;
 
-            if (!$qrcode && $connection->status !== 'open') {
+            if (! $qrcode && $connection->status !== 'open') {
                 // Instance might have been deleted from Evolution. Recreate it!
                 \Log::info("Evolution: Instance '{$connection->instance_name}' not found on Evolution. Recreating.");
                 try {
@@ -80,10 +80,10 @@ class SettingsController extends Controller
                 } catch (\Exception $e) {
                     // Ignore delete failure
                 }
-                
+
                 // Re-create and re-configure webhook
                 $connection = $service->createInstance($tenant);
-                
+
                 // Try connecting again
                 $result = $service->connectInstance($connection->instance_name);
                 $qrcode = $result['base64'] ?? $result['code'] ?? null;
@@ -137,7 +137,7 @@ class SettingsController extends Controller
             if ($qrcode && $qrcode !== $connection->qrcode) {
                 $connection->update([
                     'qrcode' => $qrcode,
-                    'status' => 'connecting'
+                    'status' => 'connecting',
                 ]);
             }
         }

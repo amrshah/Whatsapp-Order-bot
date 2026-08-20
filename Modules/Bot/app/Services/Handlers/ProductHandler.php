@@ -9,24 +9,24 @@ class ProductHandler implements BotHandlerInterface
 {
     public function handle(BotSession $session, string $message, string $type): array
     {
-        if ($type !== 'interactive' || !str_starts_with($message, 'product_')) {
-            return (new WelcomeHandler())->handle($session, $message, $type);
+        if ($type !== 'interactive' || ! str_starts_with($message, 'product_')) {
+            return (new WelcomeHandler)->handle($session, $message, $type);
         }
 
         $productId = str_replace('product_', '', $message);
         $product = Product::find($productId);
 
-        if (!$product) {
+        if (! $product) {
             return [
                 'type' => 'text',
-                'text' => ['body' => 'Product not found.']
+                'text' => ['body' => 'Product not found.'],
             ];
         }
 
         // Instantly add to cart
         $context = $session->context ?? [];
         $cart = $context['cart'] ?? [];
-        
+
         $found = false;
         foreach ($cart as &$item) {
             if ($item['product_id'] === $product->id) {
@@ -35,20 +35,20 @@ class ProductHandler implements BotHandlerInterface
                 break;
             }
         }
-        
-        if (!$found) {
+
+        if (! $found) {
             $cart[] = [
                 'product_id' => $product->id,
-                'quantity' => 1
+                'quantity' => 1,
             ];
         }
-        
+
         $context['cart'] = $cart;
         $session->update([
             'context' => $context,
-            'current_state' => 'VIEWING_CART'
+            'current_state' => 'VIEWING_CART',
         ]);
 
-        return (new CartHandler())->handle($session, 'action_view_cart', 'interactive');
+        return (new CartHandler)->handle($session, 'action_view_cart', 'interactive');
     }
 }

@@ -264,6 +264,41 @@ class CapabilityRegistry
     }
 
     /**
+     * Finds the tenant capability that provides the given PWA experience key.
+     */
+    public static function capabilityForExperience(string $experience): ?TenantCapability
+    {
+        static::boot();
+
+        foreach (static::$definitions as $key => $def) {
+            if ($def['pwa_experience'] === $experience) {
+                return TenantCapability::from($key);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns all supported PWA experience keys.
+     *
+     * @return string[]
+     */
+    public static function validExperiences(): array
+    {
+        static::boot();
+
+        $experiences = [];
+        foreach (static::$definitions as $def) {
+            if ($def['pwa_experience'] !== null) {
+                $experiences[] = $def['pwa_experience'];
+            }
+        }
+
+        return array_unique($experiences);
+    }
+
+    /**
      * Validates that the dependency graph contains no cycles.
      * Called once during boot.
      */

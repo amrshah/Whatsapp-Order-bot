@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\GlobalSetting;
 use App\Models\Invoice;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class InvoiceController extends Controller
 {
@@ -30,12 +32,13 @@ class InvoiceController extends Controller
     {
         // Get tenant's user phone
         tenancy()->initialize($invoice->tenant_id);
-        $user = \App\Models\User::whereNotNull('phone')->first();
+        $user = User::whereNotNull('phone')->first();
         tenancy()->end();
 
         if ($user && $user->phone) {
             $message = "Reminder: Your invoice #{$invoice->id} for Rs. {$invoice->amount} is pending. Please pay at your earliest convenience.";
             Log::info("Would send manual WhatsApp reminder to {$user->phone}: {$message}");
+
             return redirect()->back()->with('success', 'Reminder sent successfully.');
         }
 
@@ -44,8 +47,8 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
-        $settings = \Illuminate\Support\Facades\Cache::rememberForever('global_settings', function () {
-            return \App\Models\GlobalSetting::pluck('value', 'key')->toArray();
+        $settings = Cache::rememberForever('global_settings', function () {
+            return GlobalSetting::pluck('value', 'key')->toArray();
         });
 
         $invoice->loadMissing('tenant');
