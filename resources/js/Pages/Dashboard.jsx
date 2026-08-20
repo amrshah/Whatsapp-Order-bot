@@ -3,8 +3,10 @@ import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { 
+    ArrowRight,
     Calendar, 
     CheckCircle2, 
+    Circle,
     Clock, 
     DollarSign, 
     HelpCircle, 
@@ -13,6 +15,7 @@ import {
     Package, 
     Percent, 
     Repeat, 
+    Rocket,
     Settings as SettingsIcon, 
     ShoppingCart, 
     Sparkles, 
@@ -23,12 +26,13 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month' }) {
+export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', onboarding = {} }) {
     const { appName, auth, tenant } = usePage().props;
     const name = appName || 'Bracemen Bot';
     const user = auth.user;
 
     const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
+    const [isOnboardingCollapsed, setIsOnboardingCollapsed] = useState(false);
 
     const hasCap = (cap) => tenant?.capabilities ? tenant.capabilities.includes(cap) : true;
     const isOrdering = hasCap('ordering');
@@ -63,6 +67,10 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month' }) 
     const totalBookings = kpis?.total_bookings || 0;
     const activeServices = kpis?.active_services || 0;
     const activeItems = kpis?.active_items || 0;
+
+    const onboardingSteps = onboarding?.steps || [];
+    const onboardingProgress = onboarding?.progress_percent ?? 0;
+    const isAllCompleted = onboarding?.is_all_completed ?? false;
 
     return (
         <AuthenticatedLayout
@@ -102,6 +110,98 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month' }) 
 
             <div className="py-8">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-6">
+
+                    {/* 10-MINUTE MERCHANT ONBOARDING CHECKLIST */}
+                    {onboardingSteps.length > 0 && !isAllCompleted && (
+                        <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-indigo-100 dark:border-indigo-900/40 space-y-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+                                        <Rocket className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-extrabold text-gray-900 dark:text-white text-base">
+                                            10-Minute Launch Checklist
+                                        </h3>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            Complete these quick steps to get your direct ordering app live for customers.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="text-right">
+                                        <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">
+                                            {onboardingProgress}% Complete
+                                        </span>
+                                        <p className="text-[11px] text-gray-400">
+                                            {onboarding.completed_count} of {onboarding.total_count} steps
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsOnboardingCollapsed(!isOnboardingCollapsed)}
+                                        className="text-xs font-bold text-gray-500 hover:text-gray-700 dark:text-gray-400 underline"
+                                    >
+                                        {isOnboardingCollapsed ? 'Show Steps' : 'Hide'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Progress bar */}
+                            <div className="w-full bg-gray-100 dark:bg-gray-700 h-2.5 rounded-full overflow-hidden">
+                                <div 
+                                    className="bg-indigo-600 dark:bg-indigo-500 h-full rounded-full transition-all duration-500" 
+                                    style={{ width: `${onboardingProgress}%` }}
+                                />
+                            </div>
+
+                            {/* Step list */}
+                            {!isOnboardingCollapsed && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                                    {onboardingSteps.map((step) => (
+                                        <div
+                                            key={step.id}
+                                            className={`p-4 rounded-2xl border transition flex flex-col justify-between gap-3 ${
+                                                step.is_completed
+                                                    ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-900 dark:text-emerald-200'
+                                                    : 'bg-gray-50 dark:bg-gray-900/40 border-gray-100 dark:border-gray-750 text-gray-800 dark:text-gray-200'
+                                            }`}
+                                        >
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    {step.is_completed ? (
+                                                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                                                    ) : (
+                                                        <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                                    )}
+                                                    <h4 className="text-xs font-bold truncate">
+                                                        {step.title}
+                                                    </h4>
+                                                </div>
+                                                <p className="text-[11px] text-gray-500 dark:text-gray-400 pl-6 leading-tight">
+                                                    {step.description}
+                                                </p>
+                                            </div>
+
+                                            <div className="pl-6">
+                                                <a
+                                                    href={step.route}
+                                                    className={`inline-flex items-center gap-1 text-xs font-extrabold ${
+                                                        step.is_completed
+                                                            ? 'text-emerald-700 dark:text-emerald-400 hover:underline'
+                                                            : 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 underline'
+                                                    }`}
+                                                >
+                                                    <span>{step.is_completed ? 'Edit Settings' : 'Configure Now'}</span>
+                                                    <ArrowRight className="w-3 h-3" />
+                                                </a>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* HERO ROI IMPACT CARD (Ordering / Commerce Verticals) */}
                     {isOrdering ? (

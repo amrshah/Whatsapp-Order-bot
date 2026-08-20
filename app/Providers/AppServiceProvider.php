@@ -5,8 +5,11 @@ namespace App\Providers;
 use App\Events\OrderStatusUpdated;
 use App\Listeners\SendOrderStatusWhatsAppNotification;
 use App\Models\GlobalSetting;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
@@ -44,6 +47,18 @@ class AppServiceProvider extends ServiceProvider
         if (str_starts_with(config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
+
+        RateLimiter::for('pwa-checkout', function (Request $request) {
+            return Limit::perMinute(15)->by($request->ip() ?: $request->user()?->id);
+        });
+
+        RateLimiter::for('bot-webhook', function (Request $request) {
+            return Limit::perMinute(120)->by($request->ip());
+        });
+
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
 
         try {
             if (Schema::hasTable('global_settings')) {

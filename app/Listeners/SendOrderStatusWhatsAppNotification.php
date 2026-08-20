@@ -4,12 +4,27 @@ namespace App\Listeners;
 
 use App\Events\OrderStatusUpdated;
 use App\Models\Tenant;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Modules\Bot\Services\WhatsAppMessagingService;
 use Modules\Bot\Services\WhatsAppProviderResolver;
 
-class SendOrderStatusWhatsAppNotification
+class SendOrderStatusWhatsAppNotification implements ShouldQueue
 {
+    use InteractsWithQueue;
+
+    /**
+     * Number of retry attempts.
+     */
+    public int $tries = 3;
+
+    /**
+     * Backoff intervals in seconds between retries.
+     */
+    public array $backoff = [10, 30, 60];
+
     /**
      * Handle the event.
      */
@@ -20,7 +35,15 @@ class SendOrderStatusWhatsAppNotification
             $tenantId = $event->tenantId;
 
             // Only send updates if the order is a WhatsApp order
-            if ($order->source !== 'whatsapp') {
+            if ($order->source !== 'whatsapp' || empty($order->customer_phone)) {
+                return;
+            }
+
+            // Idempotency check: prevent duplicate notifications for this order status
+            $idempotencyKey = "wa_notif_{$order->id}_{$order->status}";
+            if (! Cache::add($idempotencyKey, true, now()->addHours(6))) {
+                Log::info("WhatsApp Notification skipped (already dispatched): {$idempotencyKey}");
+
                 return;
             }
 
@@ -28,7 +51,7 @@ class SendOrderStatusWhatsAppNotification
             tenancy()->initialize($tenantId);
             $tenant = Tenant::find($tenantId);
 
-            if (! $tenant) {
+            if (! $tenant || ! $tenant->is_active) {
                 return;
             }
 
@@ -60,6 +83,7 @@ class SendOrderStatusWhatsAppNotification
             }
         } catch (\Exception $e) {
             Log::warning('WhatsApp Milestone Notification Failed: '.$e->getMessage());
+            throw $e; // Rethrow to trigger queued retry if needed
         }
     }
 }

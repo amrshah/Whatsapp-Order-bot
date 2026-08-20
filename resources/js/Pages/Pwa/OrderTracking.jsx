@@ -8,7 +8,8 @@ import {
     CheckCircle2, 
     FileText, 
     Home, 
-    ChevronRight 
+    ChevronRight,
+    Repeat 
 } from 'lucide-react';
 
 export default function OrderTracking({ tenant, order }) {
@@ -114,19 +115,27 @@ export default function OrderTracking({ tenant, order }) {
                     </div>
                 </div>
 
-                {/* Back to menu button */}
+                {/* Back to menu & Reorder buttons */}
                 <div className="space-y-4">
                     <div className="border-t border-gray-100 pt-4 flex justify-between text-xs font-bold text-gray-500">
                         <span>Grand Total</span>
                         <span className="text-indigo-600 font-black">Rs. {order.total_amount}</span>
                     </div>
 
-                    <Link
-                        href={route('pwa.menu', { tenant_slug: tenant.id })}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-700 font-bold py-3.5 rounded-xl text-xs flex items-center justify-center gap-1.5 hover:bg-gray-100 transition-colors"
-                    >
-                        <Home className="w-4 h-4 text-gray-500" /> Return to Home Menu
-                    </Link>
+                    <div className="space-y-2.5">
+                        <Link
+                            href={route('pwa.menu', { tenant_slug: tenant.id })}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                        >
+                            <Repeat className="w-4 h-4" /> Reorder / Browse Menu
+                        </Link>
+                        <Link
+                            href={route('pwa.menu', { tenant_slug: tenant.id })}
+                            className="w-full bg-gray-50 border border-gray-200 text-gray-700 font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 hover:bg-gray-100 transition-colors"
+                        >
+                            <Home className="w-4 h-4 text-gray-500" /> Return to Home
+                        </Link>
+                    </div>
                 </div>
             </div>
         </PwaLayout>

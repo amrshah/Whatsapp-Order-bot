@@ -9,6 +9,7 @@ use App\Http\Controllers\Pwa\PwaController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\Settings\BillingController;
 use App\Http\Controllers\SettingsController;
+use App\Services\MerchantOnboardingService;
 use App\Services\MerchantRoiService;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function (Request $request, MerchantRoiService $roiService) {
+Route::get('/dashboard', function (Request $request, MerchantRoiService $roiService, MerchantOnboardingService $onboardingService) {
     if (auth()->user()->isPlatformAdmin() && ! tenant()) {
         return redirect()->route('admin.dashboard');
     }
@@ -35,10 +36,12 @@ Route::get('/dashboard', function (Request $request, MerchantRoiService $roiServ
     }
 
     $roi = $roiService->calculate(tenant('id'), $period);
+    $onboarding = $onboardingService->getOnboardingStatus(tenant('id'));
 
     return Inertia::render('Dashboard', [
         'kpis' => $roi,
         'selectedPeriod' => $period,
+        'onboarding' => $onboarding,
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -108,8 +111,8 @@ Route::middleware(['auth', 'verified', 'capability:booking'])->group(function ()
 Route::group(['prefix' => 'app/{tenant_slug}'], function () {
     Route::get('/', [MiniAppController::class, 'index'])->name('pwa.app.index');
     Route::get('/manifest.json', [PwaController::class, 'manifest'])->name('pwa.manifest');
-    Route::post('/checkout', [PwaController::class, 'submitOrder'])->middleware('capability:ordering')->name('pwa.checkout');
-    Route::post('/book', [MiniAppController::class, 'submitBooking'])->middleware('capability:booking')->name('pwa.book');
+    Route::post('/checkout', [PwaController::class, 'submitOrder'])->middleware(['capability:ordering', 'throttle:pwa-checkout'])->name('pwa.checkout');
+    Route::post('/book', [MiniAppController::class, 'submitBooking'])->middleware(['capability:booking', 'throttle:pwa-checkout'])->name('pwa.book');
     Route::get('/track/{order_number}', [PwaController::class, 'trackOrder'])->name('pwa.track');
     Route::get('/order', [MiniAppController::class, 'experience'])->defaults('experience', 'order')->name('pwa.menu');
     Route::get('/{experience}', [MiniAppController::class, 'experience'])->name('pwa.app.experience');

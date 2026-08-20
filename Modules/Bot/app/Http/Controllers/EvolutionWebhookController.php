@@ -26,62 +26,69 @@ class EvolutionWebhookController extends Controller
      */
     public function handleWebhook(Request $request)
     {
-        // 1. Authenticate hook request (Verify headers if configured)
-        // For simplicity and security, we trust the incoming instance name by verifying it in our db
-        $payload = $request->all();
-        $instanceName = $payload['instance'] ?? null;
-        $event = $payload['event'] ?? null;
+        try {
+            // 1. Authenticate hook request (Verify headers if configured)
+            $payload = $request->all();
+            $instanceName = $payload['instance'] ?? null;
+            $event = $payload['event'] ?? null;
 
-        if (! $instanceName || ! $event) {
-            return response()->json(['status' => 'ignored_missing_metadata']);
-        }
+            if (! $instanceName || ! $event) {
+                return response()->json(['status' => 'ignored_missing_metadata']);
+            }
 
-        // 2. Identify Tenant via Instance Name
-        $connection = WhatsAppConnection::where('instance_name', $instanceName)
-            ->with('tenant')
-            ->first();
+            // 2. Identify Tenant via Instance Name
+            $connection = WhatsAppConnection::where('instance_name', $instanceName)
+                ->with('tenant')
+                ->first();
 
-        if (! $connection || ! $connection->tenant || ! $connection->tenant->is_active) {
-            Log::warning("Evolution Webhook: Received event '{$event}' for unknown or inactive instance: '{$instanceName}'");
+            if (! $connection || ! $connection->tenant || ! $connection->tenant->is_active) {
+                Log::warning("Evolution Webhook: Received event '{$event}' for unknown or inactive instance: '{$instanceName}'");
 
-            return response()->json(['status' => 'ignored_unknown_instance'], 404);
-        }
+                return response()->json(['status' => 'ignored_unknown_instance'], 404);
+            }
 
-        $tenant = $connection->tenant;
+            $tenant = $connection->tenant;
 
-        // 3. Initialize Tenancy Context
-        tenancy()->initialize($tenant);
+            // 3. Initialize Tenancy Context
+            tenancy()->initialize($tenant);
 
-        // 4. Handle System Connection/QR Events
-        if ($event === 'qrcode.updated') {
-            $qrcode = $payload['data']['qrcode']['base64'] ?? null;
-            $connection->update([
-                'qrcode' => $qrcode,
-                'status' => 'connecting',
+            // 4. Handle System Connection/QR Events
+            if ($event === 'qrcode.updated') {
+                $qrcode = $payload['data']['qrcode']['base64'] ?? null;
+                $connection->update([
+                    'qrcode' => $qrcode,
+                    'status' => 'connecting',
+                ]);
+                Log::info("Evolution Webhook: QR Code updated for instance '{$instanceName}'");
+
+                return response()->json(['status' => 'qrcode_updated']);
+            }
+
+            if ($event === 'connection.update') {
+                $state = $payload['data']['state'] ?? 'disconnected';
+                $connection->update([
+                    'status' => $state === 'open' ? 'open' : 'disconnected',
+                    'connected_at' => $state === 'open' ? now() : $connection->connected_at,
+                    'qrcode' => $state === 'open' ? null : $connection->qrcode, // Clear QR when connected
+                ]);
+                Log::info("Evolution Webhook: Connection state updated for '{$instanceName}' -> {$state}");
+
+                return response()->json(['status' => 'connection_updated']);
+            }
+
+            // 5. Handle Incoming Messages
+            if ($event === 'messages.upsert') {
+                return $this->processIncomingMessage($connection, $payload['data'] ?? []);
+            }
+
+            return response()->json(['status' => 'event_unhandled']);
+        } catch (\Throwable $e) {
+            Log::error('Evolution Webhook Unhandled Exception: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
             ]);
-            Log::info("Evolution Webhook: QR Code updated for instance '{$instanceName}'");
 
-            return response()->json(['status' => 'qrcode_updated']);
+            return response()->json(['status' => 'error_handled', 'message' => $e->getMessage()], 200);
         }
-
-        if ($event === 'connection.update') {
-            $state = $payload['data']['state'] ?? 'disconnected';
-            $connection->update([
-                'status' => $state === 'open' ? 'open' : 'disconnected',
-                'connected_at' => $state === 'open' ? now() : $connection->connected_at,
-                'qrcode' => $state === 'open' ? null : $connection->qrcode, // Clear QR when connected
-            ]);
-            Log::info("Evolution Webhook: Connection state updated for '{$instanceName}' -> {$state}");
-
-            return response()->json(['status' => 'connection_updated']);
-        }
-
-        // 5. Handle Incoming Messages
-        if ($event === 'messages.upsert') {
-            return $this->processIncomingMessage($connection, $payload['data']);
-        }
-
-        return response()->json(['status' => 'event_unhandled']);
     }
 
     /**

@@ -67,10 +67,15 @@ class Tenant extends BaseTenant
     /**
      * Check if this tenant has a specific capability enabled.
      */
-    public function hasCapability(TenantCapability $capability): bool
+    public function hasCapability(TenantCapability|string $capability): bool
     {
+        $capEnum = is_string($capability) ? TenantCapability::tryFrom($capability) : $capability;
+        if (! $capEnum) {
+            return false;
+        }
+
         return $this->capabilities()
-            ->where('capability', $capability->value)
+            ->where('capability', $capEnum->value)
             ->exists();
     }
 
