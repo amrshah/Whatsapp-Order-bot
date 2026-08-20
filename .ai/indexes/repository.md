@@ -28,11 +28,13 @@ Maps high-level business logic concepts to specific code directories and files.
 - **Message Handlers**: `Modules/Bot/app/Services/Handlers/` (e.g., `WelcomeHandler.php`)
 - **Simulator UI**: `resources/js/Pages/Bot/Simulator.jsx`
 
-## Multi-Vertical Capability Engine
+## Multi-Vertical Capability & ROI Engine
 - **Capability Enums**: `app/Enums/TenantCapability.php`, `app/Enums/BusinessType.php`
 - **Registry & Graph**: `app/Capability/CapabilityRegistry.php`, `app/Capability/CapabilityDefinition.php`
 - **Service & Model**: `app/Services/TenantCapabilityService.php`, `app/Models/TenantCapability.php`
 - **Middleware**: `app/Http/Middleware/RequireCapability.php` (`capability:{name}`)
+- **Merchant ROI Engine**: `app/Services/MerchantRoiService.php` (Revenue, AOV, commission savings, repeat retention)
+- **10-Minute Onboarding**: `app/Services/MerchantOnboardingService.php` (Launch checklist progress)
 
 ## Services & Bookings Domains
 - **Services (Catalog for Appointments)**: `app/Models/Service.php`, `app/Http/Controllers/ServicesController.php`, `resources/js/Pages/Services/Index.jsx`
@@ -40,16 +42,18 @@ Maps high-level business logic concepts to specific code directories and files.
 - **PWA Experience Resolver**: `app/Services/PwaExperienceResolver.php`, `app/Http/Controllers/Pwa/MiniAppController.php`
 
 ## Customer PWA Mini-App
-- **Controller**: `app/Http/Controllers/Pwa/MiniAppController.php`, `app/Http/Controllers/Pwa/PwaController.php`
+- **Controller**: `app/Http/Controllers/Pwa/MiniAppController.php`, `app/Http/Controllers/Pwa/PwaController.php` (Includes `uploadLogo`, checkout, reorder)
 - **Token Cryptography**: `Modules/Bot/app/Services/CustomerPwaTokenService.php` (15-min signed tokens)
 - **PWA Layout**: `resources/js/Layouts/PwaLayout.jsx`
 - **PWA Client Pages**: `resources/js/Pages/Pwa/MiniApp.jsx` (Composable shell), `resources/js/Pages/Pwa/OrderMenu.jsx`, `resources/js/Pages/Pwa/OrderTracking.jsx`
 
-## Configuration & Settings Layer
+## Configuration, Audit & Reliability Layer
 - **Tenant Settings Model**: `app/Models/TenantSetting.php`
 - **Settings Service**: `app/Services/TenantSettingsService.php`
+- **Audit Logging**: `app/Models/AuditLog.php`, `app/Services/AuditLogService.php`
+- **Database Backup**: `app/Console/Commands/BackupDatabaseCommand.php` (`app:backup-database`)
 - **Settings Dashboard UI**: `resources/js/Pages/Settings/MiniApp.jsx`
-- **Custom Status Notifications Listener**: `app/Listeners/SendOrderStatusWhatsAppNotification.php`
+- **Queued WhatsApp Milestone Listener**: `app/Listeners/SendOrderStatusWhatsAppNotification.php` (ShouldQueue, retries, idempotency)
 
 ## Menu Module (Ordering Verticals)
 - **Namespace**: `Modules\Menu`
