@@ -2,11 +2,14 @@
 
 namespace Modules\Authentication\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -15,8 +18,7 @@ class SocialAuthController extends Controller
     /**
      * Redirect the user to the provider authentication page.
      *
-     * @param string $provider
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function redirect(string $provider)
     {
@@ -26,8 +28,7 @@ class SocialAuthController extends Controller
     /**
      * Obtain the user information from the provider.
      *
-     * @param string $provider
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function callback(string $provider)
     {
@@ -38,7 +39,7 @@ class SocialAuthController extends Controller
                 ->orWhere('email', $socialUser->getEmail())
                 ->first();
 
-            if (!$user) {
+            if (! $user) {
                 // Register a new user
                 $user = User::create([
                     'name' => $socialUser->getName() ?? $socialUser->getNickname(),
@@ -51,11 +52,23 @@ class SocialAuthController extends Controller
                 ]);
 
                 // Create a tenant for the new user (Restaurant Onboarding)
-                $tenantName = explode(' ', $user->name)[0] . "'s Restaurant";
-                
+                $tenantName = explode(' ', $user->name)[0]."'s Restaurant";
+
+                $slug = Str::slug($tenantName);
+                if (empty($slug)) {
+                    $slug = 'restaurant';
+                }
+
+                $originalSlug = $slug;
+                $count = 1;
+                while (Tenant::where('id', $slug)->exists()) {
+                    $slug = $originalSlug.'-'.$count;
+                    $count++;
+                }
+
                 // Use stancl/tenancy Tenant model
-                $tenant = \App\Models\Tenant::create([
-                    'id' => Str::slug($tenantName) . '-' . Str::random(4),
+                $tenant = Tenant::create([
+                    'id' => $slug,
                     'name' => $tenantName,
                 ]);
 
@@ -65,7 +78,7 @@ class SocialAuthController extends Controller
 
                 // Initialize tenancy context to assign roles within tenant scope (if using tenant-aware spatie)
                 // For single-db with global roles, this might just work directly.
-                $user->assignRole('Owner');
+                $user->assignRole(UserRole::Owner->value);
             } else {
                 // Update the user's provider info if they already existed via email
                 $user->update([
@@ -79,6 +92,8 @@ class SocialAuthController extends Controller
 
             return redirect()->intended(route('dashboard', absolute: false));
         } catch (\Exception $e) {
+            Log::error('Social Auth callback failed: '.$e->getMessage());
+
             return redirect()->route('login')->with('error', 'Authentication failed. Please try again.');
         }
     }

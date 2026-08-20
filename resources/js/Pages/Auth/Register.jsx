@@ -114,6 +114,27 @@ export default function Register() {
                         Register
                     </PrimaryButton>
                 </div>
+
+                <div className="mt-6 flex items-center justify-between">
+                    <span className="w-1/5 border-b dark:border-gray-600 lg:w-1/4"></span>
+                    <span className="text-xs text-center text-gray-500 uppercase dark:text-gray-400 hover:underline">or register with</span>
+                    <span className="w-1/5 border-b dark:border-gray-600 lg:w-1/4"></span>
+                </div>
+
+                <div className="flex flex-col mt-4 space-y-3">
+                    <a
+                        href="/auth/google/redirect"
+                        className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+                    >
+                        Google
+                    </a>
+                    <a
+                        href="/auth/facebook/redirect"
+                        className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                        Facebook
+                    </a>
+                </div>
             </form>
         </GuestLayout>
     );
