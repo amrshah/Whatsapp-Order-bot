@@ -11,6 +11,13 @@ Maps high-level business logic concepts to specific code directories and files.
 - **Configuration**: `config/tenancy.php`
 - **Middleware**: Used across web and API routes to initialize tenant scope.
 
+## Authorization & Security (MFA)
+- **Role/Permission Enums**: `app/Enums/UserRole.php`, `app/Enums/UserPermission.php`
+- **MFA Config**: `config/fortify.php`
+- **MFA Controllers**: `app/Http/Controllers/Auth/TwoFactorAuthenticationController.php`, `app/Http/Controllers/Auth/TwoFactorChallengeController.php`
+- **MFA React Views**: `resources/js/Pages/Auth/TwoFactorChallenge.jsx`, `resources/js/Pages/Profile/Partials/TwoFactorSettings.jsx`
+- **MFA Integration Tests**: `tests/Feature/TwoFactorAuthenticationTest.php`
+
 ## WhatsApp Bot Module
 - **Namespace**: `Modules\Bot`
 - **Webhook Entrypoints**: `Modules/Bot/app/Http/Controllers/BotController.php` (Meta API), `Modules/Bot/app/Http/Controllers/EvolutionWebhookController.php` (Evolution/Baileys API)
