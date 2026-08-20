@@ -51,6 +51,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Settings
                                 </Link>
+
+                                <a
+                                    href="/admin/logs"
+                                    className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${window.location.pathname.startsWith('/admin/logs') ? 'border-indigo-500 text-white focus:border-indigo-700' : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white focus:border-gray-300 focus:text-white'}`}
+                                >
+                                    Error Logs
+                                </a>
                             </div>
                         </div>
 
@@ -176,6 +183,13 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Settings
                         </Link>
+
+                        <a
+                            href="/admin/logs"
+                            className={`block w-full border-l-4 py-2 pe-4 ps-3 text-start text-base font-medium transition duration-150 ease-in-out focus:outline-none ${window.location.pathname.startsWith('/admin/logs') ? 'border-indigo-400 bg-indigo-900/50 text-indigo-200 focus:border-indigo-700 focus:bg-indigo-900 focus:text-indigo-100' : 'border-transparent text-gray-400 hover:border-gray-600 hover:bg-gray-800 hover:text-gray-200 focus:border-gray-600 focus:bg-gray-800 focus:text-gray-200'}`}
+                        >
+                            Error Logs
+                        </a>
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">

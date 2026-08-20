@@ -23,6 +23,15 @@ class SocialAuthController extends Controller
     public function redirect(string $provider)
     {
         $config = config("services.{$provider}");
+
+        $clientId = $config['client_id'] ?? '';
+        $redirectUrl = $config['redirect'] ?? '';
+        $maskedClientId = ! empty($clientId)
+            ? substr($clientId, 0, 10).'...'.substr($clientId, -10)
+            : 'EMPTY';
+
+        Log::info("Social Auth Redirect Initiated: Provider: '{$provider}', ClientID: '{$maskedClientId}', RedirectURI: '{$redirectUrl}'");
+
         if (empty($config['client_id']) || empty($config['client_secret'])) {
             Log::error("Social Auth Redirect Blocked: Missing credentials for '{$provider}'. Verify .env variables and clear config cache via 'php artisan config:clear'.");
 

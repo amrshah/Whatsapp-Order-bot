@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Opcodes\LogViewer\Facades\LogViewer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,6 +34,12 @@ class AppServiceProvider extends ServiceProvider
         );
 
         Vite::prefetch(concurrency: 3);
+
+        if (class_exists(LogViewer::class)) {
+            LogViewer::auth(function ($request) {
+                return $request->user() && $request->user()->isPlatformAdmin();
+            });
+        }
 
         if (str_starts_with(config('app.url'), 'https://')) {
             URL::forceScheme('https');

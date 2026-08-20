@@ -4,7 +4,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -12,6 +12,8 @@ export default function Login({ status, canResetPassword }) {
         password: '',
         remember: false,
     });
+
+    const { flash } = usePage().props;
 
     const submit = (e) => {
         e.preventDefault();
@@ -24,6 +26,12 @@ export default function Login({ status, canResetPassword }) {
     return (
         <GuestLayout>
             <Head title="Log in" />
+
+            {flash?.error && (
+                <div className="mb-4 text-sm font-medium text-red-600 bg-red-50 p-3 rounded-lg border border-red-200 dark:bg-red-950/30 dark:border-red-900/50 dark:text-red-450">
+                    {flash.error}
+                </div>
+            )}
 
             {status && (
                 <div className="mb-4 text-sm font-medium text-green-600">
