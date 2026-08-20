@@ -42,6 +42,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Determine if the user has a local password set.
+     */
+    public function hasPassword(): bool
+    {
+        return ! empty($this->password);
+    }
+
+    /**
      * Determine if the user is a platform administrator.
      */
     public function isPlatformAdmin(): bool

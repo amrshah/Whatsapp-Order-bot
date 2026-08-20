@@ -3,12 +3,17 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { useRef } from 'react';
 
 export default function UpdatePasswordForm({ className = '' }) {
     const passwordInput = useRef();
     const currentPasswordInput = useRef();
+
+    const { auth } = usePage().props;
+    const user = auth?.user;
+    const hasPassword = Boolean(user?.has_password);
+    const providerName = user?.provider_name;
 
     const {
         data,
@@ -36,7 +41,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                     passwordInput.current.focus();
                 }
 
-                if (errors.current_password) {
+                if (errors.current_password && currentPasswordInput.current) {
                     reset('current_password');
                     currentPasswordInput.current.focus();
                 }
@@ -48,42 +53,47 @@ export default function UpdatePasswordForm({ className = '' }) {
         <section className={className}>
             <header>
                 <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    Update Password
+                    {hasPassword ? 'Update Password' : 'Set Password'}
                 </h2>
 
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Ensure your account is using a long, random password to stay
-                    secure.
+                    {hasPassword
+                        ? 'Ensure your account is using a long, random password to stay secure.'
+                        : providerName
+                        ? `You registered using ${providerName.charAt(0).toUpperCase() + providerName.slice(1)}. Set a password if you'd also like to sign in with your email and password.`
+                        : 'Set a password to sign in directly with your email and password.'}
                 </p>
             </header>
 
             <form onSubmit={updatePassword} className="mt-6 space-y-6">
+                {hasPassword && (
+                    <div>
+                        <InputLabel
+                            htmlFor="current_password"
+                            value="Current Password"
+                        />
+
+                        <TextInput
+                            id="current_password"
+                            ref={currentPasswordInput}
+                            value={data.current_password}
+                            onChange={(e) =>
+                                setData('current_password', e.target.value)
+                            }
+                            type="password"
+                            className="mt-1 block w-full"
+                            autoComplete="current-password"
+                        />
+
+                        <InputError
+                            message={errors.current_password}
+                            className="mt-2"
+                        />
+                    </div>
+                )}
+
                 <div>
-                    <InputLabel
-                        htmlFor="current_password"
-                        value="Current Password"
-                    />
-
-                    <TextInput
-                        id="current_password"
-                        ref={currentPasswordInput}
-                        value={data.current_password}
-                        onChange={(e) =>
-                            setData('current_password', e.target.value)
-                        }
-                        type="password"
-                        className="mt-1 block w-full"
-                        autoComplete="current-password"
-                    />
-
-                    <InputError
-                        message={errors.current_password}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div>
-                    <InputLabel htmlFor="password" value="New Password" />
+                    <InputLabel htmlFor="password" value={hasPassword ? 'New Password' : 'Password'} />
 
                     <TextInput
                         id="password"
@@ -122,7 +132,9 @@ export default function UpdatePasswordForm({ className = '' }) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                    <PrimaryButton disabled={processing}>
+                        {hasPassword ? 'Save' : 'Set Password'}
+                    </PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}

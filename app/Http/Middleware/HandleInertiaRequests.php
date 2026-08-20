@@ -37,6 +37,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user() ? array_merge($request->user()->toArray(), [
                     'is_super_admin' => $request->user()->isPlatformAdmin(),
+                    'has_password' => $request->user()->hasPassword(),
+                    'provider_name' => $request->user()->provider_name,
                     'two_factor_enabled' => $request->user()->hasEnabledTwoFactorAuthentication(),
                     'two_factor_pending' => ! is_null($request->user()->two_factor_secret) && is_null($request->user()->two_factor_confirmed_at),
                 ]) : null,
