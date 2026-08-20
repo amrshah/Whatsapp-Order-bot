@@ -29,6 +29,7 @@ Route::get('/dashboard', function () {
 
     $totalOrders = Order::count();
     $activeItems = Product::where('is_active', true)->count();
+    $totalCustomers = \Modules\Crm\Models\Customer::count();
 
     // Assume 30% commission saved on total sales
     $totalSales = Order::whereIn('status', ['Completed', 'Delivered'])->sum('total_amount');
@@ -39,6 +40,7 @@ Route::get('/dashboard', function () {
             'totalOrders' => $totalOrders,
             'activeItems' => $activeItems,
             'savedCommission' => $savedCommission,
+            'totalCustomers' => $totalCustomers,
         ],
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
