@@ -32,8 +32,8 @@ class SocialAuthController extends Controller
 
         Log::info("Social Auth Redirect Initiated: Provider: '{$provider}', ClientID: '{$maskedClientId}', RedirectURI: '{$redirectUrl}'");
 
-        if (empty($config['client_id']) || empty($config['client_secret'])) {
-            Log::error("Social Auth Redirect Blocked: Missing credentials for '{$provider}'. Verify .env variables and clear config cache via 'php artisan config:clear'.");
+        if (empty($config['client_id']) || empty($config['client_secret']) || empty($config['redirect'])) {
+            Log::error("Social Auth Redirect Blocked: Incomplete credentials/configuration for '{$provider}'. Verify client_id, client_secret, and redirect in .env variables and clear config cache via 'php artisan config:clear'.");
 
             return redirect()->route('login')->with('error', "Authentication configuration for '{$provider}' is incomplete on the server.");
         }
