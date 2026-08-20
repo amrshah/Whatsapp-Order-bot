@@ -240,6 +240,8 @@ class PwaController extends Controller
     public function trackOrder(Request $request, string $tenant_slug, string $order_number)
     {
         $tenant = $this->initializeTenant($tenant_slug);
+        $settings = $tenant->settings('published');
+        $businessName = $settings->branding['business_name'] ?? $tenant->name;
 
         $order = Order::where('order_number', $order_number)
             ->with('items.product')
@@ -248,7 +250,7 @@ class PwaController extends Controller
         return Inertia::render('Pwa/OrderTracking', [
             'tenant' => [
                 'id' => $tenant->id,
-                'name' => $tenant->name,
+                'name' => $businessName,
             ],
             'order' => $order,
         ]);

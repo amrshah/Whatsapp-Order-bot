@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Tenant;
 use App\Models\TenantSetting;
 
 class TenantSettingsService
@@ -13,6 +14,7 @@ class TenantSettingsService
     {
         return [
             'branding' => [
+                'business_name' => '',
                 'logo' => '',
                 'favicon' => '',
                 'primary_color' => '#ef4444',
@@ -51,8 +53,12 @@ class TenantSettingsService
             ->where('status', $status)
             ->first();
 
+        $tenant = Tenant::find($tenantId);
+        $tenantName = $tenant ? $tenant->name : '';
+
         if (! $setting) {
             $defaults = self::getDefaults();
+            $defaults['branding']['business_name'] = $tenantName;
             $setting = new TenantSetting([
                 'tenant_id' => $tenantId,
                 'status' => $status,
@@ -62,6 +68,12 @@ class TenantSettingsService
                 'whatsapp' => $defaults['whatsapp'],
                 'crm' => $defaults['crm'],
             ]);
+        } else {
+            $branding = $setting->branding;
+            if (empty($branding['business_name'])) {
+                $branding['business_name'] = $tenantName;
+                $setting->branding = $branding;
+            }
         }
 
         return $setting;

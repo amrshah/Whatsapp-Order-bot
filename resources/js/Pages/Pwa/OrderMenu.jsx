@@ -52,6 +52,7 @@ export default function OrderMenu({ tenant, customer, categories, settings, prev
     const ordering = settings?.ordering || {};
     const payments = settings?.payments || {};
     const primaryColor = branding.primary_color || '#ef4444';
+    const businessName = branding.business_name || tenant.name;
 
     // Filter products
     const filteredCategories = categories.map(cat => {
@@ -164,11 +165,11 @@ export default function OrderMenu({ tenant, customer, categories, settings, prev
             if (data.success) {
                 // Save order number in localStorage for side-drawer tracking
                 try {
-                    const saved = localStorage.getItem('pwa_recent_orders');
+                    const saved = localStorage.getItem(`pwa_recent_orders_${tenant.id}`);
                     const recent = saved ? JSON.parse(saved) : [];
                     if (!recent.includes(data.order_number)) {
                         recent.unshift(data.order_number);
-                        localStorage.setItem('pwa_recent_orders', JSON.stringify(recent.slice(0, 5)));
+                        localStorage.setItem(`pwa_recent_orders_${tenant.id}`, JSON.stringify(recent.slice(0, 5)));
                     }
                 } catch (err) {
                     console.error('Failed to save order to localStorage', err);
@@ -187,8 +188,8 @@ export default function OrderMenu({ tenant, customer, categories, settings, prev
     };
 
     return (
-        <PwaLayout tenantName={tenant.name} tenantId={tenant.id}>
-            <Head title={`${tenant.name} - Online Menu`} />
+        <PwaLayout tenantName={businessName} tenantId={tenant.id}>
+            <Head title={`${businessName} - Online Menu`} />
 
             {/* Dynamic Styling injected via Style tag */}
             <style>{`
@@ -210,7 +211,7 @@ export default function OrderMenu({ tenant, customer, categories, settings, prev
             <div className="relative h-32 bg-gray-900 overflow-hidden flex items-center justify-center text-white px-4">
                 <div className="absolute inset-0 opacity-45 bg-[url('https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=600')] bg-cover bg-center"></div>
                 <div className="relative text-center space-y-1">
-                    <h2 className="text-lg font-black uppercase tracking-wider">{tenant.name}</h2>
+                    <h2 className="text-lg font-black uppercase tracking-wider">{businessName}</h2>
                     <p className="text-xs text-gray-300 font-medium italic">
                         {branding.tagline || 'Fresh ordering companion app'}
                     </p>

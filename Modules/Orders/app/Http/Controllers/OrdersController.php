@@ -2,8 +2,17 @@
 
 namespace Modules\Orders\Http\Controllers;
 
+use App\Events\OrderCreated;
+use App\Events\OrderStatusUpdated;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
+use Modules\Crm\Models\Customer;
+use Modules\Menu\Models\Category;
+use Modules\Menu\Models\Product;
+use Modules\Orders\Models\Order;
+use Modules\Orders\Models\OrderItem;
 
 class OrdersController extends Controller
 {
@@ -12,42 +21,42 @@ class OrdersController extends Controller
      */
     public function index()
     {
-        $orders = \Modules\Orders\Models\Order::whereIn('status', ['Pending', 'Preparing', 'Ready'])
+        $orders = Order::whereIn('status', ['Pending', 'Preparing', 'Ready'])
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return \Inertia\Inertia::render('Orders/Kds', [
+        return Inertia::render('Orders/Kds', [
             'orders' => $orders,
-            'tenantId' => tenant('id')
+            'tenantId' => tenant('id'),
         ]);
     }
 
     public function unifiedKds()
     {
-        $orders = \Modules\Orders\Models\Order::with('items.product')
+        $orders = Order::with('items.product')
             ->whereIn('status', ['Pending', 'Preparing', 'Ready'])
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return \Inertia\Inertia::render('Orders/UnifiedKds', [
+        return Inertia::render('Orders/UnifiedKds', [
             'orders' => $orders,
-            'tenantId' => tenant('id')
+            'tenantId' => tenant('id'),
         ]);
     }
 
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:Pending,Preparing,Ready,Delivered'
+            'status' => 'required|in:Pending,Preparing,Ready,Delivered',
         ]);
 
-        $order = \Modules\Orders\Models\Order::findOrFail($id);
+        $order = Order::findOrFail($id);
         $order->update(['status' => $request->status]);
 
         try {
-            broadcast(new \App\Events\OrderStatusUpdated($order, tenant('id')));
+            event(new OrderStatusUpdated($order, tenant('id')));
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning("Could not broadcast OrderStatusUpdated event. Reverb might be down: " . $e->getMessage());
+            Log::warning('Could not broadcast OrderStatusUpdated event. Reverb might be down: '.$e->getMessage());
         }
 
         return redirect()->back();
@@ -55,12 +64,12 @@ class OrdersController extends Controller
 
     public function create()
     {
-        $categories = \Modules\Menu\Models\Category::with(['products' => function($q) {
+        $categories = Category::with(['products' => function ($q) {
             $q->where('is_active', true);
         }])->where('is_active', true)->get();
 
-        return \Inertia\Inertia::render('Orders/Pos', [
-            'categories' => $categories
+        return Inertia::render('Orders/Pos', [
+            'categories' => $categories,
         ]);
     }
 
@@ -73,34 +82,34 @@ class OrdersController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
-            'total_amount' => 'required|numeric'
+            'total_amount' => 'required|numeric',
         ]);
 
-        $order = \Modules\Orders\Models\Order::create([
-            'order_number' => 'ORD-' . strtoupper(uniqid()),
+        $order = Order::create([
+            'order_number' => 'ORD-'.strtoupper(uniqid()),
             'table_number' => $request->table_number,
             'customer_phone' => $request->customer_phone,
             'customer_name' => $request->customer_name ?? 'POS Customer',
             'total_amount' => $request->total_amount,
             'status' => 'Pending',
-            'order_type' => 'POS'
+            'order_type' => 'POS',
         ]);
 
         foreach ($request->items as $item) {
-            $product = \Modules\Menu\Models\Product::find($item['product_id']);
+            $product = Product::find($item['product_id']);
             if ($product) {
-                \Modules\Orders\Models\OrderItem::create([
+                OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'quantity' => $item['quantity'],
                     'unit_price' => $product->price,
-                    'subtotal' => $product->price * $item['quantity']
+                    'subtotal' => $product->price * $item['quantity'],
                 ]);
             }
         }
 
         if ($request->customer_phone) {
-            $customer = \Modules\Crm\Models\Customer::firstOrCreate(
+            $customer = Customer::firstOrCreate(
                 ['phone' => $request->customer_phone]
             );
             $customer->name = $request->customer_name ?? $customer->name;
@@ -111,9 +120,9 @@ class OrdersController extends Controller
         }
 
         try {
-            broadcast(new \App\Events\OrderCreated($order->load('items.product'), tenant('id')));
+            broadcast(new OrderCreated($order->load('items.product'), tenant('id')));
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning("Could not broadcast OrderCreated event. Reverb might be down: " . $e->getMessage());
+            Log::warning('Could not broadcast OrderCreated event. Reverb might be down: '.$e->getMessage());
         }
 
         return redirect()->route('orders.create')->with('success', 'Order placed successfully!');
@@ -121,12 +130,12 @@ class OrdersController extends Controller
 
     public function history()
     {
-        $orders = \Modules\Orders\Models\Order::where('status', 'Delivered')
+        $orders = Order::where('status', 'Delivered')
             ->orderBy('updated_at', 'desc')
             ->paginate(15);
 
-        return \Inertia\Inertia::render('Orders/History', [
-            'orders' => $orders
+        return Inertia::render('Orders/History', [
+            'orders' => $orders,
         ]);
     }
 

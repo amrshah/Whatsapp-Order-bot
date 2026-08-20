@@ -7,15 +7,18 @@ export default function PwaLayout({ children, tenantName, tenantId }) {
 
     // Load recent orders from localStorage for easy customer tracking
     useEffect(() => {
+        if (!tenantId) return;
         try {
-            const saved = localStorage.getItem('pwa_recent_orders');
+            const saved = localStorage.getItem(`pwa_recent_orders_${tenantId}`);
             if (saved) {
                 setRecentOrders(JSON.parse(saved));
+            } else {
+                setRecentOrders([]);
             }
         } catch (e) {
             console.error('Failed to load recent orders', e);
         }
-    }, [isDrawerOpen]); // Reload when drawer opens
+    }, [isDrawerOpen, tenantId]); // Reload when drawer opens or tenant changes
 
     return (
         <div className="min-h-screen bg-gray-150 flex flex-col items-center justify-start text-gray-900">

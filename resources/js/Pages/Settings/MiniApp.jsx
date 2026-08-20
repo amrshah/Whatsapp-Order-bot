@@ -18,6 +18,7 @@ export default function MiniApp({ settings, tenantId }) {
     // Load initial settings with fallbacks (no emojis in default templates)
     const [form, setForm] = useState({
         branding: {
+            business_name: settings.branding?.business_name || '',
             logo: settings.branding?.logo || '',
             favicon: settings.branding?.favicon || '',
             primary_color: settings.branding?.primary_color || '#ef4444',
@@ -177,6 +178,17 @@ export default function MiniApp({ settings, tenantId }) {
                                             />
                                             <span className="text-xs font-mono text-gray-500">{form.branding.primary_color}</span>
                                         </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Business Display Name</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                                            value={form.branding.business_name}
+                                            onChange={(e) => updateField('branding', 'business_name', e.target.value)}
+                                            placeholder="Your restaurant or cafe name"
+                                        />
                                     </div>
 
                                     <div className="space-y-1">

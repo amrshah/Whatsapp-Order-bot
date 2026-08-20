@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -37,7 +39,20 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $tenant = \Stancl\Tenancy\Database\Models\Tenant::create([
+        $slug = Str::slug($request->name);
+        if (empty($slug)) {
+            $slug = 'restaurant';
+        }
+
+        $originalSlug = $slug;
+        $count = 1;
+        while (Tenant::where('id', $slug)->exists()) {
+            $slug = $originalSlug.'-'.$count;
+            $count++;
+        }
+
+        $tenant = Tenant::create([
+            'id' => $slug,
             'name' => $request->name,
         ]);
 
