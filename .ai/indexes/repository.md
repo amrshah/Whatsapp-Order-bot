@@ -28,11 +28,22 @@ Maps high-level business logic concepts to specific code directories and files.
 - **Message Handlers**: `Modules/Bot/app/Services/Handlers/` (e.g., `WelcomeHandler.php`)
 - **Simulator UI**: `resources/js/Pages/Bot/Simulator.jsx`
 
+## Multi-Vertical Capability Engine
+- **Capability Enums**: `app/Enums/TenantCapability.php`, `app/Enums/BusinessType.php`
+- **Registry & Graph**: `app/Capability/CapabilityRegistry.php`, `app/Capability/CapabilityDefinition.php`
+- **Service & Model**: `app/Services/TenantCapabilityService.php`, `app/Models/TenantCapability.php`
+- **Middleware**: `app/Http/Middleware/RequireCapability.php` (`capability:{name}`)
+
+## Services & Bookings Domains
+- **Services (Catalog for Appointments)**: `app/Models/Service.php`, `app/Http/Controllers/ServicesController.php`, `resources/js/Pages/Services/Index.jsx`
+- **Bookings (Appointments)**: `app/Models/Booking.php`, `app/Http/Controllers/BookingsController.php`, `resources/js/Pages/Bookings/Index.jsx`
+- **PWA Experience Resolver**: `app/Services/PwaExperienceResolver.php`, `app/Http/Controllers/Pwa/MiniAppController.php`
+
 ## Customer PWA Mini-App
-- **Controller**: `app/Http/Controllers/Pwa/PwaController.php` (Includes token exchange, menu rendering, checkout, order tracking, and dynamic manifest outputs)
+- **Controller**: `app/Http/Controllers/Pwa/MiniAppController.php`, `app/Http/Controllers/Pwa/PwaController.php`
 - **Token Cryptography**: `Modules/Bot/app/Services/CustomerPwaTokenService.php` (15-min signed tokens)
-- **PWA Layout**: `resources/js/Layouts/PwaLayout.jsx` (Includes Hamburger menu side-navigation drawer and localStorage order trackers)
-- **PWA Client Pages**: `resources/js/Pages/Pwa/OrderMenu.jsx`, `resources/js/Pages/Pwa/OrderTracking.jsx` (Dynamic styles and real-time Reverb broadcasts)
+- **PWA Layout**: `resources/js/Layouts/PwaLayout.jsx`
+- **PWA Client Pages**: `resources/js/Pages/Pwa/MiniApp.jsx` (Composable shell), `resources/js/Pages/Pwa/OrderMenu.jsx`, `resources/js/Pages/Pwa/OrderTracking.jsx`
 
 ## Configuration & Settings Layer
 - **Tenant Settings Model**: `app/Models/TenantSetting.php`
@@ -40,10 +51,10 @@ Maps high-level business logic concepts to specific code directories and files.
 - **Settings Dashboard UI**: `resources/js/Pages/Settings/MiniApp.jsx`
 - **Custom Status Notifications Listener**: `app/Listeners/SendOrderStatusWhatsAppNotification.php`
 
-## Menu Module
+## Menu Module (Ordering Verticals)
 - **Namespace**: `Modules\Menu`
 - **Category & Products**: `Modules/Menu/app/Models/Category.php`, `Modules/Menu/app/Models/Product.php`
-- **Controllers**: `Modules/Menu/app/Http/Controllers/CategoryController.php` (Includes `applyTemplate` logic for predefined menu categories).
+- **Controllers**: `Modules/Menu/app/Http/Controllers/CategoryController.php`
 - **UI**: `resources/js/Pages/Menu/`
 
 ## Integrations
