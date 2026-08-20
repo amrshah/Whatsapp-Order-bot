@@ -173,13 +173,13 @@ export default function Register() {
 
                 <div className="flex flex-col mt-4 space-y-3">
                     <a
-                        href="/auth/google/redirect"
+                        href={`/auth/google/redirect?business_type=${data.business_type}`}
                         className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                         Google
                     </a>
                     <a
-                        href="/auth/facebook/redirect"
+                        href={`/auth/facebook/redirect?business_type=${data.business_type}`}
                         className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         Facebook

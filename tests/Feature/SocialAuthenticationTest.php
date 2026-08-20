@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\BusinessType;
+use App\Enums\TenantCapability;
 use App\Enums\UserRole;
 use App\Models\Tenant;
 use App\Models\User;
@@ -96,4 +98,42 @@ test('social auth callback maps existing user by email', function () {
     expect($user->provider_name)->toBe('google');
     expect($user->provider_id)->toBe('google-12345');
     expect($user->avatar)->toBe('https://example.com/avatar.jpg');
+});
+
+test('social auth redirect preserves business_type and callback creates clinic tenant preset', function () {
+    Socialite::fake('google');
+
+    // 1. User clicks Google OAuth with business_type=clinic
+    $this->get('/auth/google/redirect?business_type=clinic')
+        ->assertSessionHas('oauth_business_type', 'clinic');
+
+    $fakeUser = SocialiteUser::fake([
+        'id' => 'google-clinic-123',
+        'name' => 'Dr Smith',
+        'email' => 'drsmith@example.com',
+        'avatar' => 'https://example.com/dr.jpg',
+    ]);
+
+    Socialite::fake('google', $fakeUser);
+
+    // 2. Callback receives OAuth user and creates Clinic tenant with Clinic capabilities
+    $response = $this->withSession(['oauth_business_type' => 'clinic'])
+        ->get('/auth/google/callback');
+
+    $response->assertRedirect(route('dashboard'));
+    $this->assertAuthenticated();
+
+    $user = User::where('email', 'drsmith@example.com')->first();
+    expect($user)->not->toBeNull();
+
+    $tenant = Tenant::find($user->tenant_id);
+    expect($tenant)->not->toBeNull();
+    expect($tenant->name)->toBe("Dr's Clinic");
+    expect($tenant->business_type)->toBe(BusinessType::Clinic->value);
+    expect($tenant->primary_experience)->toBe('book');
+
+    expect($tenant->hasCapability(TenantCapability::Services))->toBeTrue();
+    expect($tenant->hasCapability(TenantCapability::Booking))->toBeTrue();
+    expect($tenant->hasCapability(TenantCapability::Catalog))->toBeFalse();
+    expect($tenant->hasCapability(TenantCapability::Ordering))->toBeFalse();
 });

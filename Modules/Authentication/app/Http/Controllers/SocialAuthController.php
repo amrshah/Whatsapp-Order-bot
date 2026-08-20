@@ -34,6 +34,13 @@ class SocialAuthController extends Controller
 
         Log::info("Social Auth Redirect Initiated: Provider: '{$provider}', ClientID: '{$maskedClientId}', RedirectURI: '{$redirectUrl}'");
 
+        if (request()->has('business_type')) {
+            $type = BusinessType::tryFrom(request()->query('business_type'));
+            if ($type) {
+                session(['oauth_business_type' => $type->value]);
+            }
+        }
+
         if (empty($config['client_id']) || empty($config['client_secret']) || empty($config['redirect'])) {
             Log::error("Social Auth Redirect Blocked: Incomplete credentials/configuration for '{$provider}'. Verify client_id, client_secret, and redirect in .env variables and clear config cache via 'php artisan config:clear'.");
 
@@ -69,12 +76,25 @@ class SocialAuthController extends Controller
                     'password' => Hash::make(Str::random(24)),
                 ]);
 
-                // Create a tenant for the new user (Restaurant Onboarding)
-                $tenantName = explode(' ', $user->name)[0]."'s Restaurant";
+                // Create a tenant for the new user based on selected business type
+                $businessTypeValue = session()->pull('oauth_business_type');
+                $businessType = BusinessType::tryFrom($businessTypeValue) ?? BusinessType::Restaurant;
+
+                $suffix = match ($businessType) {
+                    BusinessType::Clinic => 'Clinic',
+                    BusinessType::Salon => 'Salon',
+                    BusinessType::LawFirm => 'Law Firm',
+                    BusinessType::Workshop => 'Workshop',
+                    BusinessType::Retail => 'Store',
+                    BusinessType::Restaurant => 'Restaurant',
+                };
+
+                $firstName = explode(' ', $user->name)[0];
+                $tenantName = "{$firstName}'s {$suffix}";
 
                 $slug = Str::slug($tenantName);
                 if (empty($slug)) {
-                    $slug = 'restaurant';
+                    $slug = $businessType->value;
                 }
 
                 $originalSlug = $slug;
@@ -89,7 +109,7 @@ class SocialAuthController extends Controller
                     'name' => $tenantName,
                 ]);
 
-                app(TenantCapabilityService::class)->applyPreset($tenant, BusinessType::Restaurant);
+                app(TenantCapabilityService::class)->applyPreset($tenant, $businessType);
 
                 // Associate user with tenant
                 $user->tenant_id = $tenant->id;

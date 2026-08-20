@@ -10,6 +10,7 @@ use App\Http\Controllers\SettingsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Modules\Crm\Models\Customer;
 use Modules\Menu\Models\Product;
 use Modules\Orders\Models\Order;
 
@@ -29,7 +30,7 @@ Route::get('/dashboard', function () {
 
     $totalOrders = Order::count();
     $activeItems = Product::where('is_active', true)->count();
-    $totalCustomers = \Modules\Crm\Models\Customer::count();
+    $totalCustomers = Customer::count();
 
     // Assume 30% commission saved on total sales
     $totalSales = Order::whereIn('status', ['Completed', 'Delivered'])->sum('total_amount');
