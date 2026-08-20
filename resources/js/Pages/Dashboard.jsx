@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { UtensilsCrossed, Monitor, Users, DollarSign, ShoppingCart, Package, Sparkles, MessageSquare, ArrowRight } from 'lucide-react';
+import { UtensilsCrossed, Monitor, Users, DollarSign, ShoppingCart, Package, Sparkles, MessageSquare, ArrowRight, Calendar } from 'lucide-react';
 
 export default function Dashboard({ kpis }) {
     const { appName, auth, tenant } = usePage().props;
@@ -11,7 +11,8 @@ export default function Dashboard({ kpis }) {
     const isOrdering = hasCap('ordering');
     const isCatalog = hasCap('catalog');
     const isKds = hasCap('kds');
-    const isBooking = hasCap('booking') || hasCap('services');
+    const isBooking = hasCap('booking');
+    const isServices = hasCap('services');
 
     return (
         <AuthenticatedLayout
@@ -37,7 +38,7 @@ export default function Dashboard({ kpis }) {
                                 <h3 className="text-2xl font-bold">Welcome to {name}!</h3>
                                 <p className="mt-2 text-indigo-100 text-sm max-w-xl">
                                     Your intelligent WhatsApp assistant is running.
-                                    {user && user.tenant_id ? " Share your WhatsApp number with customers to start receiving interactions automatically." : " Configure global settings or manage tenants from the sidebar."}
+                                    {user && user.tenant_id ? " Share your WhatsApp number with clients and customers to start receiving interactions automatically." : " Configure global settings or manage tenants from the sidebar."}
                                 </p>
                             </div>
                             <div className="flex flex-wrap gap-3">
@@ -47,6 +48,22 @@ export default function Dashboard({ kpis }) {
                                         className="bg-white text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-100 transition shadow flex items-center gap-1.5"
                                     >
                                         <Package className="w-3.5 h-3.5" /> Manage Menu
+                                    </Link>
+                                )}
+                                {isServices && (
+                                    <Link 
+                                        href={route('services.index')} 
+                                        className="bg-white text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-100 transition shadow flex items-center gap-1.5"
+                                    >
+                                        <Sparkles className="w-3.5 h-3.5" /> Manage Services
+                                    </Link>
+                                )}
+                                {isBooking && (
+                                    <Link 
+                                        href={route('bookings.index')} 
+                                        className="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-4 py-2 rounded-xl text-xs font-bold transition shadow flex items-center gap-1.5"
+                                    >
+                                        <Calendar className="w-3.5 h-3.5" /> Appointments
                                     </Link>
                                 )}
                                 {isKds && (
@@ -128,6 +145,44 @@ export default function Dashboard({ kpis }) {
                             </div>
                         )}
 
+                        {/* Bookings Card (Booking only) */}
+                        {isBooking && (
+                            <div className="overflow-hidden bg-white shadow-sm sm:rounded-2xl dark:bg-gray-800 border-l-4 border-indigo-500">
+                                <div className="p-6">
+                                    <div className="flex items-center">
+                                        <div className="flex-shrink-0 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl p-3">
+                                            <Calendar className="h-6 w-6" />
+                                        </div>
+                                        <div className="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt className="truncate text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Appointments</dt>
+                                                <dd className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{kpis?.totalBookings || 0}</dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Active Services Card (Services only) */}
+                        {isServices && (
+                            <div className="overflow-hidden bg-white shadow-sm sm:rounded-2xl dark:bg-gray-800 border-l-4 border-amber-500">
+                                <div className="p-6">
+                                    <div className="flex items-center">
+                                        <div className="flex-shrink-0 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl p-3">
+                                            <Sparkles className="h-6 w-6" />
+                                        </div>
+                                        <div className="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt className="truncate text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Active Services</dt>
+                                                <dd className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{kpis?.totalServices || 0}</dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* CRM Inquiries Card (Universal) */}
                         <div className="overflow-hidden bg-white shadow-sm sm:rounded-2xl dark:bg-gray-800 border-l-4 border-sky-500">
                             <div className="p-6">
@@ -138,7 +193,7 @@ export default function Dashboard({ kpis }) {
                                     <div className="ml-5 w-0 flex-1">
                                         <dl>
                                             <dt className="truncate text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                {isBooking ? 'Patient / Client Contacts' : 'Customer Contacts'}
+                                                {isBooking || isServices ? 'Client Contacts' : 'Customer Contacts'}
                                             </dt>
                                             <dd className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{kpis?.totalCustomers || 0}</dd>
                                         </dl>

@@ -33,6 +33,8 @@ Route::get('/dashboard', function () {
     $totalOrders = Order::count();
     $activeItems = Product::where('is_active', true)->count();
     $totalCustomers = Customer::count();
+    $totalBookings = \App\Models\Booking::count();
+    $totalServices = \App\Models\Service::where('is_active', true)->count();
 
     // Assume 30% commission saved on total sales
     $totalSales = Order::whereIn('status', ['Completed', 'Delivered'])->sum('total_amount');
@@ -44,6 +46,8 @@ Route::get('/dashboard', function () {
             'activeItems' => $activeItems,
             'savedCommission' => $savedCommission,
             'totalCustomers' => $totalCustomers,
+            'totalBookings' => $totalBookings,
+            'totalServices' => $totalServices,
         ],
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
