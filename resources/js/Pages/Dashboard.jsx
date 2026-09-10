@@ -32,7 +32,7 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', on
     const user = auth.user;
 
     const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
-    const [isOnboardingCollapsed, setIsOnboardingCollapsed] = useState(() => {
+    const [isOnboardingHidden, setIsOnboardingHidden] = useState(() => {
         try {
             return localStorage.getItem('hide_onboarding_checklist') === 'true';
         } catch (e) {
@@ -40,17 +40,12 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', on
         }
     });
 
-    const toggleOnboarding = () => {
-        const nextState = !isOnboardingCollapsed;
-        setIsOnboardingCollapsed(nextState);
+    const hideOnboardingChecklist = () => {
+        setIsOnboardingHidden(true);
         try {
-            if (nextState) {
-                localStorage.setItem('hide_onboarding_checklist', 'true');
-            } else {
-                localStorage.removeItem('hide_onboarding_checklist');
-            }
+            localStorage.setItem('hide_onboarding_checklist', 'true');
         } catch (e) {
-            // ignore localStorage issues
+            // ignore
         }
     };
 
@@ -132,7 +127,7 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', on
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-6">
 
                     {/* 10-MINUTE MERCHANT ONBOARDING CHECKLIST */}
-                    {onboardingSteps.length > 0 && !isAllCompleted && (
+                    {onboardingSteps.length > 0 && !isAllCompleted && !isOnboardingHidden && (
                         <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-indigo-100 dark:border-indigo-900/40 space-y-5">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
@@ -159,10 +154,11 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', on
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={toggleOnboarding}
-                                        className="text-xs font-bold text-gray-500 hover:text-gray-700 dark:text-gray-400 underline"
+                                        onClick={hideOnboardingChecklist}
+                                        className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors"
+                                        title="Hide from Dashboard"
                                     >
-                                        {isOnboardingCollapsed ? 'Show Steps' : 'Hide'}
+                                        Hide
                                     </button>
                                 </div>
                             </div>

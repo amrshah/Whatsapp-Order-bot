@@ -73,6 +73,7 @@ export default function MiniApp({ settings, tenantId }) {
                 localStorage.setItem('hide_onboarding_checklist', 'true');
             } else {
                 localStorage.removeItem('hide_onboarding_checklist');
+                router.visit(route('dashboard'));
             }
         } catch (e) {
             // ignore localStorage error
