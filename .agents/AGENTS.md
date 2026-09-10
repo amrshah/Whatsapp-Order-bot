@@ -1,4 +1,4 @@
-﻿# AI Workspace Instructions (AGENTS.md)
+# AI Workspace Instructions (AGENTS.md)
 
 This file contains the foundational rules for all AI agents working in this repository. It is automatically injected into the context of every new conversation.
 
@@ -16,3 +16,7 @@ Instead, you must strictly follow this read order:
 - The documentation in .ai/ is strictly maintained by the **Knowledge Manager** agent. 
 - If you (the Developer agent) modify the architecture, database models, workflows, or APIs, you must either update the docs yourself, or delegate to the Knowledge Manager.
 - Never summarize source code in documentation. Document *intent, invariants, tradeoffs, and failure modes*.
+
+## 3. Strict Environment & Route Rule (MANDATORY)
+- **NEVER hardcode URLs, hostnames (`http://127.0.0.1`, `http://localhost`), or runtime `window.location` fallbacks** inside JS/Blade/PHP source code.
+- **ALL URLs, ports, and domains MUST strictly originate from `.env` environment variables** (`APP_URL`, `import.meta.env.VITE_*`) and named Laravel route helpers (`route()`). No exceptions.
