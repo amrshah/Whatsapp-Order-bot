@@ -9,46 +9,55 @@ class ProductHandler implements BotHandlerInterface
 {
     public function handle(BotSession $session, string $message, string $type): array
     {
-        if ($type !== 'interactive' || ! str_starts_with($message, 'product_')) {
-            return (new WelcomeHandler)->handle($session, $message, $type);
-        }
+        if (str_starts_with($message, 'product_')) {
+            $productId = str_replace('product_', '', $message);
+            $product = Product::find($productId);
 
-        $productId = str_replace('product_', '', $message);
-        $product = Product::find($productId);
+            if ($product) {
+                // Instantly add to cart
+                $context = $session->context ?? [];
+                $cart = $context['cart'] ?? [];
 
-        if (! $product) {
-            return [
-                'type' => 'text',
-                'text' => ['body' => 'Product not found.'],
-            ];
-        }
+                $found = false;
+                foreach ($cart as &$item) {
+                    if ($item['product_id'] === $product->id) {
+                        $item['quantity'] += 1;
+                        $found = true;
+                        break;
+                    }
+                }
 
-        // Instantly add to cart
-        $context = $session->context ?? [];
-        $cart = $context['cart'] ?? [];
+                if (! $found) {
+                    $cart[] = [
+                        'product_id' => $product->id,
+                        'quantity' => 1,
+                    ];
+                }
 
-        $found = false;
-        foreach ($cart as &$item) {
-            if ($item['product_id'] === $product->id) {
-                $item['quantity'] += 1;
-                $found = true;
-                break;
+                $context['cart'] = $cart;
+                $session->update([
+                    'context' => $context,
+                    'current_state' => 'VIEWING_CART',
+                ]);
+
+                return (new CartHandler)->handle($session, 'action_view_cart', 'interactive');
             }
         }
 
-        if (! $found) {
-            $cart[] = [
-                'product_id' => $product->id,
-                'quantity' => 1,
-            ];
+        // Unknown product selection: re-prompt products for the active category
+        $context = $session->context ?? [];
+        $activeCategoryId = $context['active_category_id'] ?? null;
+
+        if ($activeCategoryId) {
+            $response = (new CategoryHandler)->handle($session, "category_{$activeCategoryId}", 'interactive');
+            if (isset($response['interactive']['body']['text'])) {
+                $response['interactive']['body']['text'] = "Sorry, \"{$message}\" is not a valid item selection.\n\n".$response['interactive']['body']['text'];
+            }
+
+            return $response;
         }
 
-        $context['cart'] = $cart;
-        $session->update([
-            'context' => $context,
-            'current_state' => 'VIEWING_CART',
-        ]);
-
-        return (new CartHandler)->handle($session, 'action_view_cart', 'interactive');
+        // Fallback to menu categories
+        return (new MenuHandler)->handle($session, $message, $type);
     }
 }
