@@ -57,6 +57,28 @@ export default function MiniApp({ settings, tenantId }) {
     const [isPublishing, setIsPublishing] = useState(false);
     const [statusMessage, setStatusMessage] = useState(null);
 
+    const [isChecklistHidden, setIsChecklistHidden] = useState(() => {
+        try {
+            return localStorage.getItem('hide_onboarding_checklist') === 'true';
+        } catch (e) {
+            return false;
+        }
+    });
+
+    const toggleChecklistPreference = () => {
+        const nextState = !isChecklistHidden;
+        setIsChecklistHidden(nextState);
+        try {
+            if (nextState) {
+                localStorage.setItem('hide_onboarding_checklist', 'true');
+            } else {
+                localStorage.removeItem('hide_onboarding_checklist');
+            }
+        } catch (e) {
+            // ignore localStorage error
+        }
+    };
+
     // Deep merge helper for nested state updates
     const updateField = (group, key, value) => {
         setForm(prev => ({

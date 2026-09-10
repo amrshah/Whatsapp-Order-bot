@@ -32,7 +32,27 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', on
     const user = auth.user;
 
     const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
-    const [isOnboardingCollapsed, setIsOnboardingCollapsed] = useState(false);
+    const [isOnboardingCollapsed, setIsOnboardingCollapsed] = useState(() => {
+        try {
+            return localStorage.getItem('hide_onboarding_checklist') === 'true';
+        } catch (e) {
+            return false;
+        }
+    });
+
+    const toggleOnboarding = () => {
+        const nextState = !isOnboardingCollapsed;
+        setIsOnboardingCollapsed(nextState);
+        try {
+            if (nextState) {
+                localStorage.setItem('hide_onboarding_checklist', 'true');
+            } else {
+                localStorage.removeItem('hide_onboarding_checklist');
+            }
+        } catch (e) {
+            // ignore localStorage issues
+        }
+    };
 
     const hasCap = (cap) => tenant?.capabilities ? tenant.capabilities.includes(cap) : true;
     const isOrdering = hasCap('ordering');
@@ -139,7 +159,7 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', on
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={() => setIsOnboardingCollapsed(!isOnboardingCollapsed)}
+                                        onClick={toggleOnboarding}
                                         className="text-xs font-bold text-gray-500 hover:text-gray-700 dark:text-gray-400 underline"
                                     >
                                         {isOnboardingCollapsed ? 'Show Steps' : 'Hide'}
