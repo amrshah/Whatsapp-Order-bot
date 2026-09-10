@@ -2,8 +2,6 @@
 
 use App\Enums\BusinessType;
 use App\Models\AuditLog;
-use App\Models\Booking;
-use App\Models\Service;
 use App\Models\Tenant;
 use App\Services\AuditLogService;
 use App\Services\TenantCapabilityService;
@@ -16,13 +14,13 @@ use Modules\Orders\Models\Order;
 uses(RefreshDatabase::class);
 
 test('tenant isolation guarantees strict cross-tenant data separation', function () {
-    // Setup Tenant Alpha
+    // Setup Tenant Alpha (Restaurant)
     $tenantA = Tenant::create(['id' => 'alpha-restaurant', 'name' => 'Alpha Restaurant']);
     app(TenantCapabilityService::class)->applyPreset($tenantA, BusinessType::Restaurant);
 
-    // Setup Tenant Beta
-    $tenantB = Tenant::create(['id' => 'beta-clinic', 'name' => 'Beta Clinic']);
-    app(TenantCapabilityService::class)->applyPreset($tenantB, BusinessType::Clinic);
+    // Setup Tenant Beta (Retail)
+    $tenantB = Tenant::create(['id' => 'beta-retail', 'name' => 'Beta Retail']);
+    app(TenantCapabilityService::class)->applyPreset($tenantB, BusinessType::Retail);
 
     // 1. Create Data in Tenant Alpha Context
     tenancy()->initialize($tenantA);
@@ -45,22 +43,22 @@ test('tenant isolation guarantees strict cross-tenant data separation', function
 
     // 2. Create Data in Tenant Beta Context
     tenancy()->initialize($tenantB);
-    $serviceB = Service::create([
-        'name' => 'Beta Consultation',
+    $categoryB = Category::create(['name' => 'Beta Electronics', 'is_active' => true]);
+    $productB = Product::create([
+        'category_id' => $categoryB->id,
+        'name' => 'Beta Headphones',
         'price' => 3000,
-        'duration_minutes' => 45,
         'is_active' => true,
     ]);
-    $bookingB = Booking::create([
-        'service_id' => $serviceB->id,
-        'customer_name' => 'Beta Patient',
+    $orderB = Order::create([
+        'order_number' => 'ORD-BETA-01',
+        'customer_name' => 'Beta Customer',
         'customer_phone' => '+923002222222',
-        'booking_date' => now()->addDay()->toDateString(),
-        'booking_time' => '14:00',
-        'status' => 'confirmed',
+        'total_amount' => 3000,
+        'status' => 'Pending',
     ]);
-    $customerB = Customer::create(['name' => 'Beta Patient VIP', 'phone' => '+923002222222']);
-    AuditLogService::log('beta_action', $bookingB, ['detail' => 'secret_beta']);
+    $customerB = Customer::create(['name' => 'Beta VIP', 'phone' => '+923002222222']);
+    AuditLogService::log('beta_action', $orderB, ['detail' => 'secret_beta']);
 
     // 3. VERIFY TENANT ALPHA ISOLATION
     tenancy()->initialize($tenantA);
@@ -77,10 +75,6 @@ test('tenant isolation guarantees strict cross-tenant data separation', function
     expect(Customer::count())->toBe(1);
     expect(Customer::first()->name)->toBe('Alpha VIP');
 
-    // Alpha must not see Beta's services or bookings
-    expect(Service::count())->toBe(0);
-    expect(Booking::count())->toBe(0);
-
     // Alpha must only see Alpha's audit logs
     expect(AuditLog::count())->toBe(1);
     expect(AuditLog::first()->action)->toBe('alpha_action');
@@ -88,20 +82,17 @@ test('tenant isolation guarantees strict cross-tenant data separation', function
     // 4. VERIFY TENANT BETA ISOLATION
     tenancy()->initialize($tenantB);
 
-    // Beta must only see Beta's services and bookings
-    expect(Service::count())->toBe(1);
-    expect(Service::first()->name)->toBe('Beta Consultation');
-    expect(Booking::count())->toBe(1);
-    expect(Booking::first()->customer_name)->toBe('Beta Patient');
+    // Beta must only see Beta's categories and products
+    expect(Category::count())->toBe(1);
+    expect(Category::first()->name)->toBe('Beta Electronics');
+    expect(Product::count())->toBe(1);
+    expect(Product::first()->name)->toBe('Beta Headphones');
 
-    // Beta must only see Beta's customers
+    // Beta must only see Beta's orders and customers
+    expect(Order::count())->toBe(1);
+    expect(Order::first()->order_number)->toBe('ORD-BETA-01');
     expect(Customer::count())->toBe(1);
-    expect(Customer::first()->name)->toBe('Beta Patient VIP');
-
-    // Beta must not see Alpha's categories, products, or orders
-    expect(Category::count())->toBe(0);
-    expect(Product::count())->toBe(0);
-    expect(Order::count())->toBe(0);
+    expect(Customer::first()->name)->toBe('Beta VIP');
 
     // Beta must only see Beta's audit logs
     expect(AuditLog::count())->toBe(1);

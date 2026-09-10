@@ -204,7 +204,7 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', on
                     )}
 
                     {/* HERO ROI IMPACT CARD (Ordering / Commerce Verticals) */}
-                    {isOrdering ? (
+                    {isOrdering && (
                         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-700 to-indigo-900 text-white shadow-xl p-8 border border-emerald-500/30">
                             {/* Decorative background circle */}
                             <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
@@ -263,46 +263,6 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', on
                                             Open KDS
                                         </a>
                                     )}
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        /* Welcome & Quick Action Header for Service & Booking Verticals */
-                        <div className="overflow-hidden bg-gradient-to-r from-indigo-600 to-indigo-800 shadow-lg sm:rounded-3xl p-8 text-white">
-                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                                <div>
-                                    <div className="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full text-xs font-semibold mb-3">
-                                        <Sparkles className="w-3.5 h-3.5" />
-                                        <span>Active Workspace ({kpis?.period_label || 'This Month'})</span>
-                                    </div>
-                                    <h3 className="text-2xl sm:text-3xl font-extrabold">Welcome to {name}!</h3>
-                                    <p className="mt-1 text-indigo-100 text-sm max-w-xl">
-                                        Your digital assistant is receiving bookings and inquiries directly on WhatsApp.
-                                    </p>
-                                </div>
-                                <div className="flex flex-wrap gap-3">
-                                    {isServices && (
-                                        <Link 
-                                            href={route('services.index')} 
-                                            className="bg-white text-indigo-600 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-50 transition shadow flex items-center gap-1.5"
-                                        >
-                                            <Sparkles className="w-4 h-4" /> Manage Services
-                                        </Link>
-                                    )}
-                                    {isBooking && (
-                                        <Link 
-                                            href={route('bookings.index')} 
-                                            className="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow flex items-center gap-1.5"
-                                        >
-                                            <Calendar className="w-4 h-4" /> Appointments
-                                        </Link>
-                                    )}
-                                    <Link 
-                                        href={route('crm.index')}
-                                        className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow flex items-center gap-1.5"
-                                    >
-                                        <Users className="w-4 h-4" /> View CRM & Inquiries
-                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -401,55 +361,11 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', on
                             </div>
                         )}
 
-                        {/* Appointments Card (Booking verticals) */}
-                        {isBooking && (
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/60 flex flex-col justify-between">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Appointments Booked
-                                    </span>
-                                    <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
-                                        <Calendar className="w-5 h-5" />
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <div className="text-2xl font-black text-gray-900 dark:text-white">
-                                        {totalBookings}
-                                    </div>
-                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium mt-1">
-                                        Booked through WhatsApp & Mini-App
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Active Services Card (Services verticals) */}
-                        {isServices && (
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/60 flex flex-col justify-between">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Active Services
-                                    </span>
-                                    <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">
-                                        <Sparkles className="w-5 h-5" />
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <div className="text-2xl font-black text-gray-900 dark:text-white">
-                                        {activeServices}
-                                    </div>
-                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium mt-1">
-                                        Live in client service catalog
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Owned Client / Customer Contacts Card (Universal) */}
+                        {/* Owned Customer Contacts Card */}
                         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/60 flex flex-col justify-between">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    {isBooking || isServices ? 'Owned Client Contacts' : 'Owned Customer Contacts'}
+                                    Owned Customer Contacts
                                 </span>
                                 <div className="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400">
                                     <Users className="w-5 h-5" />

@@ -100,40 +100,39 @@ test('social auth callback maps existing user by email', function () {
     expect($user->avatar)->toBe('https://example.com/avatar.jpg');
 });
 
-test('social auth redirect preserves business_type and callback creates clinic tenant preset', function () {
+test('social auth redirect preserves business_type and callback creates retail tenant preset', function () {
     Socialite::fake('google');
 
-    // 1. User clicks Google OAuth with business_type=clinic
-    $this->get('/auth/google/redirect?business_type=clinic')
-        ->assertSessionHas('oauth_business_type', 'clinic');
+    // 1. User clicks Google OAuth with business_type=retail
+    $this->get('/auth/google/redirect?business_type=retail')
+        ->assertSessionHas('oauth_business_type', 'retail');
 
     $fakeUser = SocialiteUser::fake([
-        'id' => 'google-clinic-123',
-        'name' => 'Dr Smith',
-        'email' => 'drsmith@example.com',
-        'avatar' => 'https://example.com/dr.jpg',
+        'id' => 'google-retail-123',
+        'name' => 'John Store',
+        'email' => 'store@example.com',
+        'avatar' => 'https://example.com/store.jpg',
     ]);
 
     Socialite::fake('google', $fakeUser);
 
-    // 2. Callback receives OAuth user and creates Clinic tenant with Clinic capabilities
-    $response = $this->withSession(['oauth_business_type' => 'clinic'])
+    // 2. Callback receives OAuth user and creates Retail tenant with Retail capabilities
+    $response = $this->withSession(['oauth_business_type' => 'retail'])
         ->get('/auth/google/callback');
 
     $response->assertRedirect(route('dashboard'));
     $this->assertAuthenticated();
 
-    $user = User::where('email', 'drsmith@example.com')->first();
+    $user = User::where('email', 'store@example.com')->first();
     expect($user)->not->toBeNull();
 
     $tenant = Tenant::find($user->tenant_id);
     expect($tenant)->not->toBeNull();
-    expect($tenant->name)->toBe("Dr's Clinic");
-    expect($tenant->business_type)->toBe(BusinessType::Clinic->value);
-    expect($tenant->primary_experience)->toBe('book');
+    expect($tenant->name)->toBe("John's Store");
+    expect($tenant->business_type)->toBe(BusinessType::Retail->value);
+    expect($tenant->primary_experience)->toBe('order');
 
-    expect($tenant->hasCapability(TenantCapability::Services))->toBeTrue();
-    expect($tenant->hasCapability(TenantCapability::Booking))->toBeTrue();
-    expect($tenant->hasCapability(TenantCapability::Catalog))->toBeFalse();
-    expect($tenant->hasCapability(TenantCapability::Ordering))->toBeFalse();
+    expect($tenant->hasCapability(TenantCapability::Catalog))->toBeTrue();
+    expect($tenant->hasCapability(TenantCapability::Ordering))->toBeTrue();
+    expect($tenant->hasCapability(TenantCapability::Inventory))->toBeTrue();
 });

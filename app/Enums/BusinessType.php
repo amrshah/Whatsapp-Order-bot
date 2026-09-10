@@ -5,10 +5,6 @@ namespace App\Enums;
 enum BusinessType: string
 {
     case Restaurant = 'restaurant';
-    case Clinic = 'clinic';
-    case Salon = 'salon';
-    case LawFirm = 'law_firm';
-    case Workshop = 'workshop';
     case Retail = 'retail';
 
     /**
@@ -25,27 +21,6 @@ enum BusinessType: string
                 TenantCapability::Kds,
                 TenantCapability::Delivery,
             ],
-            self::Clinic => [
-                TenantCapability::Services,
-                TenantCapability::Booking,
-                TenantCapability::Staff,
-                TenantCapability::Payments,
-            ],
-            self::Salon => [
-                TenantCapability::Services,
-                TenantCapability::Booking,
-                TenantCapability::Staff,
-                TenantCapability::Payments,
-            ],
-            self::LawFirm => [
-                TenantCapability::Services,
-                TenantCapability::Booking,
-                TenantCapability::Documents,
-            ],
-            self::Workshop => [
-                TenantCapability::Services,
-                TenantCapability::Booking,
-            ],
             self::Retail => [
                 TenantCapability::Catalog,
                 TenantCapability::Ordering,
@@ -60,9 +35,6 @@ enum BusinessType: string
      */
     public function defaultPrimaryExperience(): string
     {
-        return match ($this) {
-            self::Restaurant, self::Retail => 'order',
-            self::Clinic, self::Salon, self::LawFirm, self::Workshop => 'book',
-        };
+        return 'order';
     }
 }

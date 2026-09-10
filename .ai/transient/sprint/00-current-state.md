@@ -14,11 +14,12 @@
    - **Logo Management & Avatar Display**: Added file upload (PNG, JPG, WebP, SVG up to 3MB) in `MiniApp.jsx` branding settings with live avatar display across customer PWAs (`OrderMenu.jsx`, `MiniApp.jsx`).
    - **1-Click Customer Reorder**: Added high-visibility reorder CTA in `OrderTracking.jsx` for rapid repeat ordering.
    - **VPS Dockerfile Extensions**: Enabled `php83-exif`, `php83-gd`, `php83-intl`, `php83-fileinfo`, `php83-zip`, and `php83-bcmath` in Docker image.
-4. **Test Suite Coverage**: **72/72 Pest tests passing** across capabilities, services, bookings, ROI engine, logo upload, and isolation security.
+4. **Multi-Vertical Branch Isolation**: Created `feature/multi-vertical-saas` branch containing the full multi-vertical suite (Services Catalog & Appointment Bookings). Refined `main` branch to focus exclusively on the **Restaurant Beachhead** (Menu, Food Ordering, KDS, Delivery, Merchant ROI, Restaurant Onboarding).
+5. **Test Suite Coverage**: **64/64 Pest tests passing** on `main` (and 72/72 on `feature/multi-vertical-saas`).
 
 ## Immediate Next Steps (Pending)
 1. **Meta Embedded Signup**: Proceed with Meta's Embedded Signup integration (Facebook Login for Business) once Meta Verification is obtained.
 2. **KDS Unified Improvements**: Add audio alerts and sound notifications for new incoming orders on the KDS.
 
 ## Current Focus
-Phase 3 (Customer Relationship Engine & Re-engagement Campaigns) and live merchant validation.
+Phase 3 (Customer Relationship Engine & Re-engagement Campaigns) and live restaurant merchant validation.

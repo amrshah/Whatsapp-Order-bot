@@ -81,10 +81,6 @@ class SocialAuthController extends Controller
                 $businessType = BusinessType::tryFrom($businessTypeValue) ?? BusinessType::Restaurant;
 
                 $suffix = match ($businessType) {
-                    BusinessType::Clinic => 'Clinic',
-                    BusinessType::Salon => 'Salon',
-                    BusinessType::LawFirm => 'Law Firm',
-                    BusinessType::Workshop => 'Workshop',
                     BusinessType::Retail => 'Store',
                     BusinessType::Restaurant => 'Restaurant',
                 };

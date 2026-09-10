@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Booking;
-use App\Models\Service;
 use App\Models\Tenant;
 use Carbon\Carbon;
 use Modules\Crm\Models\Customer;
@@ -97,12 +95,8 @@ class MerchantRoiService
         $totalCustomers = Customer::count();
         $activeItems = Product::where('is_active', true)->count();
 
-        // 5. Service & Booking Vertical Stats
-        $bookingsBaseQuery = Booking::query()
-            ->when($dateRange, fn ($q) => $q->whereBetween('created_at', $dateRange));
-
-        $totalBookings = (clone $bookingsBaseQuery)->count();
-        $activeServices = Service::where('is_active', true)->count();
+        $totalBookings = 0;
+        $activeServices = 0;
 
         return [
             'period' => $period,
