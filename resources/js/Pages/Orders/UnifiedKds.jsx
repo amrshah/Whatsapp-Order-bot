@@ -37,10 +37,10 @@ export default function UnifiedKds({ auth, orders: initialOrders, tenantId }) {
     }, [initialOrders]);
 
     useEffect(() => {
-        // Fallback auto-refresh poll every 10 seconds to guarantee update even if WebSocket drops
+        // Fallback auto-refresh poll every 5 seconds to guarantee update even if WebSocket drops
         const interval = setInterval(() => {
             router.reload({ only: ['orders'], preserveScroll: true, preserveState: true });
-        }, 10000);
+        }, 5000);
 
         if (!tenantId || !window.Echo) {
             return () => clearInterval(interval);
