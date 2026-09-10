@@ -44,20 +44,6 @@ class ProductHandler implements BotHandlerInterface
             }
         }
 
-        // Unknown product selection: re-prompt products for the active category
-        $context = $session->context ?? [];
-        $activeCategoryId = $context['active_category_id'] ?? null;
-
-        if ($activeCategoryId) {
-            $response = (new CategoryHandler)->handle($session, "category_{$activeCategoryId}", 'interactive');
-            if (isset($response['interactive']['body']['text'])) {
-                $response['interactive']['body']['text'] = "Sorry, \"{$message}\" is not a valid item selection.\n\n".$response['interactive']['body']['text'];
-            }
-
-            return $response;
-        }
-
-        // Fallback to menu categories
-        return (new MenuHandler)->handle($session, $message, $type);
+        return (new UnknownResponseHandler)->handle($session, $message, $type);
     }
 }
