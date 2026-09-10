@@ -52,6 +52,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Settings
                                 </Link>
 
+                                <Link
+                                    href={route('admin.bot-workflows.index')}
+                                    className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${route().current('admin.bot-workflows.*') ? 'border-indigo-500 text-white focus:border-indigo-700' : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white focus:border-gray-300 focus:text-white'}`}
+                                >
+                                    Bot Workflows
+                                </Link>
+
                                 <a
                                     href="/admin/logs"
                                     className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${window.location.pathname.startsWith('/admin/logs') ? 'border-indigo-500 text-white focus:border-indigo-700' : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white focus:border-gray-300 focus:text-white'}`}

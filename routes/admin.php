@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BotWorkflowController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -27,4 +28,13 @@ Route::middleware(['web', 'auth', IsSuperAdmin::class])->prefix('admin')->name('
     Route::post('/invoices/{invoice}/paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.paid');
     Route::post('/invoices/{invoice}/reminder', [InvoiceController::class, 'sendReminder'])->name('invoices.reminder');
     Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
+
+    // WhatsApp Bot Workflows
+    Route::get('/bot-workflows', [BotWorkflowController::class, 'index'])->name('bot-workflows.index');
+    Route::get('/bot-workflows/create', [BotWorkflowController::class, 'create'])->name('bot-workflows.create');
+    Route::post('/bot-workflows', [BotWorkflowController::class, 'store'])->name('bot-workflows.store');
+    Route::get('/bot-workflows/{workflow}/edit', [BotWorkflowController::class, 'edit'])->name('bot-workflows.edit');
+    Route::put('/bot-workflows/{workflow}', [BotWorkflowController::class, 'update'])->name('bot-workflows.update');
+    Route::post('/bot-workflows/{workflow}/toggle-active', [BotWorkflowController::class, 'toggleActivate'])->name('bot-workflows.toggle-active');
+    Route::delete('/bot-workflows/{workflow}', [BotWorkflowController::class, 'destroy'])->name('bot-workflows.destroy');
 });

@@ -14,7 +14,9 @@ class BotSession extends Model
     protected $fillable = [
         'phone_number',
         'tenant_id',
+        'workflow_id',
         'current_state',
+        'current_node_key',
         'context',
         'expires_at',
     ];
@@ -23,6 +25,11 @@ class BotSession extends Model
         'context' => 'array',
         'expires_at' => 'datetime',
     ];
+
+    public function workflow()
+    {
+        return $this->belongsTo(BotWorkflow::class, 'workflow_id');
+    }
 
     public function isExpired()
     {

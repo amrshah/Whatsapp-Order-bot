@@ -17,6 +17,7 @@ use Modules\Bot\Services\Handlers\ProductHandler;
 use Modules\Bot\Services\Handlers\WelcomeHandler;
 use Modules\Bot\Services\WhatsAppMessagingService;
 use Modules\Bot\Services\WhatsAppProviderResolver;
+use Modules\Bot\Services\WorkflowExecutionEngine;
 use Modules\Crm\Models\Customer;
 
 class EvolutionWebhookController extends Controller
@@ -173,36 +174,42 @@ class EvolutionWebhookController extends Controller
             }
         }
 
-        $state = $session->current_state;
+        // First attempt workflow execution via WorkflowExecutionEngine
+        $workflowEngine = app(WorkflowExecutionEngine::class);
+        $responsePayload = $workflowEngine->execute($session, $messageBody, $messageType);
 
-        // Reset to start on hello/hi
-        if ($messageType === 'text' && in_array(strtolower($messageBody), ['hi', 'hello', 'menu', 'start'])) {
-            $state = 'START';
+        if (! $responsePayload) {
+            $state = $session->current_state;
+
+            // Reset to start on hello/hi
+            if ($messageType === 'text' && in_array(strtolower($messageBody), ['hi', 'hello', 'menu', 'start'])) {
+                $state = 'START';
+            }
+
+            // Match bot handler state
+            $handler = match ($state) {
+                'START' => new WelcomeHandler,
+                'CATEGORY_SELECT' => new CategoryHandler,
+                'PRODUCT_SELECT' => new ProductHandler,
+                'VIEWING_PRODUCT' => new CartHandler,
+                'VIEWING_CART' => new CheckoutHandler,
+                'CHECKOUT_TYPE' => new AddressHandler,
+                'AWAITING_ADDRESS' => new AddressHandler,
+                'CONFIRMATION' => new ConfirmationHandler,
+                default => new WelcomeHandler
+            };
+
+            if ($messageType === 'interactive' && $messageBody === 'action_view_menu') {
+                $handler = new MenuHandler;
+            }
+
+            if ($messageType === 'interactive' && $messageBody === 'action_checkout') {
+                $handler = new CheckoutHandler;
+            }
+
+            // Process message through Bot Engine state handler
+            $responsePayload = $handler->handle($session, $messageBody, $messageType);
         }
-
-        // Match bot handler state
-        $handler = match ($state) {
-            'START' => new WelcomeHandler,
-            'CATEGORY_SELECT' => new CategoryHandler,
-            'PRODUCT_SELECT' => new ProductHandler,
-            'VIEWING_PRODUCT' => new CartHandler,
-            'VIEWING_CART' => new CheckoutHandler,
-            'CHECKOUT_TYPE' => new AddressHandler,
-            'AWAITING_ADDRESS' => new AddressHandler,
-            'CONFIRMATION' => new ConfirmationHandler,
-            default => new WelcomeHandler
-        };
-
-        if ($messageType === 'interactive' && $messageBody === 'action_view_menu') {
-            $handler = new MenuHandler;
-        }
-
-        if ($messageType === 'interactive' && $messageBody === 'action_checkout') {
-            $handler = new CheckoutHandler;
-        }
-
-        // Process message through Bot Engine state handler
-        $responsePayload = $handler->handle($session, $messageBody, $messageType);
 
         // Send reply through the active WhatsApp provider
         if ($responsePayload && isset($responsePayload['type'])) {
