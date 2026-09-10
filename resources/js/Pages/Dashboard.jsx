@@ -172,50 +172,48 @@ export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', on
                             </div>
 
                             {/* Step list */}
-                            {!isOnboardingCollapsed && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-                                    {onboardingSteps.map((step) => (
-                                        <div
-                                            key={step.id}
-                                            className={`p-4 rounded-2xl border transition flex flex-col justify-between gap-3 ${
-                                                step.is_completed
-                                                    ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-900 dark:text-emerald-200'
-                                                    : 'bg-gray-50 dark:bg-gray-900/40 border-gray-100 dark:border-gray-750 text-gray-800 dark:text-gray-200'
-                                            }`}
-                                        >
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    {step.is_completed ? (
-                                                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                                                    ) : (
-                                                        <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                                    )}
-                                                    <h4 className="text-xs font-bold truncate">
-                                                        {step.title}
-                                                    </h4>
-                                                </div>
-                                                <p className="text-[11px] text-gray-500 dark:text-gray-400 pl-6 leading-tight">
-                                                    {step.description}
-                                                </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                                {onboardingSteps.map((step) => (
+                                    <div
+                                        key={step.id}
+                                        className={`p-4 rounded-2xl border transition flex flex-col justify-between gap-3 ${
+                                            step.is_completed
+                                                ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-900 dark:text-emerald-200'
+                                                : 'bg-gray-50 dark:bg-gray-900/40 border-gray-100 dark:border-gray-750 text-gray-800 dark:text-gray-200'
+                                        }`}
+                                    >
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                {step.is_completed ? (
+                                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                                                ) : (
+                                                    <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                                )}
+                                                <h4 className="text-xs font-bold truncate">
+                                                    {step.title}
+                                                </h4>
                                             </div>
-
-                                            <div className="pl-6">
-                                                <a
-                                                    href={step.route}
-                                                    className={`inline-flex items-center gap-1 text-xs font-extrabold ${
-                                                        step.is_completed
-                                                            ? 'text-emerald-700 dark:text-emerald-400 hover:underline'
-                                                            : 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 underline'
-                                                    }`}
-                                                >
-                                                    <span>{step.is_completed ? 'Edit Settings' : 'Configure Now'}</span>
-                                                    <ArrowRight className="w-3 h-3" />
-                                                </a>
-                                            </div>
+                                            <p className="text-[11px] text-gray-500 dark:text-gray-400 pl-6 leading-tight">
+                                                {step.description}
+                                            </p>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+
+                                        <div className="pl-6">
+                                            <a
+                                                href={step.route}
+                                                className={`inline-flex items-center gap-1 text-xs font-extrabold ${
+                                                    step.is_completed
+                                                        ? 'text-emerald-700 dark:text-emerald-400 hover:underline'
+                                                        : 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 underline'
+                                                }`}
+                                            >
+                                                <span>{step.is_completed ? 'Edit Settings' : 'Configure Now'}</span>
+                                                <ArrowRight className="w-3 h-3" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
