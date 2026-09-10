@@ -4,7 +4,6 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { UtensilsCrossed, Stethoscope, Scissors, Scale, Wrench, ShoppingBag } from 'lucide-react';
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -14,15 +13,6 @@ export default function Register() {
         password_confirmation: '',
         business_type: 'restaurant',
     });
-
-    const businessTypes = [
-        { id: 'restaurant', label: 'Restaurant / Cafe', icon: UtensilsCrossed, desc: 'Food ordering, table menus & KDS' },
-        { id: 'clinic', label: 'Clinic / Healthcare', icon: Stethoscope, desc: 'Patient appointments & inquiries' },
-        { id: 'salon', label: 'Salon / Spa', icon: Scissors, desc: 'Beauty service booking & staff' },
-        { id: 'law_firm', label: 'Law Firm / Legal', icon: Scale, desc: 'Consultations & client documents' },
-        { id: 'workshop', label: 'Workshop / Repairs', icon: Wrench, desc: 'Service booking & inspections' },
-        { id: 'retail', label: 'Retail Store', icon: ShoppingBag, desc: 'Product catalog & customer orders' },
-    ];
 
     const { flash } = usePage().props;
 
@@ -60,37 +50,6 @@ export default function Register() {
                     />
 
                     <InputError message={errors.name} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel value="Select Your Industry / Business Type" />
-                    <div className="grid grid-cols-2 gap-2 mt-1.5">
-                        {businessTypes.map((t) => {
-                            const isSelected = data.business_type === t.id;
-                            const IconComponent = t.icon;
-                            return (
-                                <button
-                                    key={t.id}
-                                    type="button"
-                                    onClick={() => setData('business_type', t.id)}
-                                    className={`flex flex-col text-left p-2.5 rounded-xl border transition-all text-xs ${
-                                        isSelected
-                                            ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/30 dark:border-indigo-500 ring-1 ring-indigo-500 text-indigo-900 dark:text-indigo-200'
-                                            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-1.5 font-bold mb-0.5">
-                                        <IconComponent className={`w-3.5 h-3.5 ${isSelected ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500'}`} />
-                                        <span>{t.label}</span>
-                                    </div>
-                                    <span className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight">
-                                        {t.desc}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                    <InputError message={errors.business_type} className="mt-2" />
                 </div>
 
                 <div className="mt-4">
