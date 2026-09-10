@@ -142,7 +142,7 @@ export default function OrderMenu({ tenant, customer, categories, settings, prev
         setErrors({});
 
         // Submit order data
-        fetch(`/order/${tenant.id}/checkout`, {
+        fetch(route('pwa.checkout', { tenant_slug: tenant.id }), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

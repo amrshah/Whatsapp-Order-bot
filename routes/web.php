@@ -86,6 +86,8 @@ Route::get('/test-tenancy', function () {
 })->middleware(['auth', 'verified']);
 
 // Public PWA Mini-App Routes
+Route::get('/t/{token}', [PwaController::class, 'shortTokenExchange'])->name('pwa.short.exchange');
+
 Route::get('/order/{tenant_slug}', function (string $tenant_slug) {
     $auth = request()->query('auth');
     $query = $auth ? '?auth='.urlencode($auth) : '';
@@ -96,6 +98,8 @@ Route::get('/order/{tenant_slug}', function (string $tenant_slug) {
 Route::get('/order/{tenant_slug}/track/{order_number}', function (string $tenant_slug, string $order_number) {
     return redirect("/app/{$tenant_slug}/track/{$order_number}", 301);
 });
+
+Route::post('/order/{tenant_slug}/checkout', [PwaController::class, 'submitOrder'])->middleware(['capability:ordering', 'throttle:pwa-checkout']);
 
 Route::group(['prefix' => 'app/{tenant_slug}'], function () {
     Route::get('/', [MiniAppController::class, 'index'])->name('pwa.app.index');

@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Pwa;
 
+use App\Capability\PwaExperienceResolver;
 use App\Events\OrderCreated;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\TenantSetting;
 use App\Services\TenantSettingsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -31,6 +33,29 @@ class PwaController extends Controller
         tenancy()->initialize($tenant);
 
         return $tenant;
+    }
+
+    /**
+     * Resolve short token, exchange customer session, and redirect to primary PWA experience.
+     */
+    public function shortTokenExchange(string $token)
+    {
+        $payload = CustomerPwaTokenService::validateToken($token);
+
+        if (! $payload || empty($payload['tenant_id'])) {
+            abort(404, 'Invalid or expired ordering link.');
+        }
+
+        $tenant = $this->initializeTenant($payload['tenant_id']);
+
+        if (! empty($payload['customer_id'])) {
+            session(['pwa_customer_id' => $payload['customer_id']]);
+        }
+
+        $resolver = app(PwaExperienceResolver::class);
+        $baseUrl = $resolver->primaryExperience($tenant);
+
+        return redirect($baseUrl);
     }
 
     /**
@@ -301,6 +326,14 @@ class PwaController extends Controller
         $request->validate([
             'logo' => 'required|image|mimes:jpg,jpeg,png,webp,svg|max:3072',
         ]);
+
+        if (! file_exists(public_path('storage'))) {
+            try {
+                Artisan::call('storage:link');
+            } catch (\Throwable $e) {
+                Log::warning('Failed to create storage symlink automatically: '.$e->getMessage());
+            }
+        }
 
         $tenant = tenant();
         $file = $request->file('logo');

@@ -393,10 +393,7 @@ export default function Welcome({ auth }) {
                     {auth?.user ? (
                         <Link href={route('dashboard')} className="btn btn-primary" style={{padding:'10px 20px', fontSize:'14px'}}>Dashboard</Link>
                     ) : (
-                        <>
-                            <Link href={route('login')} className="btn btn-ghost" style={{padding:'10px 18px', fontSize:'14px'}}>Login / Partner with Us</Link>
-                            <Link href={route('register')} className="btn btn-primary" style={{padding:'10px 20px', fontSize:'14px'}}>Start Free Trial</Link>
-                        </>
+                        <Link href={route('login')} className="btn btn-primary" style={{padding:'10px 20px', fontSize:'14px'}}>Merchant Login</Link>
                     )}
                 </div>
             </nav>
@@ -413,7 +410,7 @@ export default function Welcome({ auth }) {
                     {auth?.user ? (
                         <Link href={route('dashboard')} className="btn btn-primary">Go to Dashboard</Link>
                     ) : (
-                        <Link href={route('register')} className="btn btn-primary">Start Free for 14 Days</Link>
+                        <Link href={route('login')} className="btn btn-primary">Merchant Login</Link>
                     )}
                     <a href="#demo" className="btn btn-ghost on-dark">▶ Watch 2-Minute Demo</a>
                 </div>

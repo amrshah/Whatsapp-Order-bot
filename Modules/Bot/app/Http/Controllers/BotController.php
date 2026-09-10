@@ -187,7 +187,7 @@ class BotController extends Controller
             default => new WelcomeHandler
         };
 
-        if ($messageType === 'interactive' && $messageBody === 'action_view_menu') {
+        if ($messageBody === 'action_view_menu' || (is_string($messageBody) && trim($messageBody) === '1')) {
             $handler = new MenuHandler;
         }
 

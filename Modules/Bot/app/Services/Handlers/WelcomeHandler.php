@@ -21,26 +21,33 @@ class WelcomeHandler implements BotHandlerInterface
 
         $tenant = tenant();
 
-        // Generate signed token
+        // Generate signed token & short URL
         $token = CustomerPwaTokenService::generateToken($customerId, $tenant->id);
+        $pwaUrl = route('pwa.short.exchange', ['token' => $token]);
 
-        // Resolve primary experience URL
+        // Resolve primary experience for message copy
         $resolver = app(PwaExperienceResolver::class);
         $baseUrl = $resolver->primaryExperience($tenant);
-        $pwaUrl = $baseUrl.(str_contains($baseUrl, '?') ? '&' : '?').'auth='.urlencode($token);
-
         $appName = $tenant->name ?: config('app.name', 'Ormeasy');
 
-        if (str_contains($baseUrl, '/book')) {
-            $text = "Welcome to {$appName}!\n\nTap the link below to view our services and book an appointment:\n{$pwaUrl}";
-        } else {
-            $text = "Welcome to {$appName}!\n\nTap the link below to browse our menu, customize items, and place your order:\n{$pwaUrl}";
-        }
+        $text = "Welcome to {$appName}!\n\nHow would you like to place your order today?\n\n1. 📜 Order directly in WhatsApp Chat\n2. 📱 Open PWA App:\n{$pwaUrl}\n\nReply '1' or tap below to browse our menu here in chat!";
 
         return [
-            'type' => 'text',
-            'text' => [
-                'body' => $text,
+            'type' => 'interactive',
+            'interactive' => [
+                'type' => 'button',
+                'body' => ['text' => $text],
+                'action' => [
+                    'buttons' => [
+                        [
+                            'type' => 'reply',
+                            'reply' => [
+                                'id' => 'action_view_menu',
+                                'title' => '📜 Order in WhatsApp',
+                            ],
+                        ],
+                    ],
+                ],
             ],
         ];
     }
