@@ -28,7 +28,7 @@ import { useState } from 'react';
 
 export default function Dashboard({ kpis = {}, selectedPeriod = 'this_month', onboarding = {} }) {
     const { appName, auth, tenant } = usePage().props;
-    const name = appName || 'Bracemen Bot';
+    const name = appName || 'OrmEasy';
     const user = auth.user;
 
     const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
