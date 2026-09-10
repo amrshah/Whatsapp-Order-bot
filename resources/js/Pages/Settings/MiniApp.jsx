@@ -20,7 +20,7 @@ export default function MiniApp({ settings, tenantId }) {
     const [activeSection, setActiveSection] = useState('branding');
     const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
-    // Load initial settings with fallbacks (no emojis in default templates)
+    // Load initial settings with fallbacks
     const [form, setForm] = useState({
         branding: {
             business_name: settings.branding?.business_name || '',
@@ -383,6 +383,29 @@ export default function MiniApp({ settings, tenantId }) {
                                             value={form.ordering.marketplace_commission_rate}
                                             onChange={(e) => updateField('ordering', 'marketplace_commission_rate', parseFloat(e.target.value) || 0)}
                                         />
+                                    </div>
+
+                                    <div className="pt-4 border-t border-gray-150 dark:border-gray-700 space-y-2">
+                                        <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Dashboard 10-Minute Launch Checklist</label>
+                                        <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
+                                            <div>
+                                                <div className="text-xs font-bold text-gray-800 dark:text-gray-200">Launch Checklist Preference</div>
+                                                <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                                                    {isChecklistHidden ? 'Currently hidden from your main dashboard.' : 'Currently visible on your main dashboard.'}
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={toggleChecklistPreference}
+                                                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+                                                    isChecklistHidden
+                                                        ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
+                                                        : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300'
+                                                }`}
+                                            >
+                                                {isChecklistHidden ? 'Restore to Dashboard' : 'Hide from Dashboard'}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
