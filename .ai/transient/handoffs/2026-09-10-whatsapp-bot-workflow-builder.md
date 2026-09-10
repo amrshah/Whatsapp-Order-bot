@@ -33,12 +33,15 @@
   - `Modules/Bot/app/Models/BotSession.php` (Added `workflow_id` & `current_node_key`)
   - `Modules/Bot/app/Services/WorkflowExecutionEngine.php`
   - `Modules/Bot/app/Http/Controllers/EvolutionWebhookController.php`
-- **SaaS Admin Panel**:
+- **SaaS Admin Panel & Landing Page Branding**:
   - `app/Http/Controllers/Admin/BotWorkflowController.php`
   - `routes/admin.php`
   - `resources/js/Pages/Admin/BotWorkflows/Index.jsx`
   - `resources/js/Pages/Admin/BotWorkflows/Editor.jsx`
   - `resources/js/Layouts/AdminLayout.jsx`
+  - `resources/js/Pages/Welcome.jsx` (Redesigned landing page highlighting Dual Ordering, KDS Kanban, and Merchant ROI Engine)
+  - `resources/views/app.blade.php` & `resources/js/app.jsx` (Replaced default Laravel fallbacks with Ormeasy OS)
+  - `public/favicon.svg` (Custom SVG brand icon)
 - **Testing & Verification**:
   - `tests/Feature/BotWorkflowEngineTest.php` (6 Pest feature tests)
 
