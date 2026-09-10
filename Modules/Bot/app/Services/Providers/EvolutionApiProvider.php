@@ -41,24 +41,20 @@ class EvolutionApiProvider implements WhatsAppProvider
     {
         Log::info("Evolution [{$this->connection->instance_name}]: Sending interactive buttons to {$to}");
 
-        $cleanNumber = $this->formatNumber($to);
-        $formattedButtons = [];
+        $text = "{$body}\n\n";
         $optionsMap = [];
         $index = 1;
 
         foreach ($buttons as $btn) {
-            $displayText = $btn['title'];
-            $btnId = $btn['id'];
-            $formattedButtons[] = [
-                'type' => 'reply',
-                'displayText' => $displayText,
-                'id' => $btnId,
-            ];
-            $optionsMap[(string) $index] = $btnId;
+            $text .= "{$index}️⃣ *".$btn['title']."*\n";
+            $optionsMap[(string) $index] = $btn['id'];
             $index++;
         }
 
+        $text .= "\n_Reply with a number (e.g. 1) to choose._";
+
         // Save options map to session context
+        $cleanNumber = $this->formatNumber($to);
         $session = BotSession::where('phone_number', $cleanNumber)
             ->where('tenant_id', $this->connection->tenant_id)
             ->first();
@@ -66,30 +62,6 @@ class EvolutionApiProvider implements WhatsAppProvider
             $context = $session->context ?? [];
             $context['options_map'] = $optionsMap;
             $session->update(['context' => $context]);
-        }
-
-        // Try native Evolution API sendButtons endpoint
-        $response = Http::withHeaders([
-            'apikey' => $this->apiKey,
-        ])->post("{$this->apiUrl}/message/sendButtons/{$this->connection->instance_name}", [
-            'number' => $cleanNumber,
-            'title' => $this->connection->tenant->name ?? 'Order Bot',
-            'description' => $body,
-            'buttons' => $formattedButtons,
-        ]);
-
-        if ($response->successful()) {
-            return true;
-        }
-
-        Log::warning("Evolution API sendButtons failed for {$to}, falling back to sendText: ".$response->body());
-
-        // Fallback: send as text with numbered options
-        $text = $body."\n\n";
-        $i = 1;
-        foreach ($buttons as $btn) {
-            $text .= "{$i}. ".$btn['title']."\n";
-            $i++;
         }
 
         return $this->sendText($to, trim($text));
@@ -99,29 +71,30 @@ class EvolutionApiProvider implements WhatsAppProvider
     {
         Log::info("Evolution [{$this->connection->instance_name}]: Sending interactive list to {$to}");
 
-        $cleanNumber = $this->formatNumber($to);
+        $text = "*{$body}*\n\n";
         $optionsMap = [];
         $index = 1;
 
-        $formattedSections = [];
         foreach ($sections as $sec) {
-            $rows = [];
+            if (! empty($sec['title'])) {
+                $text .= '📋 *'.$sec['title']."*\n";
+            }
             foreach ($sec['rows'] ?? [] as $row) {
-                $rows[] = [
-                    'title' => substr($row['title'], 0, 24),
-                    'description' => isset($row['description']) ? substr($row['description'], 0, 72) : '',
-                    'rowId' => $row['id'],
-                ];
+                $text .= "{$index}️⃣ *".$row['title'].'*';
+                if (! empty($row['description'])) {
+                    $text .= ' - '.$row['description'];
+                }
+                $text .= "\n";
                 $optionsMap[(string) $index] = $row['id'];
                 $index++;
             }
-            $formattedSections[] = [
-                'title' => substr($sec['title'] ?? 'Options', 0, 24),
-                'rows' => $rows,
-            ];
+            $text .= "\n";
         }
 
+        $text .= '_Reply with a number (e.g. 1) to choose._';
+
         // Save options map to session context
+        $cleanNumber = $this->formatNumber($to);
         $session = BotSession::where('phone_number', $cleanNumber)
             ->where('tenant_id', $this->connection->tenant_id)
             ->first();
@@ -129,41 +102,6 @@ class EvolutionApiProvider implements WhatsAppProvider
             $context = $session->context ?? [];
             $context['options_map'] = $optionsMap;
             $session->update(['context' => $context]);
-        }
-
-        // Try native Evolution API sendList endpoint
-        $response = Http::withHeaders([
-            'apikey' => $this->apiKey,
-        ])->post("{$this->apiUrl}/message/sendList/{$this->connection->instance_name}", [
-            'number' => $cleanNumber,
-            'title' => $this->connection->tenant->name ?? 'Menu',
-            'description' => $body,
-            'buttonText' => substr($buttonText, 0, 20),
-            'sections' => $formattedSections,
-        ]);
-
-        if ($response->successful()) {
-            return true;
-        }
-
-        Log::warning("Evolution API sendList failed for {$to}, falling back to sendText: ".$response->body());
-
-        // Fallback: send as text with numbered options
-        $text = $body."\n\n";
-        $i = 1;
-        foreach ($sections as $sec) {
-            if (! empty($sec['title'])) {
-                $text .= '=== '.$sec['title']." ===\n";
-            }
-            foreach ($sec['rows'] ?? [] as $row) {
-                $text .= "{$i}. ".$row['title'];
-                if (! empty($row['description'])) {
-                    $text .= ' - '.$row['description'];
-                }
-                $text .= "\n";
-                $i++;
-            }
-            $text .= "\n";
         }
 
         return $this->sendText($to, trim($text));
