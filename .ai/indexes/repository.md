@@ -20,12 +20,14 @@ Maps high-level business logic concepts to specific code directories and files.
 - **MFA React Views**: `resources/js/Pages/Auth/TwoFactorChallenge.jsx`, `resources/js/Pages/Profile/Partials/TwoFactorSettings.jsx`
 - **MFA Integration Tests**: `tests/Feature/TwoFactorAuthenticationTest.php`
 
-## WhatsApp Bot Module
+## WhatsApp Bot Module & Workflow Builder
 - **Namespace**: `Modules\Bot`
 - **Webhook Entrypoints**: `Modules/Bot/app/Http/Controllers/BotController.php` (Meta API), `Modules/Bot/app/Http/Controllers/EvolutionWebhookController.php` (Evolution/Baileys API)
-- **Models**: `Modules/Bot/app/Models/BotSession.php`, `Modules/Bot/app/Models/WhatsAppConnection.php` (Tenant active WhatsApp channel instance)
+- **Models**: `Modules/Bot/app/Models/BotWorkflow.php`, `Modules/Bot/app/Models/BotSession.php`, `Modules/Bot/app/Models/WhatsAppConnection.php` (Tenant active WhatsApp channel instance)
+- **Workflow Execution Engine**: `Modules/Bot/app/Services/WorkflowExecutionEngine.php` (Dynamic JSON schema execution engine)
+- **SaaS Admin Workflow Management**: `app/Http/Controllers/Admin/BotWorkflowController.php`, `resources/js/Pages/Admin/BotWorkflows/Index.jsx`, `resources/js/Pages/Admin/BotWorkflows/Editor.jsx`
 - **Services & Providers**: `Modules/Bot/app/Services/Contracts/WhatsAppProvider.php` (Message sending interface), `Modules/Bot/app/Services/Providers/` (EvolutionApiProvider & MetaCloudProvider implementations), `Modules/Bot/app/Services/WhatsAppProviderResolver.php` (Dynamically resolves connection model)
-- **Message Handlers**: `Modules/Bot/app/Services/Handlers/` (e.g., `WelcomeHandler.php`)
+- **Message Handlers**: `Modules/Bot/app/Services/Handlers/` (e.g., `WelcomeHandler.php`, `UnknownResponseHandler.php`)
 - **Simulator UI**: `resources/js/Pages/Bot/Simulator.jsx`
 
 ## Multi-Vertical Capability & ROI Engine
