@@ -21,6 +21,7 @@
    - **VPS Dockerfile Extensions**: Enabled `php83-exif`, `php83-gd`, `php83-intl`, `php83-fileinfo`, `php83-zip`, and `php83-bcmath` in Docker image.
 5. **Multi-Vertical Branch Isolation**: Created `feature/multi-vertical-saas` branch containing the full multi-vertical suite (Services Catalog & Appointment Bookings). Refined `main` branch to focus exclusively on the **Restaurant Beachhead** (Menu, Food Ordering, KDS, Delivery, Merchant ROI, Restaurant Onboarding).
 6. **Test Suite Coverage**: **70/70 Pest tests passing** across test suite (`php artisan test --compact`).
+7. **Documentation Architecture Realignment**: Updated `README.md`, `docs/ARCHITECTURE.md`, `.ai/permanent/architecture/01-system-architecture.md`, and `docs/TENANT_WHATSAPP_ONBOARDING.md` to reflect OrmEasy OS branding, the PWA Mini-App + WhatsApp Gateway pattern, Bot Workflow Builder, and Merchant ROI Engine.
 
 ## Immediate Next Steps (Pending)
 1. **Meta Embedded Signup**: Proceed with Meta's Embedded Signup integration (Facebook Login for Business) once Meta Verification is obtained.
