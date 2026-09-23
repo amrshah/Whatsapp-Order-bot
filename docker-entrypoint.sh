@@ -15,6 +15,12 @@ chmod -R 775 /app/storage /app/bootstrap/cache
 echo "Linking public storage..."
 php artisan storage:link --force || true
 
+echo "Checking application key..."
+if [ -z "$APP_KEY" ]; then
+  echo "APP_KEY is empty. Auto-generating application key..."
+  php artisan key:generate --force || true
+fi
+
 echo "Clearing cached configurations..."
 php artisan config:clear || true
 php artisan route:clear || true
