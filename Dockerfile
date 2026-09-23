@@ -27,3 +27,10 @@ COPY --from=composer-builder --chown=application:application /app /app
 
 # Ensure storage and bootstrap cache directories are writable
 RUN chmod -R 775 /app/storage /app/bootstrap/cache
+
+# Copy entrypoint script and make it executable
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+

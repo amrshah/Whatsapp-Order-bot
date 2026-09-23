@@ -109,3 +109,19 @@ Route::group(['prefix' => 'app/{tenant_slug}'], function () {
     Route::get('/order', [MiniAppController::class, 'experience'])->defaults('experience', 'order')->name('pwa.menu');
     Route::get('/{experience}', [MiniAppController::class, 'experience'])->name('pwa.app.experience');
 });
+
+// Protected Public Storage Asset Serving Route
+Route::get('/storage/{path}', function (string $path) {
+    $basePath = realpath(storage_path('app/public'));
+    if (! $basePath) {
+        abort(404);
+    }
+
+    $filePath = realpath($basePath.DIRECTORY_SEPARATOR.$path);
+
+    if (! $filePath || ! str_starts_with($filePath, $basePath) || ! is_file($filePath)) {
+        abort(404);
+    }
+
+    return response()->file($filePath);
+})->where('path', '.*')->name('storage.public.serve');
