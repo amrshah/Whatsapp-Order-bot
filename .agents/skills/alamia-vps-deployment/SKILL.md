@@ -13,17 +13,28 @@ This skill prescribes the exact deployment architecture and conventions for host
 
 ## 1. Core Architectural Rules
 
-### Rule 1: Always Use the Shared External Network (`alamia-network`)
-All stacks must attach to the pre-existing external Docker bridge network:
+### Rule 1: Always Use the Shared External Network (`alamia-network`) & Dynamic Network Aliases
+All stacks must attach to the pre-existing external Docker bridge network with dynamic network aliases to allow multiple isolated stacks on the same VPS:
 ```yaml
 networks:
   alamia-network:
     external: true
 ```
-Every service (`app`, `worker`, `cron`, `reverb`, `db`, `redis`) must specify:
+Services must specify network aliases matching environment variables to prevent DNS collision across stacks:
 ```yaml
+  db:
+    image: postgres:16-alpine
     networks:
-      - alamia-network
+      alamia-network:
+        aliases:
+          - ${DB_HOST:-db}
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      alamia-network:
+        aliases:
+          - ${REDIS_HOST:-redis}
 ```
 
 ### Rule 2: App Host Port Publishing & Loopback Binding (`127.0.0.1`)
@@ -34,7 +45,7 @@ Every service (`app`, `worker`, `cron`, `reverb`, `db`, `redis`) must specify:
   ```
   > [!IMPORTANT]
   > Never bind to `0.0.0.0` (e.g. `"${APP_PORT:-8005}:80"`). Docker bypasses Linux UFW firewalls by default. Binding to `0.0.0.0` allows attackers to bypass Cloudflare WAF, rate limits, and DDoS protection by connecting directly to `http://<vps-ip>:8005`.
-- **Auxiliary services (`db`, `redis`, `reverb`, `worker`, `cron`)**: **NEVER** bind host ports (`8080`, `5432`, `6379`). Internal communication resolves automatically over `alamia-network` via Docker DNS (`db:5432`, `redis:6379`).
+- **Auxiliary services (`db`, `redis`, `reverb`, `worker`, `cron`)**: **NEVER** bind host ports (`8080`, `5432`, `6379`). Internal communication resolves automatically over `alamia-network` via Docker DNS aliases (`${DB_HOST}:5432`, `${REDIS_HOST}:6379`).
 
 ### Rule 3: Cloudflare Tunnel Routing
 - In the Cloudflare Zero Trust Dashboard, public hostnames route to the published port on loopback:
