@@ -6,6 +6,9 @@
 
 This is a sequence of product outcomes, not a fixed calendar commitment. Create small implementation issues with acceptance criteria in the source repository when each workstream is scheduled.
 
+> [!NOTE]
+> The complete issue breakdown and dependency graph for Stage A0 is tracked in [A0_GITHUB_ISSUES.md](A0_GITHUB_ISSUES.md).
+
 ## Stage A — Small pizza shops and cloud kitchens (commercial priority)
 
 ### A0. Stabilize order-to-kitchen reliability
