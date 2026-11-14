@@ -1,0 +1,22 @@
+{
+  "id": "web-application-reconnaissance-audit",
+  "name": "Web Application Reconnaissance & Feature Audit",
+  "description": "Systematically inspect an authorized web application, map its navigation and accessible screens, capture full-page evidence, document observed features and workflows, and produce a structured audit package for later analysis.",
+  "domain": "product-engineering",
+  "version": "1.0.0",
+  "license": "MIT",
+  "tags": [
+    "product-engineering",
+    "browser-automation",
+    "web-app-audit",
+    "screenshots",
+    "feature-inventory",
+    "competitive-intelligence"
+  ],
+  "compatibility": [
+    "agents supporting the Agent Skills SKILL.md convention",
+    "browser automation tools with navigation, interaction and full-page screenshot support"
+  ],
+  "requires": [],
+  "risk": "moderate"
+}
