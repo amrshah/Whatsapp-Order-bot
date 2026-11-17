@@ -1,182 +1,161 @@
 ---
 name: alamia-vps-deployment
-description: >-
-  Standard operating procedure for deploying containerized web applications on the Alamia Oracle VPS (Always Free Tier)
-  using Portainer Stacks, the shared alamia-network, and Cloudflare Zero Trust Tunnels.
+description: Discovery-first guidance for deploying and operating applications on Alamia-managed VPS infrastructure. Existing applications are references, not templates or sources of universal defaults.
 ---
 
-# Alamia VPS Deployment Skill (`alamiaai.com` Stack)
+# Alamia VPS Deployment & Operations
 
-This skill prescribes the exact deployment architecture and conventions for hosting applications on the Alamia Oracle VPS (Always Free Tier) using Docker, Portainer, and Cloudflare Tunnels.
+This skill is deliberately **discovery-first**. It does not prescribe a fixed application stack, service list, port, hostname, Docker network, volume name, filesystem path, runtime, or deployment method. Determine those from the target application and the live environment.
 
----
+## 1. Core rule: discover, don't assume
 
-## 1. Core Architectural Rules
+Before proposing or changing a deployment:
 
-### Rule 1: Always Use the Shared External Network (`alamia-network`) & Dynamic Network Aliases
-All stacks must attach to the pre-existing external Docker bridge network with dynamic network aliases to allow multiple isolated stacks on the same VPS:
-```yaml
-networks:
-  alamia-network:
-    external: true
-```
-Services must specify network aliases matching environment variables to prevent DNS collision across stacks:
-```yaml
-  db:
-    image: postgres:16-alpine
-    networks:
-      alamia-network:
-        aliases:
-          - ${DB_HOST:-db}
+1. Identify the target application, repository, branch, deployment configuration and intended environment.
+2. Inspect the live host and existing deployment tooling using approved, read-only access.
+3. Inspect the target repository's Dockerfiles, Compose/stack files, environment examples, entrypoints, health checks, persistence requirements and release instructions.
+4. Compare repository intent with the running environment and record discrepancies.
+5. Build the plan from verified evidence. Label unknowns and assumptions explicitly.
 
-  redis:
-    image: redis:7-alpine
-    networks:
-      alamia-network:
-        aliases:
-          - ${REDIS_HOST:-redis}
-```
+**Never copy an application's exact configuration into another application merely because both run on the same VPS.** Existing deployments are reference implementations, not universal templates.
 
-### Rule 2: App Host Port Publishing & Loopback Binding (`127.0.0.1`)
-- **`app` container**: Must publish to a dedicated, unassigned host port bound **exclusively to localhost (`127.0.0.1`)**:
-  ```yaml
-  ports:
-    - "127.0.0.1:${APP_PORT:-8005}:80"
-  ```
-  > [!IMPORTANT]
-  > Never bind to `0.0.0.0` (e.g. `"${APP_PORT:-8005}:80"`). Docker bypasses Linux UFW firewalls by default. Binding to `0.0.0.0` allows attackers to bypass Cloudflare WAF, rate limits, and DDoS protection by connecting directly to `http://<vps-ip>:8005`.
-- **Auxiliary services (`db`, `redis`, `reverb`, `worker`, `cron`)**: **NEVER** bind host ports (`8080`, `5432`, `6379`). Internal communication resolves automatically over `alamia-network` via Docker DNS aliases (`${DB_HOST}:5432`, `${REDIS_HOST}:6379`).
+## 2. Reference applications are examples, not standards
 
-### Rule 3: Cloudflare Tunnel Routing
-- In the Cloudflare Zero Trust Dashboard, public hostnames route to the published port on loopback:
-  - **Service Type**: `HTTP`
-  - **URL**: `localhost:8005` (Matches the Portainer published port).
+OrmEasy OS / Whatsapp-Order-bot may demonstrate patterns such as Portainer-managed stacks, Docker bridge networking, Cloudflare Tunnel ingress, loopback-bound host ports, persistent volumes, multi-stage builds and separate worker/scheduler/realtime processes.
 
----
+These are examples to investigate, not mandatory components or defaults.
 
-## 2. Dockerfile Build Pipeline
+Do not assume another application needs PostgreSQL, Redis, Reverb, Evolution API, queue workers, cron containers, a particular PHP/Node version, or any service found in a reference application. Derive dependencies from the target application's source, runtime configuration and verified behavior.
 
-### Multi-Stage Build with Peer Dependencies Fix
-To ensure reliable builds on Alpine and Debian images:
-1. **PHP Composer Builder Stage**: Installs composer dependencies with `--no-dev --optimize-autoloader`.
-2. **Node.js Builder Stage**:
-   - Must copy both `package*.json` AND `.npmrc`.
-   - Ensure `.npmrc` contains `legacy-peer-deps=true` (or pass `--legacy-peer-deps` to `npm install`) to prevent `ERESOLVE` peer dependency build errors.
-   - Run `npm run build` to generate `public/build`.
-3. **Final Production Stage**:
-   - Base image: `webdevops/php-nginx:8.3-alpine`.
-   - Copy built PHP vendor and frontend assets (`public/build`) from the respective builder stages.
-   - Run `php artisan storage:link`.
+Never assume a documented network, port, hostname, volume, path, container name, image tag, environment variable, resource limit or tunnel route is current. Verify it when needed.
 
----
+## 3. Discovery checklist
 
-## 3. Zero-Touch Container Startup (`docker-entrypoint.sh`)
+Collect only what is relevant, using read-only inspection first.
 
-Do not require manual SSH or console commands to initialize applications. Always include an entrypoint script:
+### Host and access
+- Host identity, purpose, architecture and operating system.
+- CPU, memory, disk capacity and current headroom.
+- Docker Engine version, storage driver and daemon configuration.
+- Portainer version, endpoint/mode and stack conventions, if used.
+- Approved access path and permissions.
+- Existing remote IDE or engineering environment: location, persistence, dependencies and protected resources.
 
-```bash
-#!/bin/sh
-set -e
+### Containers and networking
+- Running containers, images, health, restart policies and resource usage.
+- Existing stack definitions and their source of truth.
+- Docker networks, drivers, subnets, attached services, aliases and ownership.
+- Published ports and bind addresses.
+- Internal service dependencies and DNS names.
+- Whether the new service should join an existing network, use a dedicated network, or use another supported route.
 
-echo "Ensuring storage and cache directory permissions..."
-mkdir -p /app/storage/framework/cache/data \
-         /app/storage/framework/sessions \
-         /app/storage/framework/views \
-         /app/storage/logs \
-         /app/storage/app/public \
-         /app/bootstrap/cache
+Do not create, rename, replace or repurpose a shared network based only on a name in documentation.
 
-chown -R application:application /app/storage /app/bootstrap/cache
-chmod -R 775 /app/storage /app/bootstrap/cache
+### Ingress and DNS
+- Existing tunnel/reverse-proxy deployment and management method.
+- Whether ingress reaches a service through a Docker network, host loopback, reverse proxy or another mechanism.
+- Current hostname mappings and access policies.
+- TLS termination, forwarded headers, client IP handling and application proxy trust.
+- Whether a new hostname or ingress change is actually required.
 
-echo "Linking public storage..."
-php artisan storage:link --force || true
+Do not expose management interfaces, databases, caches or internal APIs publicly by default.
 
-echo "Checking application key..."
-if [ -z "$APP_KEY" ]; then
-  echo "APP_KEY is empty. Auto-generating application key..."
-  php artisan key:generate --force || true
-fi
+### Persistence and backups
+- Actual host paths and named volumes used by the target stack.
+- Durable data: databases, uploads, sessions, queues, credentials and application state.
+- Ownership, UID/GID, permissions and mount behavior.
+- Backup schedule, retention, destination and restore procedure.
+- Whether a backup has been verified before a risky change.
 
-echo "Clearing cached configurations..."
-php artisan config:clear || true
-php artisan route:clear || true
-php artisan view:clear || true
+Do not infer host paths from container paths or volume names. Confirm both sides of every mount.
 
-echo "Waiting for database to be ready and running migrations..."
-RETRIES=15
-until php artisan migrate --force || [ $RETRIES -eq 0 ]; do
-  echo "Waiting for database server, $((RETRIES--)) remaining attempts..."
-  sleep 3
-done
+### Application requirements
+- Runtime and supported versions.
+- Build process and required artifacts.
+- Required services and external integrations.
+- Environment variables and secret sources.
+- Health checks, readiness, migrations and startup ordering.
+- Worker/scheduler/realtime requirements, if any.
+- Logging, rotation, monitoring and graceful shutdown behavior.
 
-if [ $RETRIES -gt 0 ]; then
-  echo "Running database seeders..."
-  php artisan db:seed --class=RolesAndPermissionsSeeder --force || true
-  php artisan db:seed --class=CarRentalSeeder --force || true
-fi
+Do not introduce services merely because another stack uses them.
 
-echo "Starting application supervisor..."
-exec /entrypoint supervisord
-```
+## 4. Deployment principles
 
-Make it executable in the Dockerfile:
-```dockerfile
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-```
+Adapt these principles to the verified environment:
 
----
+- Prefer private service-to-service networking.
+- Avoid publishing host ports unless required by the verified ingress design or operational need.
+- If a host port is required, bind it to loopback where compatible; verify that it is unused.
+- Never publicly publish database, cache, queue, worker or management ports by default.
+- Use least-privilege container users, capabilities, mounts and network access.
+- Do not use privileged containers or mount the Docker socket without a separately reviewed and explicitly approved requirement.
+- Keep secrets out of Git, images, logs, shell history and reports.
+- Pin production images to reviewed versions/digests where practical; verify architecture compatibility.
+- Add health checks, restart behavior, log rotation and resource limits appropriate to actual host headroom.
+- Persist required data and document volume ownership and backup/restore.
+- Make deployments reproducible and reversible. Preserve the previous working configuration until the new release is verified.
 
-## 4. Volume & Asset Persistence (With Path Traversal Protection)
+Do not prescribe a base image, Dockerfile pattern, port, network name or volume layout without evidence from the target application and environment.
 
-Uploaded assets (branding logos, vehicle photos, customer documents) must persist across container updates:
-- Define a dedicated volume (e.g., `storage-data:`).
-- Mount it across `app`, `worker`, and `cron` services:
-  ```yaml
-  volumes:
-    - storage-data:/app/storage
-  ```
-- In Laravel `routes/web.php`, fallback routes `/storage/{path}` must include strict path traversal protection using `realpath()` and `str_starts_with()`:
-  ```php
-  Route::get('/storage/{path}', function (string $path) {
-      $basePath = realpath(storage_path('app/public'));
-      if (! $basePath) {
-          abort(404);
-      }
+## 5. Startup, migrations and initialization
 
-      $filePath = realpath($basePath . DIRECTORY_SEPARATOR . $path);
+Startup behavior is application-specific.
 
-      if (! $filePath || ! str_starts_with($filePath, $basePath) || ! is_file($filePath)) {
-          abort(404);
-      }
+- Inspect existing entrypoints and framework conventions before changing them.
+- Do not generate or rotate application secrets during routine container startup.
+- Do not run seeders, destructive migrations, database resets or data conversions automatically unless explicitly required, safe and approved.
+- Separate readiness checks from migrations and one-time initialization.
+- Use bounded retries and fail visibly when dependencies remain unavailable.
+- Confirm migration and rollback strategy; obtain a verified backup before risky schema changes.
+- Avoid broad recursive permission changes on mounted volumes unless the exact target and impact are understood.
 
-      return response()->file($filePath);
-  })->where('path', '.*')->name('storage.public.serve');
-  ```
+## 6. Reverse proxies and trusted client information
 
----
+- Identify every proxy in the request path and the headers it sets.
+- Configure the framework to trust only the required proxy addresses or a properly constrained chain where supported.
+- Do not blindly trust every proxy (`*`) without understanding exposure and spoofing risks.
+- Verify HTTPS detection, canonical URLs, secure cookies, redirects, client IP resolution and rate limiting.
+- Do not assume Cloudflare is the only proxy.
 
-## 5. Reverse Proxy & Client IP Trust (`bootstrap/app.php`)
+## 7. Portainer and stack workflow
 
-Because Cloudflare Tunnel terminates SSL at the edge and proxies HTTP internally, Laravel must be configured to trust upstream reverse proxies:
-```php
-->withMiddleware(function (Middleware $middleware): void {
-    $middleware->trustProxies(at: '*');
-})
-```
-This ensures:
-- `CF-Connecting-IP` / `X-Forwarded-For` is resolved so rate limiters (`throttle:`) track individual client IPs rather than throttling the entire server.
-- HTTPS redirects and asset URL generation do not get trapped in HTTP downgrade loops.
+Portainer is one possible control plane, not a reason to assume every workload uses the same workflow.
 
----
+Before using it, verify the endpoint/mode, stack source of truth (Git-backed or editor-managed), environment handling, secret injection, update conventions and rollback path. Check for naming collisions before creating resources.
 
-## 6. Portainer Stack Deployment Checklist
+Do not overwrite an existing stack or change its Git source, environment, volumes or networks as a shortcut.
 
-When deploying a new stack in Portainer:
-1. **Repository Method**: Enter GitHub repository URL, branch (`refs/heads/main`), and compose path (`docker-compose.yml`).
-2. **Environment Variables**: Use **Advanced Mode** to paste the complete `.env` configuration (matching `deploy_hetzner.md`).
-3. **Deploy the Stack**: Portainer pulls code, builds image via Dockerfile, and boots containers.
-4. **Cloudflare Tunnel Routing**: Add the public hostname in Zero Trust pointing to `localhost:8005`.
+## 8. Change control
 
+Initial discovery must not mutate the host. Prefer listing and inspecting over restarting, pruning, editing or deploying.
+
+Obtain explicit approval before:
+- Creating, deleting, replacing or materially changing stacks, containers, networks, volumes, firewall rules, DNS or tunnel routes.
+- Restarting or stopping existing services where availability may be affected.
+- Running migrations, seeders, data transformations or cleanup.
+- Changing credentials, access policies, permissions or public exposure.
+- Deleting data, pruning resources, or making changes with uncertain rollback.
+- Incurring material spend or consuming scarce host resources.
+
+Never run broad cleanup/prune commands on a shared host, delete/recreate persistent volumes to troubleshoot, expose administrative endpoints without a security design, or claim success without runtime evidence.
+
+## 9. Evidence and handover
+
+Report:
+- **Verified facts:** what was observed, where and when.
+- **Repository intent:** what the target app declares.
+- **Discrepancies:** differences between declared and live configuration.
+- **Assumptions / unknowns:** what could not be verified.
+- **Proposed changes:** exact resources and expected impact.
+- **Safety:** backup, downtime, security and rollback considerations.
+- **Validation:** health checks, logs, smoke tests and ingress verification.
+- **Outcome:** what was actually changed and evidence it works.
+
+Keep secrets redacted. Distinguish configuration files from live settings, and planned actions from completed actions.
+
+## 10. Maintaining this skill
+
+Keep this skill limited to reusable infrastructure practices and verified environment-wide conventions. Keep application-specific values in that application's own deployment documentation.
+
+Any environment fact added here must include its scope (host/shared/application), evidence/source, verification date and status (verified, observed, historical or unverified). If a fact is true only for OrmEasy or another reference application, do not promote it to an Alamia-wide rule. Re-check potentially stale facts before consequential deployments.
